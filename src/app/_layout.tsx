@@ -9,6 +9,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ConfigError } from '@/components/ConfigError';
+import { QuickActionsSheet } from '@/components/navigation/QuickActionsSheet';
 import { envError } from '@/config/env';
 import { darkTheme, lightTheme } from '@/theme/tokens';
 
@@ -32,9 +33,11 @@ export default function RootLayout() {
               <Stack
                 screenOptions={{
                   headerShown: false,
+                  animation: 'slide_from_right',
                   contentStyle: { backgroundColor },
                 }}
               />
+              <QuickActionsSheet />
             </BottomSheetModalProvider>
           </QueryClientProvider>
         )}
