@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import {
   createAccount,
+  deleteAccount,
   updateAccount,
   type AccountInput,
   type AccountUpdateInput,
@@ -25,6 +26,16 @@ export function useUpdateAccount(id: string) {
 
   return useMutation({
     mutationFn: (input: AccountUpdateInput) => updateAccount(id, input),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ACCOUNTS_QUERY_KEY }),
+  });
+}
+
+/** DELETE /accounts/:id — invalidates the list after removing the account. */
+export function useDeleteAccount(id: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => deleteAccount(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ACCOUNTS_QUERY_KEY }),
   });
 }

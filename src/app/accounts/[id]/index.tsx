@@ -1,8 +1,10 @@
 import { useEffect } from 'react';
-import { RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { Alert, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowDown, CreditCard, Repeat, ShoppingCart, Wallet, WifiOff } from 'lucide-react-native';
+
+import { isApiError } from '@/api/client';
 
 import {
   Banner,
@@ -21,6 +23,7 @@ import {
   type IconComponent,
 } from '@/components/ui';
 import { useAccountDetail, type AccountMovement } from '@/features/accounts/useAccountDetail';
+import { useDeleteAccount } from '@/features/accounts/useAccountMutations';
 import { formatMoney } from '@/lib/format';
 import { radii, typography, useThemeColors } from '@/theme';
 
@@ -89,6 +92,7 @@ export default function AccountDetailScreen() {
   const toast = useToast();
   const { id } = useLocalSearchParams<{ id: string }>();
   const detail = useAccountDetail(id);
+  const deleteAccount = useDeleteAccount(id);
 
   useEffect(() => {
     if (!detail.isNotFound) {
@@ -105,6 +109,26 @@ export default function AccountDetailScreen() {
 
   const refresh = () => {
     void detail.refetch();
+  };
+
+  const handleDelete = async () => {
+    try {
+      await deleteAccount.mutateAsync();
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace('/accounts');
+      }
+    } catch (error) {
+      toast.show(isApiError(error) ? error.message : 'No se pudo eliminar la cuenta');
+    }
+  };
+
+  const confirmDelete = () => {
+    Alert.alert('Eliminar cuenta', 'Se eliminará la cuenta. Tus movimientos se conservan.', [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Eliminar', style: 'destructive', onPress: () => void handleDelete() },
+    ]);
   };
 
   const account = detail.account;
@@ -178,6 +202,14 @@ export default function AccountDetailScreen() {
             {account.description ? (
               <Text style={[styles.hint, { color: colors.muted }]}>{account.description}</Text>
             ) : null}
+
+            <Button
+              title="Eliminar cuenta"
+              variant="danger"
+              loading={deleteAccount.isPending}
+              onPress={confirmDelete}
+              style={styles.deleteButton}
+            />
           </>
         )}
       </ScreenContainer>
@@ -198,6 +230,9 @@ const styles = StyleSheet.create({
     ...typography.footnote,
     textAlign: 'center',
     marginTop: 14,
+  },
+  deleteButton: {
+    marginTop: 18,
   },
   skeletonHeader: {
     marginTop: 24,

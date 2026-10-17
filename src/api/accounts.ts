@@ -53,3 +53,8 @@ export async function updateAccount(
   const { data } = await api.patch<ApiEnvelope<Account>>(`/accounts/${id}`, input);
   return { account: data.data, message: data.message };
 }
+
+/** DELETE /accounts/:id — logical delete; the account's movements are kept. */
+export async function deleteAccount(id: string): Promise<void> {
+  await api.delete<ApiEnvelope<null>>(`/accounts/${id}`);
+}
