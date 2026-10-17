@@ -1,5 +1,16 @@
 import type { ExpoConfig } from 'expo/config';
 
+const { existsSync } = require('fs') as { existsSync: (path: string) => boolean };
+
+/**
+ * `google-services.json` is required by FCM (F04) but is gitignored and only
+ * present in push-capable builds. Declaring it unconditionally makes Expo fail
+ * to parse the config on machines without the file, so it is added only when it
+ * actually exists.
+ */
+const googleServicesFile = './google-services.json';
+const hasGoogleServicesFile = existsSync(googleServicesFile);
+
 const config: ExpoConfig = {
   name: 'MONEA',
   slug: 'monea',
@@ -13,7 +24,7 @@ const config: ExpoConfig = {
   },
   android: {
     package: 'com.tuempresa.monea',
-    googleServicesFile: './google-services.json',
+    ...(hasGoogleServicesFile ? { googleServicesFile } : {}),
     adaptiveIcon: {
       backgroundColor: '#8F0C5B',
       foregroundImage: './assets/images/android-icon-foreground.png',
