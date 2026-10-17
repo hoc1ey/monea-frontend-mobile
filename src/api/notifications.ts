@@ -16,17 +16,35 @@ export type ReminderType =
   | 'LOAN'
   | 'DEBT';
 
+export type ReminderStatus = 'PENDING' | 'SENT' | 'FAILED' | 'CANCELLED';
+
+/**
+ * Row returned by `GET /notifications/reminders` (documents the reminder model
+ * of the API: `id, userId, type, sourceId, title, body, scheduledAt, status,
+ * attempts, sentAt, lastError, isDeleted, createdAt, updatedAt`).
+ */
 export interface Reminder {
   id: string;
+  userId: string;
   type: ReminderType;
-  title: string;
-  /** ISO UTC instant of the reminder. */
-  scheduledAt: string;
-  amount?: number | null;
   /** Entity id the reminder points at (card, recurring config, installment). */
   sourceId: string;
-  /** Parent obligation id, when the backend provides it. */
-  parentId?: string | null;
+  title: string;
+  body: string | null;
+  /** ISO UTC instant of the reminder. */
+  scheduledAt: string;
+  status: ReminderStatus;
+  attempts: number;
+  sentAt: string | null;
+  lastError: string | null;
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+  /**
+   * Not part of the documented model. The prototype shows an amount when the
+   * backend includes it, so it is read defensively.
+   */
+  amount?: number | null;
 }
 
 /** POST /notifications/devices — associates the FCM token with the user. */
