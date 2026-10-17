@@ -154,3 +154,54 @@ export async function unregisterDeviceToken(): Promise<void> {
     // Best effort: logout must continue even if this fails.
   }
 }
+
+/** Reminder kinds sent by the backend in the push payload. */
+export type ReminderType =
+  | 'CREDIT_CARD_PAYMENT'
+  | 'RECURRING_EXPENSE'
+  | 'COLLECTION'
+  | 'LOAN'
+  | 'DEBT';
+
+type NotificationData = Record<string, unknown>;
+
+function readString(data: NotificationData, key: string): string | null {
+  const value = data[key];
+  return typeof value === 'string' && value.length > 0 ? value : null;
+}
+
+/** Current period (`YYYY-MM`) used to open the active credit-card statement. */
+export function currentPeriod(date = new Date()): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
+/**
+ * Maps a push payload to the in-app route to open, following the F04 table.
+ * Returns `null` when the payload is incomplete or unknown.
+ */
+export function getNotificationRoute(data: NotificationData): string | null {
+  const type = readString(data, 'type');
+  const sourceId = readString(data, 'sourceId');
+  const parentId = readString(data, 'parentId');
+
+  switch (type) {
+    case 'CREDIT_CARD_PAYMENT':
+      return sourceId ? `/cards/${sourceId}?period=${currentPeriod()}` : null;
+    case 'RECURRING_EXPENSE':
+      return sourceId ? `/recurring/${sourceId}` : null;
+    case 'COLLECTION': {
+      const id = parentId ?? sourceId;
+      return id ? `/obligations/cobros/${id}` : null;
+    }
+    case 'LOAN': {
+      const id = parentId ?? sourceId;
+      return id ? `/obligations/prestamos/${id}` : null;
+    }
+    case 'DEBT': {
+      const id = parentId ?? sourceId;
+      return id ? `/obligations/deudas/${id}` : null;
+    }
+    default:
+      return null;
+  }
+}

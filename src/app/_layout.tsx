@@ -13,6 +13,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { queryClient } from '@/api/queryClient';
 import { ConfigError } from '@/components/ConfigError';
 import { QuickActionsSheet } from '@/components/navigation/QuickActionsSheet';
+import { NotificationObserver } from '@/components/notifications/NotificationObserver';
 import { ToastProvider } from '@/components/ui';
 import { envError } from '@/config/env';
 import {
@@ -71,6 +72,7 @@ export default function RootLayout() {
                   </Stack.Protected>
                 </Stack>
                 <QuickActionsSheet />
+                <NotificationObserver />
               </ToastProvider>
             </BottomSheetModalProvider>
           </QueryClientProvider>
