@@ -18,6 +18,8 @@ export interface FieldProps extends Omit<TextInputProps, 'style'> {
   /** Text alignment; auth screens use `left` (prototype `.auth-group`). */
   align?: 'left' | 'right';
   right?: ReactNode;
+  /** Validation message rendered below the field in 13 `negative` (F03). */
+  error?: string;
   showSeparator?: boolean;
   style?: StyleProp<ViewStyle>;
 }
@@ -26,6 +28,7 @@ function FieldBase({
   label,
   align = 'right',
   right,
+  error,
   showSeparator,
   style,
   ...inputProps
@@ -33,16 +36,19 @@ function FieldBase({
   const colors = useThemeColors();
 
   return (
-    <View style={[styles.field, style]}>
-      {showSeparator ? <Separator /> : null}
-      <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
-      {right ?? (
-        <TextInput
-          placeholderTextColor={colors.muted}
-          {...inputProps}
-          style={[styles.input, { color: colors.text, textAlign: align }]}
-        />
-      )}
+    <View style={style}>
+      <View style={styles.field}>
+        {showSeparator ? <Separator /> : null}
+        <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
+        {right ?? (
+          <TextInput
+            placeholderTextColor={colors.muted}
+            {...inputProps}
+            style={[styles.input, { color: colors.text, textAlign: align }]}
+          />
+        )}
+      </View>
+      {error ? <Text style={[styles.error, { color: colors.negative }]}>{error}</Text> : null}
     </View>
   );
 }
@@ -64,6 +70,11 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     padding: 0,
+  },
+  error: {
+    ...typography.footnote,
+    paddingHorizontal: 14,
+    paddingBottom: 8,
   },
 });
 

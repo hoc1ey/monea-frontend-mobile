@@ -1,6 +1,10 @@
-import axios, { type AxiosError } from 'axios';
+import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
+import { router } from 'expo-router';
 
+import { clearTokens, getAccessToken, getRefreshToken, saveTokens } from '@/auth/tokens';
 import { env } from '@/config/env';
+
+import { queryClient } from './queryClient';
 
 export interface ApiEnvelope<T> {
   success: boolean;
@@ -14,6 +18,7 @@ export interface ApiError {
   status: number;
   message: string;
   errors?: unknown;
+  data?: unknown;
 }
 
 export const api = axios.create({
@@ -24,15 +29,104 @@ export const api = axios.create({
   },
 });
 
+/**
+ * Bare client for `/auth/refresh`: never goes through the 401 interceptor, so
+ * a failing refresh cannot trigger an infinite refresh loop.
+ */
+const refreshClient = axios.create({
+  baseURL: env?.API_URL ?? '',
+  timeout: 15000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+const PUBLIC_PATHS = ['/auth/login', '/auth/register', '/auth/refresh', '/health'];
+
+function isPublicRequest(url?: string): boolean {
+  return url ? PUBLIC_PATHS.some((path) => url.includes(path)) : false;
+}
+
+export function isApiError(error: unknown): error is ApiError {
+  return typeof error === 'object' && error !== null && 'status' in error && 'message' in error;
+}
+
+/** Reads `retryAfterMinutes` from a 423/429 login error (F03 lock screen). */
+export function getRetryAfterMinutes(error: unknown): number | null {
+  if (!isApiError(error)) {
+    return null;
+  }
+
+  const data = error.data as { retryAfterMinutes?: unknown } | undefined;
+  const errors = error.errors as { retryAfterMinutes?: unknown } | undefined;
+  const value = data?.retryAfterMinutes ?? errors?.retryAfterMinutes;
+
+  return typeof value === 'number' ? value : null;
+}
+
+api.interceptors.request.use((config) => {
+  if (!isPublicRequest(config.url)) {
+    const token = getAccessToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
+});
+
+/** Single in-flight refresh shared by every request that gets a 401. */
+let refreshInFlight: Promise<string> | null = null;
+
+async function requestRefresh(): Promise<string> {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) {
+    throw new Error('missing_refresh_token');
+  }
+
+  const response = await refreshClient.post<ApiEnvelope<{ accessToken: string; refreshToken: string }>>(
+    '/auth/refresh',
+    { refreshToken },
+  );
+
+  const tokens = response.data.data;
+  const nextRefreshToken = tokens.refreshToken || refreshToken;
+  await saveTokens({ accessToken: tokens.accessToken, refreshToken: nextRefreshToken });
+  return tokens.accessToken;
+}
+
+async function endSession(): Promise<void> {
+  await clearTokens();
+  queryClient.clear();
+  router.replace('/login');
+}
+
 api.interceptors.response.use(
   (response) => response,
-  (error: AxiosError<Partial<ApiEnvelope<unknown>>>) => {
-    const envelope = error.response?.data;
+  async (error: AxiosError<Partial<ApiEnvelope<unknown>>>) => {
+    const config = error.config as (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined;
+    const status = error.response?.status ?? 0;
 
+    if (status === 401 && config && !config._retry && !isPublicRequest(config.url) && getRefreshToken()) {
+      config._retry = true;
+
+      try {
+        refreshInFlight = refreshInFlight ?? requestRefresh().finally(() => {
+          refreshInFlight = null;
+        });
+        const accessToken = await refreshInFlight;
+        config.headers.Authorization = `Bearer ${accessToken}`;
+        return api(config);
+      } catch {
+        await endSession();
+      }
+    }
+
+    const envelope = error.response?.data;
     const apiError: ApiError = {
-      status: error.response?.status ?? 0,
+      status,
       message: envelope?.message ?? error.message ?? 'Error inesperado',
       errors: envelope?.errors,
+      data: envelope?.data,
     };
 
     return Promise.reject(apiError);
