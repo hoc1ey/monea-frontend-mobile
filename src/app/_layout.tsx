@@ -1,5 +1,7 @@
 import '@/global.css';
 
+import { useEffect } from 'react';
+
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
@@ -11,8 +13,15 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { queryClient } from '@/api/queryClient';
 import { ConfigError } from '@/components/ConfigError';
 import { QuickActionsSheet } from '@/components/navigation/QuickActionsSheet';
+import { NotificationObserver } from '@/components/notifications/NotificationObserver';
 import { ToastProvider } from '@/components/ui';
 import { envError } from '@/config/env';
+import {
+  addDeviceTokenRotationListener,
+  configureNotificationChannel,
+  configureNotificationHandler,
+  registerDeviceToken,
+} from '@/lib/notifications';
 import { useAuthStore } from '@/stores/auth';
 import { darkTheme, lightTheme } from '@/theme/tokens';
 
@@ -22,6 +31,21 @@ export default function RootLayout() {
   const theme = vars(isDark ? darkTheme : lightTheme);
   const backgroundColor = isDark ? darkTheme['--color-bg'] : lightTheme['--color-bg'];
   const status = useAuthStore((state) => state.status);
+
+  useEffect(() => {
+    configureNotificationHandler();
+    void configureNotificationChannel();
+  }, []);
+
+  useEffect(() => {
+    if (status !== 'authenticated') {
+      return;
+    }
+
+    void registerDeviceToken();
+    const subscription = addDeviceTokenRotationListener();
+    return () => subscription.remove();
+  }, [status]);
 
   return (
     <GestureHandlerRootView style={[{ flex: 1 }, theme]}>
@@ -48,6 +72,7 @@ export default function RootLayout() {
                   </Stack.Protected>
                 </Stack>
                 <QuickActionsSheet />
+                <NotificationObserver />
               </ToastProvider>
             </BottomSheetModalProvider>
           </QueryClientProvider>
