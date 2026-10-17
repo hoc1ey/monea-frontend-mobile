@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { isApiError } from '@/api/client';
 import { signUp } from '@/auth/session';
 import { Button, Field, Group, Note, ScreenContainer, Select, TopBar } from '@/components/ui';
+import { shouldShowNotificationOnboarding } from '@/lib/notifications';
 import { detectTimezone, TIMEZONE_OPTIONS } from '@/lib/timezone';
 import { typography, useThemeColors } from '@/theme';
 
@@ -51,7 +52,8 @@ export default function RegisterScreen() {
 
     try {
       await signUp(values);
-      router.replace('/');
+      const showOnboarding = await shouldShowNotificationOnboarding();
+      router.replace(showOnboarding ? '/notifications-onboarding' : '/');
     } catch (error) {
       setFormError(isApiError(error) ? error.message : 'No se pudo crear la cuenta');
     }

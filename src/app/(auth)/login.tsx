@@ -10,6 +10,7 @@ import { getRetryAfterMinutes, isApiError } from '@/api/client';
 import { signIn } from '@/auth/session';
 import { BrandLogo } from '@/components/auth/BrandLogo';
 import { Button, Field, Group } from '@/components/ui';
+import { shouldShowNotificationOnboarding } from '@/lib/notifications';
 import { typography, useThemeColors } from '@/theme';
 
 const schema = z.object({
@@ -36,7 +37,8 @@ export default function LoginScreen() {
 
     try {
       await signIn(values);
-      router.replace('/');
+      const showOnboarding = await shouldShowNotificationOnboarding();
+      router.replace(showOnboarding ? '/notifications-onboarding' : '/');
     } catch (error) {
       const status = isApiError(error) ? error.status : 0;
 
