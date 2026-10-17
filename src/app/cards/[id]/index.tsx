@@ -23,6 +23,8 @@ import {
   type ChipOption,
   type TagVariant,
 } from '@/components/ui';
+import { useAccounts } from '@/features/accounts/useAccounts';
+import { PayCardSheet } from '@/features/cards/PayCardSheet';
 import {
   buildPeriods,
   currentPeriodInTimezone,
@@ -30,7 +32,10 @@ import {
   shortMonthLabel,
 } from '@/features/cards/periods';
 import { useCreditCardDetail } from '@/features/cards/useCreditCardDetail';
-import { useDeleteCreditCard } from '@/features/cards/useCreditCardMutations';
+import {
+  useDeleteCreditCard,
+  usePayCreditCard,
+} from '@/features/cards/useCreditCardMutations';
 import { formatMoney } from '@/lib/format';
 import { detectTimezone } from '@/lib/timezone';
 import { useAuthStore } from '@/stores/auth';
@@ -72,9 +77,12 @@ export default function CardDetailScreen() {
   const [period, setPeriod] = useState(() =>
     isValidPeriod(params.period) ? params.period : currentPeriodInTimezone(timezone),
   );
+  const [payVisible, setPayVisible] = useState(false);
 
   const detail = useCreditCardDetail(id, period);
+  const accounts = useAccounts();
   const deleteCard = useDeleteCreditCard(id);
+  const pay = usePayCreditCard(id);
 
   useEffect(() => {
     if (!detail.isNotFound) {
@@ -115,6 +123,21 @@ export default function CardDetailScreen() {
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Eliminar', style: 'destructive', onPress: () => void handleDelete() },
     ]);
+  };
+
+  const handleConfirmPay = async (accountId: string) => {
+    try {
+      await pay.mutateAsync({ accountId, period });
+      setPayVisible(false);
+      toast.show('Pago registrado · egreso creado');
+    } catch (error) {
+      if (isApiError(error) && error.status === 409) {
+        setPayVisible(false);
+        toast.show('Este periodo ya fue pagado');
+        return;
+      }
+      toast.show(isApiError(error) ? error.message : 'No se pudo registrar el pago');
+    }
   };
 
   const periodOptions: ChipOption<string>[] = buildPeriods(
@@ -215,6 +238,14 @@ export default function CardDetailScreen() {
                 <Text style={[styles.periodFooter, { color: colors.muted }]}>
                   Corte {report.cutoffDate} · Pago {report.paymentDate}
                 </Text>
+                {report.total > 0 && !report.paid ? (
+                  <Button
+                    title="Pagar periodo"
+                    small
+                    onPress={() => setPayVisible(true)}
+                    style={styles.payButton}
+                  />
+                ) : null}
               </View>
             )}
 
@@ -245,6 +276,17 @@ export default function CardDetailScreen() {
               loading={deleteCard.isPending}
               onPress={confirmDelete}
               style={styles.deleteButton}
+            />
+
+            <PayCardSheet
+              visible={payVisible}
+              onClose={() => setPayVisible(false)}
+              card={card}
+              period={period}
+              total={report?.total ?? 0}
+              accounts={accounts.data ?? []}
+              isPaying={pay.isPending}
+              onConfirm={(accountId) => void handleConfirmPay(accountId)}
             />
           </>
         )}

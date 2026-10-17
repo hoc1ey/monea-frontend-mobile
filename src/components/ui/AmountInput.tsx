@@ -7,10 +7,18 @@ export interface AmountInputProps {
   onChangeText: (value: string) => void;
   placeholder?: string;
   autoFocus?: boolean;
+  /** Read-only display (e.g. the card payment sheet shows a fixed total). */
+  editable?: boolean;
 }
 
 /** Centered amount field with a `$` prefix (prototype `.amt-input`). */
-export function AmountInput({ value, onChangeText, placeholder = '0.00', autoFocus }: AmountInputProps) {
+export function AmountInput({
+  value,
+  onChangeText,
+  placeholder = '0.00',
+  autoFocus,
+  editable = true,
+}: AmountInputProps) {
   const colors = useThemeColors();
 
   return (
@@ -24,6 +32,7 @@ export function AmountInput({ value, onChangeText, placeholder = '0.00', autoFoc
         keyboardType="decimal-pad"
         inputMode="decimal"
         autoFocus={autoFocus}
+        editable={editable}
         style={[styles.input, { color: colors.text }]}
       />
     </View>
