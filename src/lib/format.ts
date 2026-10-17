@@ -3,6 +3,16 @@ import { es } from 'date-fns/locale';
 
 const MONTHS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
+/** Rounds a money value to 2 decimals, avoiding accumulated float error. */
+export function roundMoney(value: number): number {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
+/** Sums money values and rounds the result to 2 decimals. */
+export function sumMoney(values: number[]): number {
+  return roundMoney(values.reduce((total, value) => total + value, 0));
+}
+
 export function formatMoney(value: number): string {
   const sign = value < 0 ? '-' : '';
   const [integer, decimals] = Math.abs(value).toFixed(2).split('.');

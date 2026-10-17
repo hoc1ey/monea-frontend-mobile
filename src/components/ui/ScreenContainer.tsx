@@ -1,10 +1,19 @@
-import type { ReactNode } from 'react';
-import { ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import type { ReactElement, ReactNode } from 'react';
+import {
+  ScrollView,
+  StyleSheet,
+  View,
+  type RefreshControlProps,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 
 export interface ScreenContainerProps {
   children: ReactNode;
   /** Renders the content inside a ScrollView (default) or a plain View. */
   scroll?: boolean;
+  /** Optional `RefreshControl` for pull-to-refresh (CONVENCIONES 1.7). */
+  refreshControl?: ReactElement<RefreshControlProps>;
   style?: StyleProp<ViewStyle>;
   contentContainerStyle?: StyleProp<ViewStyle>;
 }
@@ -16,6 +25,7 @@ export interface ScreenContainerProps {
 export function ScreenContainer({
   children,
   scroll = true,
+  refreshControl,
   style,
   contentContainerStyle,
 }: ScreenContainerProps) {
@@ -27,6 +37,7 @@ export function ScreenContainer({
     <ScrollView
       style={[styles.flex, style]}
       contentContainerStyle={[styles.screen, contentContainerStyle]}
+      refreshControl={refreshControl}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
     >
