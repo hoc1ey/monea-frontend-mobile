@@ -48,7 +48,7 @@ Run `pnpm lint` and `pnpm exec tsc --noEmit` before declaring any task done. The
 
 ## Structure
 
-- `src/app/` — Expo Router routes only: screen files plus `_layout.tsx` navigators. Route groups include `(tabs)` (tab shell) and `(auth)` (login). Keep non-route code out of here.
+- `src/app/` — Expo Router routes only: screen files plus `_layout.tsx` navigators. Route groups include `(tabs)` (tab shell) and `(auth)` (splash, login, register, lock). Keep non-route code out of here.
 - `src/components/ui/` — design-system components. Read the barrel `src/components/ui/index.ts` before building new UI and reuse what exists (`Button`, `Row`, `Group`, `Sheet`, `Segmented`, `EmptyState`, `Note`, `TopBar`, `LargeHeader`, `IconTile`, `ScreenContainer`, ...).
 - `src/components/navigation/` — custom tab bar, FAB and global quick-actions sheet.
 - `src/theme/` — `tokens.ts` (colors, radii, spacing, typography, elevation) and hooks `useThemeColors()` / `useIsDark()`; import via `@/theme`.
@@ -68,6 +68,14 @@ Run `pnpm lint` and `pnpm exec tsc --noEmit` before declaring any task done. The
 - The legacy `Tabs` export from `expo-router` is deprecated in SDK 57. Import the JS tabs navigator from `expo-router/js-tabs` (and its `BottomTabBarProps` type) when customizing the tab bar.
 - `typedRoutes` is enabled in `app.config.ts`. New routes are only typed after `.expo/types/router.d.ts` is regenerated — run `pnpm start` once after adding route files, then typecheck.
 - Docs: https://docs.expo.dev/router/introduction.md
+
+## Auth & session (F03)
+
+- Tokens live only in `expo-secure-store` via `src/auth/tokens.ts` (keys `monea.access`, `monea.refresh`) with an in-memory cache the HTTP layer reads synchronously. Never put tokens in AsyncStorage or Zustand.
+- `src/api/client.ts` adds `Bearer` to every request except `/auth/{login,register,refresh}` and `/health`. On a 401 it runs a single-flight `/auth/refresh` (concurrent 401s share one promise), retries once, and on failure clears tokens + `queryClient.clear()` and `router.replace('/login')`.
+- The shared TanStack `QueryClient` is `src/api/queryClient.ts`; import it instead of creating new clients so logout can purge the cache.
+- Route gating is in the root `src/app/_layout.tsx` with `Stack.Protected` driven by `useAuthStore().status` (`loading | authenticated | unauthenticated`). `(auth)` is the unauthenticated stack with `splash` as its `initialRouteName` (`unstable_settings` in `(auth)/_layout.tsx`); session bootstrap lives in `(auth)/splash.tsx`.
+- Auth forms use `react-hook-form` + `zodResolver` from `@hookform/resolvers/zod`; `Field` takes an `error` prop that renders 13/`negative` text under the field. Both need a valid `EXPO_PUBLIC_API_URL` to exercise.
 
 ## Git workflow
 
