@@ -8,6 +8,7 @@ import { Button, useToast } from '@/components/ui';
 import {
   dismissNotificationPrompt,
   openNotificationSettings,
+  registerDeviceToken,
   requestNotificationPermission,
 } from '@/lib/notifications';
 import { ICON_STROKE, typography, useThemeColors } from '@/theme';
@@ -25,9 +26,11 @@ export default function NotificationsOnboardingScreen() {
     setRequesting(true);
     try {
       const result = await requestNotificationPermission();
-      if (result.openSettings) {
+      if (result.status === 'granted') {
+        await registerDeviceToken();
+      } else if (result.openSettings) {
         await openNotificationSettings();
-      } else if (result.status === 'denied') {
+      } else {
         show('Puedes activarlas más tarde desde Ajustes');
       }
     } finally {

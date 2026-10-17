@@ -1,7 +1,10 @@
 import { Linking, Platform } from 'react-native';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
+
+import { registerDevice, unregisterDevice } from '@/api/notifications';
 
 /** Android channel used by every reminder push (F04). */
 export const REMINDERS_CHANNEL_ID = 'recordatorios';
@@ -105,4 +108,49 @@ export async function shouldShowNotificationOnboarding(): Promise<boolean> {
     return false;
   }
   return (await getNotificationPermission()) !== 'granted';
+}
+
+/**
+ * Registers the current FCM token with the backend. Best effort: a missing
+ * permission, an emulator without FCM or an offline request never throws.
+ */
+export async function registerDeviceToken(): Promise<void> {
+  if (!Device.isDevice || (await getNotificationPermission()) !== 'granted') {
+    return;
+  }
+
+  try {
+    const token = await Notifications.getDevicePushTokenAsync();
+    if (typeof token.data === 'string' && token.data.length > 0) {
+      await registerDevice({ token: token.data, platform: 'ANDROID' });
+    }
+  } catch {
+    // Ignore: the token is re-registered on the next authenticated launch.
+  }
+}
+
+/**
+ * Re-registers the device whenever FCM rotates the token while the app runs.
+ * Returns the subscription so the caller can remove it on unmount/logout.
+ */
+export function addDeviceTokenRotationListener(): ReturnType<
+  typeof Notifications.addPushTokenListener
+> {
+  return Notifications.addPushTokenListener((token) => {
+    if (typeof token.data === 'string' && token.data.length > 0) {
+      registerDevice({ token: token.data, platform: 'ANDROID' }).catch(() => undefined);
+    }
+  });
+}
+
+/** Deactivates the device on the backend (best effort, never throws). */
+export async function unregisterDeviceToken(): Promise<void> {
+  try {
+    const token = await Notifications.getDevicePushTokenAsync();
+    if (typeof token.data === 'string' && token.data.length > 0) {
+      await unregisterDevice(token.data);
+    }
+  } catch {
+    // Best effort: logout must continue even if this fails.
+  }
 }

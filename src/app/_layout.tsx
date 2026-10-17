@@ -15,7 +15,12 @@ import { ConfigError } from '@/components/ConfigError';
 import { QuickActionsSheet } from '@/components/navigation/QuickActionsSheet';
 import { ToastProvider } from '@/components/ui';
 import { envError } from '@/config/env';
-import { configureNotificationChannel, configureNotificationHandler } from '@/lib/notifications';
+import {
+  addDeviceTokenRotationListener,
+  configureNotificationChannel,
+  configureNotificationHandler,
+  registerDeviceToken,
+} from '@/lib/notifications';
 import { useAuthStore } from '@/stores/auth';
 import { darkTheme, lightTheme } from '@/theme/tokens';
 
@@ -30,6 +35,16 @@ export default function RootLayout() {
     configureNotificationHandler();
     void configureNotificationChannel();
   }, []);
+
+  useEffect(() => {
+    if (status !== 'authenticated') {
+      return;
+    }
+
+    void registerDeviceToken();
+    const subscription = addDeviceTokenRotationListener();
+    return () => subscription.remove();
+  }, [status]);
 
   return (
     <GestureHandlerRootView style={[{ flex: 1 }, theme]}>

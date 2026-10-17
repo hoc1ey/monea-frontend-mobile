@@ -8,6 +8,7 @@ import {
   type RegisterInput,
 } from '@/api/auth';
 import { queryClient } from '@/api/queryClient';
+import { unregisterDeviceToken } from '@/lib/notifications';
 import { useAuthStore } from '@/stores/auth';
 
 import { clearTokens, getRefreshToken, loadTokens, saveTokens } from './tokens';
@@ -63,6 +64,7 @@ export async function signUp(input: RegisterInput): Promise<void> {
 /** Logout: revokes the current session and clears all local state. */
 export async function signOut(): Promise<void> {
   const refreshToken = getRefreshToken();
+  await unregisterDeviceToken();
   await clearTokens();
   queryClient.clear();
   const { setUser, setStatus } = useAuthStore.getState();
@@ -76,6 +78,7 @@ export async function signOut(): Promise<void> {
 
 /** Logout-all: revokes every session of the user and clears all local state. */
 export async function signOutAll(): Promise<void> {
+  await unregisterDeviceToken();
   await logoutAllRequest().catch(() => undefined);
   await clearTokens();
   queryClient.clear();
