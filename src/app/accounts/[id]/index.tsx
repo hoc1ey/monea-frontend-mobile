@@ -15,6 +15,7 @@ import {
   SectionHeader,
   Skeleton,
   Tag,
+  TextButton,
   TopBar,
   useToast,
   type IconComponent,
@@ -110,7 +111,20 @@ export default function AccountDetailScreen() {
 
   return (
     <>
-      <TopBar title={account?.name ?? 'Cuenta'} onBack={() => router.back()} />
+      <TopBar
+        title={account?.name ?? 'Cuenta'}
+        onBack={() => router.back()}
+        right={
+          account ? (
+            <TextButton
+              title="Editar"
+              onPress={() =>
+                router.push({ pathname: '/accounts/[id]/edit', params: { id: account.id } })
+              }
+            />
+          ) : undefined
+        }
+      />
       <ScreenContainer
         refreshControl={
           <RefreshControl
