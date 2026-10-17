@@ -156,13 +156,6 @@ export async function unregisterDeviceToken(): Promise<void> {
 }
 
 /** Reminder kinds sent by the backend in the push payload. */
-export type ReminderType =
-  | 'CREDIT_CARD_PAYMENT'
-  | 'RECURRING_EXPENSE'
-  | 'COLLECTION'
-  | 'LOAN'
-  | 'DEBT';
-
 type NotificationData = Record<string, unknown>;
 
 function readString(data: NotificationData, key: string): string | null {
