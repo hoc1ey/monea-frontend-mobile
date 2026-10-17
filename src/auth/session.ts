@@ -1,13 +1,16 @@
 import {
   login as loginRequest,
+  logout as logoutRequest,
+  logoutAll as logoutAllRequest,
   refresh as refreshRequest,
   register as registerRequest,
   type LoginInput,
   type RegisterInput,
 } from '@/api/auth';
+import { queryClient } from '@/api/queryClient';
 import { useAuthStore } from '@/stores/auth';
 
-import { clearTokens, loadTokens, saveTokens } from './tokens';
+import { clearTokens, getRefreshToken, loadTokens, saveTokens } from './tokens';
 
 /**
  * Restores the session on cold start: reads the tokens from the secure store
@@ -55,4 +58,28 @@ export async function signUp(input: RegisterInput): Promise<void> {
   const { setUser, setStatus } = useAuthStore.getState();
   setUser(session.user);
   setStatus('authenticated');
+}
+
+/** Logout: revokes the current session and clears all local state. */
+export async function signOut(): Promise<void> {
+  const refreshToken = getRefreshToken();
+  await clearTokens();
+  queryClient.clear();
+  const { setUser, setStatus } = useAuthStore.getState();
+  setUser(null);
+  setStatus('unauthenticated');
+
+  if (refreshToken) {
+    logoutRequest(refreshToken).catch(() => undefined);
+  }
+}
+
+/** Logout-all: revokes every session of the user and clears all local state. */
+export async function signOutAll(): Promise<void> {
+  await logoutAllRequest().catch(() => undefined);
+  await clearTokens();
+  queryClient.clear();
+  const { setUser, setStatus } = useAuthStore.getState();
+  setUser(null);
+  setStatus('unauthenticated');
 }
