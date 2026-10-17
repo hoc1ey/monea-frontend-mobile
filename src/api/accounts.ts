@@ -17,3 +17,9 @@ export async function getAccounts(): Promise<Account[]> {
   const { data } = await api.get<ApiEnvelope<Account[]>>('/accounts');
   return data.data;
 }
+
+/** GET /accounts/:id — single account with its `currentBalance`. 404 if missing. */
+export async function getAccount(id: string): Promise<Account> {
+  const { data } = await api.get<ApiEnvelope<Account>>(`/accounts/${id}`);
+  return data.data;
+}

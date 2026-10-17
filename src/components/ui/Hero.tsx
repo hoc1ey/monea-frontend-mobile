@@ -16,17 +16,19 @@ export interface HeroProps {
   footer?: HeroFooterRow[];
   /** Compact variant (prototype `.hero.sm`). */
   small?: boolean;
+  /** Overrides the gradient start/end colors (defaults to the theme hero tokens). */
+  gradient?: [string, string];
   children?: ReactNode;
   style?: StyleProp<ViewStyle>;
 }
 
 /** Balance block with a 135° gradient and a clipped decorative circle. */
-export function Hero({ label, value, footer, small = false, children, style }: HeroProps) {
+export function Hero({ label, value, footer, small = false, gradient, children, style }: HeroProps) {
   const colors = useThemeColors();
 
   return (
     <LinearGradient
-      colors={[colors.heroA, colors.heroB]}
+      colors={gradient ?? [colors.heroA, colors.heroB]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={[small ? styles.small : styles.base, style]}

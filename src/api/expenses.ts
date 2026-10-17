@@ -1,4 +1,7 @@
 import { api, type ApiEnvelope } from './client';
+import type { Paginated } from './types';
+
+export type { Paginated } from './types';
 
 export type ExpensePaymentMethod = 'CORRIENTE' | 'DIFERIDO';
 
@@ -29,18 +32,26 @@ export interface Expense {
   sourceType: ExpenseSourceType;
 }
 
-export interface Paginated<T> {
-  items: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+/** Optional filters accepted by `GET /expenses` (only documented fields). */
+export interface ExpenseQuery {
+  page?: number;
+  limit?: number;
+  accountId?: string;
+  creditCardId?: string;
+  paymentMethod?: ExpensePaymentMethod;
+  amountPending?: boolean;
+  from?: string;
+  to?: string;
+}
+
+/** GET /expenses — paginated expenses ordered by `date` DESC. */
+export async function getExpenses(params: ExpenseQuery = {}): Promise<Paginated<Expense>> {
+  const { data } = await api.get<ApiEnvelope<Paginated<Expense>>>('/expenses', { params });
+  return data.data;
 }
 
 /** GET /expenses?amountPending=true — recurring expenses awaiting an amount. */
 export async function getPendingExpenses(): Promise<Expense[]> {
-  const { data } = await api.get<ApiEnvelope<Paginated<Expense>>>('/expenses', {
-    params: { amountPending: true, limit: 100 },
-  });
-  return data.data.items;
+  const page = await getExpenses({ amountPending: true, limit: 100 });
+  return page.items;
 }
