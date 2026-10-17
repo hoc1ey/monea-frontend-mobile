@@ -1,7 +1,7 @@
-import { Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { router } from 'expo-router';
-import { Bell, Repeat, Wallet, WifiOff } from 'lucide-react-native';
+import { Bell, CreditCard, Repeat, Wallet, WifiOff } from 'lucide-react-native';
 
 import { Fab } from '@/components/navigation/Fab';
 import {
@@ -11,6 +11,7 @@ import {
   Group,
   Hero,
   LargeHeader,
+  MiniAccountCard,
   Row,
   ScreenContainer,
   SectionHeader,
@@ -19,6 +20,7 @@ import {
 import {
   useHomeDashboard,
   type HomeAttention,
+  type HomeCard,
 } from '@/features/home/useHomeDashboard';
 import { formatDate, formatMoney } from '@/lib/format';
 import { useUiStore } from '@/stores/ui';
@@ -63,6 +65,26 @@ function HomeSkeleton() {
   );
 }
 
+/** Right-aligned section link (prototype `.lnk`). */
+function SectionLink({ label, onPress }: { label: string; onPress: () => void }) {
+  const colors = useThemeColors();
+
+  return (
+    <Pressable accessibilityRole="link" accessibilityLabel={label} onPress={onPress}>
+      <Text style={[styles.link, { color: colors.accentInk }]}>{label}</Text>
+    </Pressable>
+  );
+}
+
+/** Card icon on a tile tinted with the card color at 20 % (prototype `${color}33`). */
+function CardTile({ color }: { color: string }) {
+  return (
+    <View style={[styles.cardTile, { backgroundColor: `${color}33` }]}>
+      <CreditCard size={18} color={color} strokeWidth={ICON_STROKE} />
+    </View>
+  );
+}
+
 function AttentionRows({ items }: { items: HomeAttention[] }) {
   return (
     <Group>
@@ -91,6 +113,23 @@ function AttentionRows({ items }: { items: HomeAttention[] }) {
           />
         );
       })}
+    </Group>
+  );
+}
+
+function CardsGroup({ cards }: { cards: HomeCard[] }) {
+  return (
+    <Group>
+      {cards.map((card) => (
+        <Row
+          key={card.id}
+          leading={<CardTile color={card.color} />}
+          title={card.name}
+          subtitle={card.paymentDay != null ? `Pago el ${card.paymentDay} de cada mes` : undefined}
+          value={formatMoney(card.periodDebt)}
+          onPress={() => router.push({ pathname: '/cards/[id]', params: { id: card.id } })}
+        />
+      ))}
     </Group>
   );
 }
@@ -167,6 +206,39 @@ export default function HomeScreen() {
                     <AttentionRows items={dashboard.attention} />
                   </>
                 ) : null}
+
+                <SectionHeader
+                  title="Cuentas"
+                  action={
+                    <SectionLink label="Ver todas" onPress={() => router.push('/accounts')} />
+                  }
+                />
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.accountsScroll}
+                  contentContainerStyle={styles.accountsContent}
+                >
+                  {dashboard.accounts.map((account) => (
+                    <MiniAccountCard
+                      key={account.id}
+                      name={account.name}
+                      institution={account.financialInstitution}
+                      balance={formatMoney(account.currentBalance)}
+                      color={account.color}
+                      onPress={() =>
+                        router.push({ pathname: '/accounts/[id]', params: { id: account.id } })
+                      }
+                    />
+                  ))}
+                </ScrollView>
+
+                {dashboard.cards.length > 0 ? (
+                  <>
+                    <SectionHeader title="Tarjetas" />
+                    <CardsGroup cards={dashboard.cards} />
+                  </>
+                ) : null}
               </>
             )}
           </>
@@ -188,6 +260,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  link: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  cardTile: {
+    width: 34,
+    height: 34,
+    borderRadius: radii.icon,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   skeletonHeader: {
     marginTop: 24,
     marginBottom: 8,
@@ -196,5 +279,13 @@ const styles = StyleSheet.create({
   skeletonGroup: {
     padding: 14,
     gap: 12,
+  },
+  accountsScroll: {
+    marginHorizontal: -16,
+  },
+  accountsContent: {
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 4,
   },
 });
