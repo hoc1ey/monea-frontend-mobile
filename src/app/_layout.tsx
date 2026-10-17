@@ -8,6 +8,8 @@ import { useColorScheme, vars } from 'nativewind';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { ConfigError } from '@/components/ConfigError';
+import { envError } from '@/config/env';
 import { darkTheme, lightTheme } from '@/theme/tokens';
 
 const queryClient = new QueryClient();
@@ -21,17 +23,21 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={[{ flex: 1 }, theme]}>
       <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
-          <BottomSheetModalProvider>
-            <StatusBar style="auto" />
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                contentStyle: { backgroundColor },
-              }}
-            />
-          </BottomSheetModalProvider>
-        </QueryClientProvider>
+        {envError ? (
+          <ConfigError message={envError} />
+        ) : (
+          <QueryClientProvider client={queryClient}>
+            <BottomSheetModalProvider>
+              <StatusBar style="auto" />
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  contentStyle: { backgroundColor },
+                }}
+              />
+            </BottomSheetModalProvider>
+          </QueryClientProvider>
+        )}
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
