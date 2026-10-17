@@ -1,10 +1,48 @@
 import { Linking, Platform } from 'react-native';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { isRunningInExpoGo } from 'expo';
 import * as Device from 'expo-device';
-import * as Notifications from 'expo-notifications';
 
 import { registerDevice, unregisterDevice } from '@/api/notifications';
+
+type NotificationsModule = typeof import('expo-notifications');
+type PushTokenSubscription = ReturnType<NotificationsModule['addPushTokenListener']>;
+type NotificationResponseSubscription = ReturnType<
+  NotificationsModule['addNotificationResponseReceivedListener']
+>;
+type NotificationResponse = Parameters<
+  Parameters<NotificationsModule['addNotificationResponseReceivedListener']>[0]
+>[0];
+
+/**
+ * Lazily requires `expo-notifications`. Remote push requires a development build
+ * and Expo Go on Android has lacked the package's native modules since SDK 53,
+ * so evaluating it there throws and importing it eagerly would take the whole
+ * app down. The module is only loaded outside Expo Go and any failure degrades
+ * to a no-op instead of crashing.
+ */
+let notificationsModule: NotificationsModule | null | undefined;
+
+function getNotificationsModule(): NotificationsModule | null {
+  if (notificationsModule !== undefined) {
+    return notificationsModule;
+  }
+
+  if (isRunningInExpoGo()) {
+    notificationsModule = null;
+    return null;
+  }
+
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    notificationsModule = require('expo-notifications') as NotificationsModule;
+  } catch {
+    notificationsModule = null;
+  }
+
+  return notificationsModule;
+}
 
 /** Android channel used by every reminder push (F04). */
 export const REMINDERS_CHANNEL_ID = 'recordatorios';
@@ -28,7 +66,7 @@ export interface NotificationPermissionResult {
  * foreground, so incoming reminders are never silently swallowed.
  */
 export function configureNotificationHandler(): void {
-  Notifications.setNotificationHandler({
+  getNotificationsModule()?.setNotificationHandler({
     handleNotification: async () => ({
       shouldShowBanner: true,
       shouldShowList: true,
@@ -43,13 +81,14 @@ export function configureNotificationHandler(): void {
  * channel must exist before the system permission prompt can be triggered.
  */
 export async function configureNotificationChannel(): Promise<void> {
-  if (Platform.OS !== 'android') {
+  const notifications = getNotificationsModule();
+  if (Platform.OS !== 'android' || !notifications) {
     return;
   }
 
-  await Notifications.setNotificationChannelAsync(REMINDERS_CHANNEL_ID, {
+  await notifications.setNotificationChannelAsync(REMINDERS_CHANNEL_ID, {
     name: 'Recordatorios',
-    importance: Notifications.AndroidImportance.HIGH,
+    importance: notifications.AndroidImportance.HIGH,
     lightColor: NOTIFICATION_COLOR,
     sound: 'default',
   });
@@ -57,7 +96,12 @@ export async function configureNotificationChannel(): Promise<void> {
 
 /** Current authorization status, normalized to a plain string. */
 export async function getNotificationPermission(): Promise<NotificationPermission> {
-  const settings = await Notifications.getPermissionsAsync();
+  const notifications = getNotificationsModule();
+  if (!notifications) {
+    return 'undetermined';
+  }
+
+  const settings = await notifications.getPermissionsAsync();
   if (settings.granted) {
     return 'granted';
   }
@@ -70,7 +114,12 @@ export async function getNotificationPermission(): Promise<NotificationPermissio
  * `true` so the caller can send the user to the system settings instead.
  */
 export async function requestNotificationPermission(): Promise<NotificationPermissionResult> {
-  const current = await Notifications.getPermissionsAsync();
+  const notifications = getNotificationsModule();
+  if (!notifications) {
+    return { status: 'undetermined', openSettings: false };
+  }
+
+  const current = await notifications.getPermissionsAsync();
 
   if (current.granted) {
     return { status: 'granted', openSettings: false };
@@ -80,7 +129,7 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
     return { status: 'denied', openSettings: true };
   }
 
-  const requested = await Notifications.requestPermissionsAsync();
+  const requested = await notifications.requestPermissionsAsync();
   return { status: requested.granted ? 'granted' : 'denied', openSettings: false };
 }
 
@@ -115,12 +164,17 @@ export async function shouldShowNotificationOnboarding(): Promise<boolean> {
  * permission, an emulator without FCM or an offline request never throws.
  */
 export async function registerDeviceToken(): Promise<void> {
-  if (!Device.isDevice || (await getNotificationPermission()) !== 'granted') {
+  const notifications = getNotificationsModule();
+  if (!notifications || !Device.isDevice) {
+    return;
+  }
+
+  if ((await getNotificationPermission()) !== 'granted') {
     return;
   }
 
   try {
-    const token = await Notifications.getDevicePushTokenAsync();
+    const token = await notifications.getDevicePushTokenAsync();
     if (typeof token.data === 'string' && token.data.length > 0) {
       await registerDevice({ token: token.data, platform: 'ANDROID' });
     }
@@ -133,10 +187,13 @@ export async function registerDeviceToken(): Promise<void> {
  * Re-registers the device whenever FCM rotates the token while the app runs.
  * Returns the subscription so the caller can remove it on unmount/logout.
  */
-export function addDeviceTokenRotationListener(): ReturnType<
-  typeof Notifications.addPushTokenListener
-> {
-  return Notifications.addPushTokenListener((token) => {
+export function addDeviceTokenRotationListener(): PushTokenSubscription {
+  const notifications = getNotificationsModule();
+  if (!notifications) {
+    return { remove: () => undefined };
+  }
+
+  return notifications.addPushTokenListener((token) => {
     if (typeof token.data === 'string' && token.data.length > 0) {
       registerDevice({ token: token.data, platform: 'ANDROID' }).catch(() => undefined);
     }
@@ -145,14 +202,46 @@ export function addDeviceTokenRotationListener(): ReturnType<
 
 /** Deactivates the device on the backend (best effort, never throws). */
 export async function unregisterDeviceToken(): Promise<void> {
+  const notifications = getNotificationsModule();
+  if (!notifications) {
+    return;
+  }
+
   try {
-    const token = await Notifications.getDevicePushTokenAsync();
+    const token = await notifications.getDevicePushTokenAsync();
     if (typeof token.data === 'string' && token.data.length > 0) {
       await unregisterDevice(token.data);
     }
   } catch {
     // Best effort: logout must continue even if this fails.
   }
+}
+
+function readNotificationData(response: NotificationResponse): Record<string, unknown> {
+  const data = response.notification.request.content.data;
+  return (data as Record<string, unknown> | undefined) ?? {};
+}
+
+/**
+ * Invokes `onData` with the payload of a tapped notification, including the one
+ * that cold-started the app. Returns the subscription to remove on unmount.
+ */
+export function addNotificationResponseListener(
+  onData: (data: Record<string, unknown>) => void
+): NotificationResponseSubscription {
+  const notifications = getNotificationsModule();
+  if (!notifications) {
+    return { remove: () => undefined };
+  }
+
+  const last = notifications.getLastNotificationResponse();
+  if (last) {
+    onData(readNotificationData(last));
+  }
+
+  return notifications.addNotificationResponseReceivedListener((response) => {
+    onData(readNotificationData(response));
+  });
 }
 
 /** Reminder kinds sent by the backend in the push payload. */

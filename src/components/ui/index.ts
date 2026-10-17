@@ -26,6 +26,7 @@ export { Skeleton, type SkeletonProps } from './Skeleton';
 export { Stepper, type StepperProps } from './Stepper';
 export { Switch, type SwitchProps } from './Switch';
 export { Tag, type TagProps } from './Tag';
+export { TextButton, type TextButtonProps } from './TextButton';
 export { ToastProvider, useToast, type ToastProviderProps } from './Toast';
 export { TopBar, type TopBarProps } from './TopBar';
 export type { IconComponent, TagVariant } from './types';
