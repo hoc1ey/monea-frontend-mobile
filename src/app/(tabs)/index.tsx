@@ -1,19 +1,25 @@
 import { Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { router } from 'expo-router';
-import { Bell, Wallet, WifiOff } from 'lucide-react-native';
+import { Bell, Repeat, Wallet, WifiOff } from 'lucide-react-native';
 
 import { Fab } from '@/components/navigation/Fab';
 import {
   Banner,
   Button,
   EmptyState,
+  Group,
   Hero,
   LargeHeader,
+  Row,
   ScreenContainer,
+  SectionHeader,
   Skeleton,
 } from '@/components/ui';
-import { useHomeDashboard } from '@/features/home/useHomeDashboard';
+import {
+  useHomeDashboard,
+  type HomeAttention,
+} from '@/features/home/useHomeDashboard';
 import { formatDate, formatMoney } from '@/lib/format';
 import { useUiStore } from '@/stores/ui';
 import { ICON_STROKE, radii, useThemeColors } from '@/theme';
@@ -54,6 +60,38 @@ function HomeSkeleton() {
         <Skeleton height={32} />
       </View>
     </View>
+  );
+}
+
+function AttentionRows({ items }: { items: HomeAttention[] }) {
+  return (
+    <Group>
+      {items.map((item) => {
+        if (item.kind === 'card-payment') {
+          return (
+            <Row
+              key={item.id}
+              icon={Bell}
+              title={item.title}
+              subtitle={item.subtitle}
+              onPress={() =>
+                router.push({ pathname: '/cards/[id]', params: { id: item.cardId } })
+              }
+            />
+          );
+        }
+
+        return (
+          <Row
+            key={item.id}
+            icon={Repeat}
+            title={`${item.name} · define el monto`}
+            subtitle="Egreso de cantidad variable"
+            onPress={() => router.push('/recurring/define-amount')}
+          />
+        );
+      })}
+    </Group>
   );
 }
 
@@ -121,7 +159,16 @@ export default function HomeScreen() {
                 actionLabel="Nueva cuenta"
                 onAction={() => router.push('/accounts/new')}
               />
-            ) : null}
+            ) : (
+              <>
+                {dashboard.attention.length > 0 ? (
+                  <>
+                    <SectionHeader title="Requiere atención" />
+                    <AttentionRows items={dashboard.attention} />
+                  </>
+                ) : null}
+              </>
+            )}
           </>
         )}
       </ScreenContainer>
