@@ -13,6 +13,7 @@ const config: ExpoConfig = {
   },
   android: {
     package: 'com.tuempresa.monea',
+    googleServicesFile: './google-services.json',
     adaptiveIcon: {
       backgroundColor: '#8F0C5B',
       foregroundImage: './assets/images/android-icon-foreground.png',
@@ -34,6 +35,13 @@ const config: ExpoConfig = {
         backgroundColor: '#EF13A1',
         image: './assets/images/splash-icon.png',
         imageWidth: 76,
+      },
+    ],
+    [
+      'expo-notifications',
+      {
+        icon: './assets/images/android-icon-monochrome.png',
+        color: '#EF13A1',
       },
     ],
   ],
