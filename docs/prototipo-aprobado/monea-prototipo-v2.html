@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f2f2f7">
+<title>MONEA · Prototipo v2</title>
+<style>
+/* ============ TOKENS ============ */
+:root{
+  --cerise-50:#fef1fb;--cerise-100:#fee5f8;--cerise-200:#ffcaf3;--cerise-300:#ff9fe6;--cerise-400:#ff64d4;
+  --cerise-500:#fe36c1;--cerise-600:#ef13a1;--cerise-700:#e0068c;--cerise-800:#ac086b;--cerise-900:#8f0c5b;--cerise-950:#580034;
+
+  --bg:#f2f2f7;--surface:#ffffff;--surface-2:#f7f7fa;--text:#1c1c1e;--muted:#8e8e93;--sep:rgba(60,60,67,.14);
+  --accent:var(--cerise-600);--accent-ink:var(--cerise-700);--accent-soft:var(--cerise-50);--on-accent:#ffffff;
+  --pos:#248a3d;--neg:#d70015;--fill:rgba(120,120,128,.12);
+  --glass:rgba(255,255,255,.58);--glass-line:rgba(255,255,255,.75);
+  --shadow:0 10px 30px rgba(88,0,52,.08);
+  --hero-a:var(--cerise-500);--hero-b:var(--cerise-800);
+  --scrim:rgba(20,0,12,.32);
+}
+[data-theme="dark"]{
+  --bg:#000000;--surface:#1c1c1e;--surface-2:#2c2c2e;--text:#ffffff;--muted:#98989f;--sep:rgba(84,84,88,.65);
+  --accent:var(--cerise-400);--accent-ink:var(--cerise-300);--accent-soft:rgba(255,100,212,.14);--on-accent:#1a0012;
+  --pos:#30d158;--neg:#ff453a;--fill:rgba(120,120,128,.30);
+  --glass:rgba(44,44,48,.58);--glass-line:rgba(255,255,255,.12);
+  --shadow:0 10px 30px rgba(0,0,0,.45);
+  --hero-a:var(--cerise-700);--hero-b:var(--cerise-950);
+  --scrim:rgba(0,0,0,.55);
+}
+
+/* ============ BASE ============ */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+#app{max-width:430px;margin:0 auto;min-height:100vh;position:relative;overflow-x:hidden}
+.screen{padding:0 16px 150px;min-height:100vh;animation:in .28s ease}
+.screen.auth{padding-bottom:40px}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes up{from{transform:translateY(100%)}to{transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+
+/* ============ TOP BARS ============ */
+.bar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;height:52px;margin:0 -16px;padding:0 12px;background:var(--glass);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-bottom:.5px solid var(--sep)}
+.bar-t{position:absolute;left:50%;transform:translateX(-50%);font-weight:600;font-size:17px;max-width:55%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.side{min-width:44px;display:flex;align-items:center;gap:8px;position:relative;z-index:1}
+.side.r{justify-content:flex-end}
+.topspace{height:12px}
+.topline{padding:8px 0 0}
+.lhdr{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:6px 0 14px}
+.lhdr h1{font-size:34px;line-height:41px;font-weight:700;letter-spacing:-.5px;margin:0}
+.kicker{color:var(--muted);font-size:14px;margin-bottom:2px}
+.sub{color:var(--muted);font-size:15px;margin:4px 0 0}
+.sub.c{text-align:center}
+.ib{width:36px;height:36px;border-radius:50%;border:0;background:var(--fill);display:grid;place-items:center;cursor:pointer;color:var(--accent-ink);flex:none}
+.ib svg{width:20px;height:20px}
+.tbtn{background:none;border:0;color:var(--accent-ink);font-size:17px;font-weight:600;cursor:pointer;padding:6px}
+.lnk{background:none;border:0;color:var(--accent-ink);font-size:15px;font-weight:500;cursor:pointer;padding:0}
+.h-sec{display:flex;justify-content:space-between;align-items:center;font-size:13px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin:24px 14px 8px}
+.h-sec .lnk{text-transform:none;letter-spacing:0;font-size:14px}
+
+/* ============ SURFACES ============ */
+.group{background:var(--surface);border-radius:20px;overflow:hidden;margin-bottom:4px}
+.row{display:flex;align-items:center;gap:12px;padding:12px 14px;min-height:56px;position:relative}
+.row[onclick]{cursor:pointer}
+.row+.row::before{content:"";position:absolute;top:0;right:0;left:14px;height:.5px;background:var(--sep)}
+.row.i+.row.i::before{left:60px}
+.rt{flex:1;min-width:0}
+.rt b{display:block;font-weight:500;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rt small{display:block;color:var(--muted);font-size:13px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rv{font-variant-numeric:tabular-nums;font-size:16px;text-align:right;white-space:nowrap}
+.chev{display:flex;color:var(--muted)}
+.chev svg{width:14px;height:14px}
+.ico{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-ink);flex:none}
+.ico svg{width:18px;height:18px}
+.ico.neutral{background:var(--fill);color:var(--text)}
+.ini{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:14px;background:var(--accent-soft);color:var(--accent-ink);flex:none}
+.card{background:var(--surface);border-radius:20px;padding:16px;margin-bottom:12px}
+.pos{color:var(--pos)}
+.neg{color:var(--neg)}
+.muted{color:var(--muted)}
+.center{text-align:center}
+.mt{margin-top:16px}
+.hint{color:var(--muted);font-size:13px;text-align:center;margin-top:14px}
+
+/* ============ HERO ============ */
+.hero{border-radius:24px;padding:20px;background:linear-gradient(135deg,var(--hero-a),var(--hero-b));color:#fff;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.12);right:-70px;top:-80px}
+.hero .lab{opacity:.85;font-size:14px;position:relative}
+.hero .big{font-size:38px;font-weight:700;letter-spacing:-.8px;font-variant-numeric:tabular-nums;margin-top:4px;position:relative}
+.hero-row{display:flex;justify-content:space-between;font-size:14px;margin-top:12px;position:relative;opacity:.95}
+.hero.sm{padding:16px;border-radius:22px}
+.hero.sm .big{font-size:30px}
+
+/* ============ CREDIT CARD VISUAL ============ */
+.ccard{position:relative;overflow:hidden;border-radius:22px;color:#fff;padding:18px;background:linear-gradient(135deg,var(--c1),var(--c2));box-shadow:0 14px 30px -14px var(--c2);min-height:172px;display:flex;flex-direction:column;justify-content:space-between}
+.ccard::before{content:"";position:absolute;width:230px;height:230px;border-radius:50%;right:-90px;top:-100px;background:rgba(255,255,255,.14)}
+.ccard::after{content:"";position:absolute;width:150px;height:150px;border-radius:50%;left:-60px;bottom:-90px;background:rgba(255,255,255,.08)}
+.ccard>*{position:relative;z-index:1}
+.ccard .cn{font-size:15px;font-weight:600;opacity:.95}
+.ccard .cnum{font-size:19px;letter-spacing:2px;font-variant-numeric:tabular-nums}
+.ccard .cb{display:flex;justify-content:space-between;align-items:flex-end}
+.ccard small{display:block;opacity:.85;font-size:12px}
+.ccard b{font-size:20px;font-variant-numeric:tabular-nums}
+.mini{background:var(--surface);border-radius:20px;padding:14px;width:200px;box-shadow:var(--shadow);flex:none;cursor:pointer}
+.mini .mb{height:6px;border-radius:3px;margin-bottom:12px}
+.mini b{display:block;font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini small{color:var(--muted);font-size:12px}
+.mini .mv{font-size:20px;font-weight:700;margin-top:8px;font-variant-numeric:tabular-nums}
+.hscroll{display:flex;gap:12px;overflow-x:auto;margin:0 -16px;padding:4px 16px 8px;scrollbar-width:none}
+.hscroll::-webkit-scrollbar{display:none}
+
+/* ============ CONTROLS ============ */
+.seg{display:flex;background:var(--fill);border-radius:10px;padding:2px;margin:6px 0 16px}
+.seg button{flex:1;border:0;background:none;padding:8px 6px;border-radius:8px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer}
+.seg button.on{background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 14px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:8px 14px;border-radius:999px;background:var(--surface);border:0;font-size:14px;font-weight:500;cursor:pointer}
+.chip.on{background:var(--accent);color:var(--on-accent)}
+.tag{display:inline-block;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--fill);white-space:nowrap}
+.tag.ok{background:rgba(48,209,88,.16);color:var(--pos)}
+.tag.acc{background:var(--accent-soft);color:var(--accent-ink)}
+.btn{width:100%;border:0;border-radius:16px;padding:16px;font-size:17px;font-weight:600;background:var(--accent);color:var(--on-accent);cursor:pointer;box-shadow:0 8px 20px -10px var(--accent);display:block;text-align:center}
+.btn:active{transform:scale(.99)}
+.btn.ghost{background:var(--fill);color:var(--accent-ink);box-shadow:none}
+.btn.danger{background:transparent;color:var(--neg);box-shadow:none}
+.btn.sm{width:auto;display:inline-block;padding:9px 14px;font-size:14px;border-radius:12px;box-shadow:none}
+.progress{height:6px;border-radius:3px;background:var(--fill);overflow:hidden;margin-top:12px}
+.progress i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.sw{position:relative;width:51px;height:31px;flex:none;display:inline-block}
+.sw input{opacity:0;width:0;height:0;position:absolute}
+.sw span{position:absolute;inset:0;background:var(--fill);border-radius:31px;transition:background .2s}
+.sw span::after{content:"";position:absolute;left:2px;top:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.25);transition:transform .2s}
+.sw input:checked+span{background:var(--pos)}
+.sw input:checked+span::after{transform:translateX(20px)}
+.chk{width:24px;height:24px;border-radius:50%;border:2px solid var(--muted);display:grid;place-items:center;flex:none;transition:.15s}
+.chk svg{width:14px;height:14px;color:#fff;opacity:0}
+.chk.on{background:var(--accent);border-color:var(--accent)}
+.chk.on svg{opacity:1}
+.item.on .rt b{text-decoration:line-through;color:var(--muted)}
+.stp{display:flex;align-items:center;gap:12px}
+.stp button{width:30px;height:30px;border-radius:50%;border:0;background:var(--fill);font-size:18px;cursor:pointer}
+.stp .v{min-width:18px;text-align:center;font-weight:600;font-variant-numeric:tabular-nums}
+.colors{display:flex;gap:12px;flex-wrap:wrap;padding:12px 14px}
+.colors span{width:30px;height:30px;border-radius:50%;cursor:pointer;box-shadow:0 0 0 2px var(--surface)}
+.colors span.on{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--text)}
+
+/* ============ FORM FIELDS ============ */
+.field{display:flex;align-items:center;gap:12px;padding:12px 14px;min-height:52px;position:relative}
+.field+.field::before{content:"";position:absolute;top:0;right:0;left:14px;height:.5px;background:var(--sep)}
+.field label{font-size:16px;flex:none}
+.field input,.field select{flex:1;min-width:0;border:0;background:none;outline:none;font-size:16px;text-align:right;color:var(--text);padding:0}
+.field input::placeholder{color:var(--muted)}
+.field select{appearance:none;-webkit-appearance:none;color:var(--accent-ink);font-weight:500}
+.field input.tot{font-weight:600;font-size:18px}
+.field input.tot.locked{color:var(--muted)}
+.auth-group .field input{text-align:left}
+textarea{width:100%;border:0;background:none;outline:none;font-size:16px;padding:14px;resize:none;min-height:90px}
+.amt-input{display:flex;justify-content:center;align-items:baseline;gap:4px;padding:18px 0 14px;font-size:44px;font-weight:700;letter-spacing:-1px}
+.amt-input input{border:0;background:none;outline:none;font:inherit;width:70%;text-align:center;color:var(--text)}
+.amt-input input::placeholder{color:var(--muted)}
+.banner{display:flex;gap:12px;align-items:center;padding:14px;border-radius:18px;background:var(--accent-soft);color:var(--accent-ink);margin-bottom:12px;cursor:pointer}
+.banner b{display:block;font-size:15px;color:var(--text)}
+.banner small{color:var(--muted);font-size:13px}
+.note{font-size:13px;color:var(--muted);background:var(--fill);border-radius:14px;padding:12px 14px;margin-top:12px;line-height:1.4}
+
+/* ============ LISTA DE COMPRAS: precios y edición ============ */
+.pwrap{display:none;align-items:center}
+#itemsGroup.prices-on .pwrap{display:flex}
+.pinp{width:86px;border:0;background:var(--fill);border-radius:10px;padding:7px 8px;text-align:right;font:inherit;font-size:15px;outline:none;color:var(--text)}
+.pinp::placeholder{color:var(--muted)}
+.ib.del{width:30px;height:30px;color:var(--neg);background:none}
+.ib.del svg{width:18px;height:18px}
+.add-row{display:flex;align-items:center;gap:10px;padding:10px 14px;position:relative}
+.add-row input{flex:1;min-width:0;border:0;background:none;outline:none;font-size:16px;color:var(--text)}
+.add-row input::placeholder{color:var(--muted)}
+.add-row::before{content:"";position:absolute;top:0;right:0;left:14px;height:.5px;background:var(--sep)}
+
+/* ============ AUTH ============ */
+.auth-wrap{min-height:calc(100vh - 80px);display:flex;flex-direction:column;justify-content:center;gap:0}
+.center-all{min-height:100vh;align-items:center;text-align:center}
+.brand{display:flex;flex-direction:column;align-items:center;margin-bottom:28px}
+.logo{width:76px;height:76px;border-radius:24px;background:linear-gradient(135deg,var(--cerise-500),var(--cerise-900));display:grid;place-items:center;color:#fff;font-weight:800;font-size:36px;box-shadow:0 16px 30px -12px var(--cerise-700)}
+.logo.pulse{animation:pulse 1.6s ease-in-out infinite}
+.auth-t{font-size:30px;font-weight:700;letter-spacing:-.5px;margin:18px 0 0}
+.lock-ic{width:84px;height:84px;border-radius:50%;background:var(--accent-soft);color:var(--accent-ink);display:grid;place-items:center;margin-bottom:18px}
+.lock-ic svg{width:38px;height:38px}
+.timer{font-size:52px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-1px;margin:14px 0 4px;color:var(--accent-ink)}
+.auth-links{display:flex;justify-content:center;margin-top:18px}
+
+/* ============ DETAIL ============ */
+.amt-big{font-size:34px;font-weight:700;letter-spacing:-.6px;font-variant-numeric:tabular-nums}
+.detail-head{text-align:center;padding:10px 0 18px}
+.detail-head .sub{margin-top:6px}
+.avatar{width:96px;height:96px;border-radius:50%;margin:10px auto 14px;display:grid;place-items:center;font-size:36px;font-weight:700;background:linear-gradient(135deg,var(--cerise-400),var(--cerise-800));color:#fff}
+
+/* ============ TAB BAR (glass) ============ */
+.tabbar{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);left:50%;transform:translateX(-50%);width:min(398px,calc(100% - 32px));height:66px;border-radius:26px;background:var(--glass);backdrop-filter:blur(26px) saturate(190%);-webkit-backdrop-filter:blur(26px) saturate(190%);border:1px solid var(--glass-line);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:space-around;padding:0 8px;z-index:40}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;border:0;background:none;color:var(--muted);font-size:11px;font-weight:600;padding:6px 0;cursor:pointer}
+.tab .pill{width:58px;height:30px;border-radius:15px;display:grid;place-items:center;transition:background .2s}
+.tab svg{width:22px;height:22px}
+.tab.on{color:var(--accent-ink)}
+.tab.on .pill{background:var(--accent-soft)}
+.fab{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 88px);right:max(20px,calc(50% - 215px + 16px));width:56px;height:56px;border-radius:18px;border:0;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;box-shadow:0 12px 24px -10px var(--accent);z-index:41;cursor:pointer}
+.fab svg{width:26px;height:26px}
+
+/* ============ SHEETS & TOAST ============ */
+#sheet-wrap{position:fixed;inset:0;z-index:60}
+#sheet-wrap:empty{display:none}
+.scrim{position:absolute;inset:0;background:var(--scrim);animation:fade .2s}
+.sheet{position:absolute;left:0;right:0;bottom:0;margin:auto;max-width:430px;max-height:88vh;overflow:auto;background:var(--surface);border-radius:28px 28px 0 0;padding:10px 16px calc(env(safe-area-inset-bottom,0px) + 22px);animation:up .32s cubic-bezier(.2,.8,.2,1)}
+.grab{width:38px;height:5px;border-radius:3px;background:var(--fill);margin:0 auto 14px}
+.sh-t{font-size:20px;font-weight:700;margin:0 0 4px;text-align:center}
+.sheet .sub{text-align:center;margin-bottom:14px}
+.opt-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opt{background:var(--surface-2);border:0;border-radius:18px;padding:14px;display:flex;gap:10px;align-items:center;cursor:pointer;font-weight:500;font-size:15px;text-align:left}
+.opt .ico{width:36px;height:36px}
+#toast{position:fixed;top:14px;left:50%;transform:translate(-50%,-10px);background:var(--text);color:var(--bg);padding:11px 18px;border-radius:14px;font-size:14px;font-weight:600;z-index:90;opacity:0;transition:.25s;pointer-events:none;white-space:nowrap}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="screen"></div>
+  <div id="tabbar"></div>
+  <div id="fab"></div>
+</div>
+<div id="sheet-wrap"></div>
+<div id="toast"></div>
+
+<script>
+/* ============ ICONS ============ */
+const ic=d=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const I={
+  home:ic('<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>'),
+  wallet:ic('<rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18M16 15h2"/>'),
+  arrows:ic('<path d="M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4"/>'),
+  more:ic('<circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/>'),
+  plus:ic('<path d="M12 5v14M5 12h14"/>'),
+  chev:ic('<path d="m9 6 6 6-6 6"/>'),
+  back:ic('<path d="m15 6-6 6 6 6"/>'),
+  bell:ic('<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/>'),
+  check:ic('<path d="M5 12.5 10 17 19 7"/>'),
+  close:ic('<path d="M6 6l12 12M18 6 6 18"/>'),
+  cart:ic('<circle cx="9" cy="20" r="1.5"/><circle cx="17" cy="20" r="1.5"/><path d="M3 4h2l2.4 11h10.2L21 7H6"/>'),
+  user:ic('<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>'),
+  gear:ic('<circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>'),
+  card:ic('<rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 10h19M6 15h4"/>'),
+  down:ic('<path d="M12 4v16M6 14l6 6 6-6"/>'),
+  up:ic('<path d="M12 20V4M6 10l6-6 6 6"/>'),
+  bank:ic('<path d="M3 9.5 12 4l9 5.5M5 10v8M10 10v8M14 10v8M19 10v8M3 20h18"/>'),
+  repeat:ic('<path d="M4 11a8 8 0 0 1 14-5l2 2M20 13a8 8 0 0 1-14 5l-2-2M20 4v4h-4M4 20v-4h4"/>'),
+  lock:ic('<rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'),
+  logout:ic('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>'),
+  search:ic('<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>'),
+  key:ic('<circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3"/>'),
+  device:ic('<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>'),
+  grid:ic('<rect x="4" y="4" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="2"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="2"/>'),
+  tag:ic('<path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="8" cy="8" r="1.5"/>'),
+  trash:ic('<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>')
+};
+
+/* ============ DATA (quemada) ============ */
+const TODAY='Viernes, 16 de octubre';
+const TABS=[['home','Inicio',I.home],['movements','Movimientos',I.arrows],['manage','Gestión',I.grid],['more','Más',I.more]];
+const AUTH=['splash','login','register','lock'];
+
+const accounts=[
+  {id:'a1',name:'Pichincha Ahorros',inst:'Banco Pichincha',color:'#fe36c1',balance:1297,desc:'Cuenta principal'},
+  {id:'a2',name:'Efectivo',inst:'Billetera',color:'#ff9fe6',balance:50,desc:''},
+  {id:'a3',name:'Cooperativa',inst:'JEP',color:'#ac086b',balance:500,desc:'Ahorro para viaje'}
+];
+const cards=[
+  {id:'c1',name:'Visa Pichincha',issuer:'Banco Pichincha',last4:'4417',limit:2000,cut:20,pay:5,debt:300,upcoming:760,c1:'#fe36c1',c2:'#8f0c5b',reminder:true},
+  {id:'c2',name:'Mastercard',issuer:'Produbanco',last4:'9001',limit:1200,cut:12,pay:28,debt:128,upcoming:0,c1:'#ff64d4',c2:'#ac086b',reminder:false}
+];
+const reports={
+  c1:{
+    '2026-10':{total:300,paid:false,cut:'20 oct',due:'5 nov',items:[['Laptop','1/3',300]]},
+    '2026-11':{total:363.33,paid:false,cut:'20 nov',due:'5 dic',items:[['Laptop','2/3',300],['Celular','1/3',33.33],['Zapatos','1/2',30]]},
+    '2026-12':{total:363.33,paid:false,cut:'20 dic',due:'5 ene',items:[['Laptop','3/3',300],['Celular','2/3',33.33],['Zapatos','2/2',30]]},
+    '2027-01':{total:33.34,paid:false,cut:'20 ene',due:'5 feb',items:[['Celular','3/3',33.34]]}
+  },
+  c2:{
+    '2026-10':{total:128,paid:true,cut:'12 oct',due:'28 oct',items:[['Supermercado','1/1',128]]},
+    '2026-11':{total:0,paid:false,cut:'12 nov',due:'28 nov',items:[]}
+  }
+};
+const MONTHS={'2026-10':'Oct','2026-11':'Nov','2026-12':'Dic','2027-01':'Ene'};
+
+const mv=[
+  {id:'m1',day:'Hoy',time:'14:20',name:'Almuerzo',acc:'Pichincha Ahorros',amt:-7.5,type:'egreso',src:'Manual',method:'Corriente',icon:'cart'},
+  {id:'m2',day:'Hoy',time:'09:10',name:'Golosina',acc:'Efectivo',amt:-2.5,type:'egreso',src:'Manual',method:'Corriente',icon:'cart'},
+  {id:'m3',day:'Ayer',time:'18:00',name:'Sueldo octubre',acc:'Pichincha Ahorros',amt:500,type:'ingreso',src:'Manual',method:'—',icon:'down'},
+  {id:'m4',day:'Ayer',time:'11:30',name:'Laptop',acc:'Visa Pichincha',amt:-900,type:'diferido',src:'Manual',method:'Diferido · 3 cuotas',icon:'card'},
+  {id:'m5',day:'15 oct',time:'08:00',name:'Agua',acc:'Pichincha Ahorros',amt:-18.2,type:'egreso',src:'Recurrente',method:'Corriente',icon:'repeat'},
+  {id:'m6',day:'15 oct',time:'09:00',name:'Luz',acc:'Pichincha Ahorros',amt:null,type:'egreso',src:'Recurrente',method:'Corriente',icon:'repeat',pending:true},
+  {id:'m7',day:'10 oct',time:'10:00',name:'Cobro · Ana Torres (1/3)',acc:'Pichincha Ahorros',amt:33.33,type:'ingreso',src:'Cobro',method:'—',icon:'down'},
+  {id:'m8',day:'9 oct',time:'12:00',name:'Pago Visa Pichincha · sep',acc:'Pichincha Ahorros',amt:-300,type:'egreso',src:'Tarjeta',method:'Corriente',icon:'card'}
+];
+
+const obl={
+  cobros:[
+    {id:'co1',person:'Ana Torres',total:100,n:3,paid:1,dates:['15 oct','15 nov','15 dic'],desc:'Préstamo de taller'},
+    {id:'co2',person:'Carlos Pérez',total:100,n:1,paid:0,dates:['1 dic'],desc:'Préstamo de almuerzo'}
+  ],
+  prestamos:[
+    {id:'p1',person:'María Gómez',total:200,n:2,paid:0,dates:['20 oct','20 nov'],desc:'Préstamo personal',acc:'Pichincha Ahorros'}
+  ],
+  deudas:[
+    {id:'d1',person:'Pedro Ruiz',total:90,n:3,paid:0,dates:['14 oct','21 oct','28 oct'],desc:''}
+  ]
+};
+const OBL_TITLE={cobros:'Cobros',prestamos:'Préstamos',deudas:'Deudas'};
+
+const lists=[
+  {id:'s1',name:'Compras semana',status:'open',items:[{n:'Leche',ok:false},{n:'Pan',ok:true},{n:'Huevos',ok:true},{n:'Arroz',ok:false},{n:'Café molido',ok:false}]},
+  {id:'s2',name:'Farmacia',status:'open',items:[{n:'Vitamina C',ok:false},{n:'Alcohol',ok:false}]},
+  {id:'s0',name:'Compras 2 oct',status:'closed',total:45.8,date:'2 oct',acc:'Pichincha Ahorros',count:6}
+];
+
+const recs=[
+  {id:'r1',name:'Gimnasio semanal',freq:'Semanal · lunes',amount:10,next:'12 oct',active:true,acc:'Pichincha Ahorros',reminder:'Domingo 08:00 (día antes)',hist:[['5 oct',10],['28 sep',10]]},
+  {id:'r2',name:'Luz',freq:'Mensual · día 31',amount:null,next:'31 oct',active:true,acc:'Pichincha Ahorros',reminder:'Mismo día 09:00',hist:[['30 sep',38.4]]},
+  {id:'r3',name:'Internet',freq:'Mensual · día 31',amount:25,next:'31 oct',active:false,acc:'Pichincha Ahorros',reminder:'Desactivado',hist:[]}
+];
+
+/* ============ HELPERS ============ */
+const money=n=>n==null?'—':'$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const sgn=n=>n==null?'—':(n>0?'+':'−')+money(Math.abs(n));
+const accOpts=()=>accounts.map(a=>`<option>${a.name}</option>`).join('');
+const grp=h=>`<div class="group">${h}</div>`;
+const sec=(t,r='')=>`<div class="h-sec"><span>${t}</span>${r}</div>`;
+const row=o=>`<div class="row${o.ic||o.lead?' i':''}"${o.on?` onclick="${o.on}"`:''}>${o.lead?o.lead:o.ic?`<div class="ico${o.tone?' '+o.tone:''}">${o.ic}</div>`:''}<div class="rt"><b>${o.t}</b>${o.s?`<small>${o.s}</small>`:''}</div>${o.r!=null?`<div class="rv">${o.r}</div>`:''}${o.on?`<span class="chev">${I.chev}</span>`:''}</div>`;
+const fld=(l,c)=>`<div class="field"><label>${l}</label>${c}</div>`;
+const inp=(ph='',v='',type='text')=>`<input type="${type}" placeholder="${ph}" value="${v}">`;
+const sel=o=>`<select>${o.map(x=>`<option>${x}</option>`).join('')}</select>`;
+const swc=(on,extra='')=>`<label class="sw"><input type="checkbox" ${extra} ${on?'checked':''}><span></span></label>`;
+const stp=v=>`<div class="stp"><button onclick="step(this,-1,1)">−</button><span class="v">${v}</span><button onclick="step(this,1,1)">+</button></div>`;
+const seg=(opts,cur,f)=>`<div class="seg">${opts.map(([k,l])=>`<button class="${cur===k?'on':''}" onclick="${f(k)}">${l}</button>`).join('')}</div>`;
+const chips=(opts,cur,f)=>`<div class="chips">${opts.map(([k,l])=>`<button class="chip${cur===k?' on':''}" onclick="${f(k)}">${l}</button>`).join('')}</div>`;
+const ini=n=>n.split(' ').map(x=>x[0]).slice(0,2).join('');
+const splitAmt=(t,n)=>{const base=Math.floor(t/n*100)/100;const arr=Array(n-1).fill(base);arr.push(+(t-base*(n-1)).toFixed(2));return arr;};
+const mvRow=m=>row({
+  ic:I[m.icon]||I.cart,
+  t:m.name,
+  s:`${m.acc} · ${m.src}`,
+  r:m.pending?'<span class="tag acc">Definir monto</span>':`<span class="${m.amt>0?'pos':''}">${sgn(m.amt)}</span>`,
+  on:m.pending?"go('define-amount')":(m.type==='diferido'?`go('deferred-detail',{id:'${m.id}'})`:`go('movement-detail',{id:'${m.id}'})`)
+});
+const cardVisual=(c)=>`<div class="ccard" style="--c1:${c.c1};--c2:${c.c2}"><div class="cn">${c.name}</div><div class="cnum">•••• •••• •••• ${c.last4}</div><div class="cb"><div><small>Deuda del periodo</small><b>${money(c.debt)}</b></div><small>${c.issuer}</small></div></div>`;
+
+/* ============ NAVIGATION / STATE ============ */
+let cur={route:'login',params:{}};
+let stack=[];
+let themePref='system';
+
+function go(route,params={},o={}){
+  if(o.root) stack=[];
+  else if(!o.replace) stack.push(cur);
+  cur={route,params};
+  render();
+}
+function back(){
+  cur=stack.pop()||{route:'home',params:{}};
+  render();
+}
+function tab(t){
+  stack=[];
+  cur={route:t,params:{}};
+  render();
+}
+function render(){
+  const r=cur.route,p=cur.params||{};
+  const fn=S[r]||(()=>'<div class="screen"><p class="sub">Pantalla no encontrada</p></div>');
+  document.getElementById('screen').innerHTML=`<div class="screen${AUTH.includes(r)?' auth':''}">${fn(p)}</div>`;
+  const isTab=TABS.some(t=>t[0]===r);
+  const tb=document.getElementById('tabbar');
+  tb.className=isTab?'tabbar':'';
+  tb.innerHTML=isTab?TABS.map(([k,l,i])=>`<button class="tab${r===k?' on':''}" onclick="tab('${k}')"><span class="pill">${i}</span><span>${l}</span></button>`).join(''):'';
+  document.getElementById('fab').innerHTML=['home','movements'].includes(r)?`<button class="fab" aria-label="Nuevo" onclick="openSheet(newSheet())">${I.plus}</button>`:'';
+  window.scrollTo(0,0);
+}
+
+function hdr(title,o={}){
+  const canBack=stack.length>0&&o.back!==false;
+  const left=canBack?`<button class="ib" onclick="back()" aria-label="Atrás">${I.back}</button>`:'<span></span>';
+  return `<div class="bar"><div class="side">${left}</div><div class="bar-t">${title}</div><div class="side r">${o.right||''}</div></div>`;
+}
+function lhdr(title,o={}){
+  const canBack=stack.length>0&&o.back!==false;
+  return `${canBack?`<div class="topline"><button class="ib" onclick="back()" aria-label="Atrás">${I.back}</button></div>`:'<div class="topspace"></div>'}<div class="lhdr"><div>${o.kicker?`<div class="kicker">${o.kicker}</div>`:''}<h1>${title}</h1>${o.sub?`<p class="sub">${o.sub}</p>`:''}</div>${o.right?`<div class="side r">${o.right}</div>`:''}</div>`;
+}
+
+/* ============ SHEETS / TOAST / ACTIONS ============ */
+function openSheet(h){
+  document.getElementById('sheet-wrap').innerHTML=`<div class="scrim" onclick="closeSheet()"></div><div class="sheet"><div class="grab"></div>${h}</div>`;
+}
+function closeSheet(){ document.getElementById('sheet-wrap').innerHTML=''; }
+let tt;
+function toast(m){
+  const t=document.getElementById('toast');
+  t.textContent=m;t.classList.add('show');
+  clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),1900);
+}
+function step(btn,d,min=0){
+  const v=btn.parentElement.querySelector('.v');
+  v.textContent=Math.max(min,(+v.textContent)+d);
+}
+function setTheme(p){ themePref=p; applyTheme(); render(); }
+function applyTheme(){
+  const dark=themePref==='dark'||(themePref==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.dataset.theme=dark?'dark':'light';
+}
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{ if(themePref==='system') applyTheme(); });
+function markPaid(id){
+  const el=document.getElementById(id);
+  if(el) el.outerHTML='<span class="tag ok">Pagada</span>';
+  toast('Cuota marcada como pagada');
+}
+function confirmPay(id){ closeSheet(); markPaid(id); }
+
+/* --- Lista de compras: lógica --- */
+function toggleItem(el){
+  el.classList.toggle('on');
+  updCount();
+}
+function updCount(){
+  const n=document.querySelectorAll('.item.on').length;
+  const t=document.querySelectorAll('.item').length;
+  const c=document.getElementById('cnt');
+  if(c) c.textContent=`${n} de ${t} comprados`;
+}
+function togglePrices(on){
+  const g=document.getElementById('itemsGroup');
+  const t=document.getElementById('total');
+  g.classList.toggle('prices-on',on);
+  t.readOnly=on;
+  t.classList.toggle('locked',on);
+  document.getElementById('totNote').textContent=on
+    ?'El total se calcula sumando los precios de cada producto.'
+    :'Escribe el total de la compra. Activa precios individuales para calcularlo.';
+  if(!on) t.focus();
+  recalcTotal();
+}
+function recalcTotal(){
+  const g=document.getElementById('itemsGroup');
+  if(!g||!g.classList.contains('prices-on')) return;
+  let s=0;
+  document.querySelectorAll('#itemsGroup .pinp').forEach(i=>s+=parseFloat(i.value)||0);
+  document.getElementById('total').value=s.toFixed(2);
+}
+const itemRow=(n,ok)=>`<div class="row item${ok?' on':''}" onclick="toggleItem(this)">
+  <div class="chk${ok?' on':''}">${I.check}</div>
+  <div class="rt"><b>${n}</b></div>
+  <div class="pwrap"><input class="pinp" placeholder="$0.00" inputmode="decimal" oninput="recalcTotal()" onclick="event.stopPropagation()"></div>
+  <button class="ib del" aria-label="Eliminar producto" onclick="event.stopPropagation();removeItem(this)">${I.trash}</button>
+</div>`;
+function removeItem(btn){
+  btn.closest('.item').remove();
+  recalcTotal();
+  updCount();
+}
+function addItem(){
+  const i=document.getElementById('newItem');
+  const v=i.value.trim();
+  if(!v){ toast('Escribe el nombre del producto'); return; }
+  document.getElementById('itemsList').insertAdjacentHTML('beforeend',itemRow(v,false));
+  i.value='';
+  recalcTotal();
+  updCount();
+}
+
+/* ============ SHEET CONTENT ============ */
+function newSheet(){
+  const o=[
+    ['Ingreso','down',"go('movement-new',{type:'ingreso'})"],
+    ['Egreso','cart',"go('movement-new',{type:'instant'})"],
+    ['Cuenta','wallet',"go('account-form')"],
+    ['Tarjeta','card',"go('card-form')"],
+    ['Cobro','down',"go('obligation-form',{type:'cobros'})"],
+    ['Préstamo','bank',"go('obligation-form',{type:'prestamos'})"],
+    ['Deuda','up',"go('obligation-form',{type:'deudas'})"],
+    ['Lista','cart',"go('shopping-form')"]
+  ];
+  return `<h3 class="sh-t">Nuevo</h3><p class="sub">¿Qué quieres registrar?</p><div class="opt-grid">${o.map(([l,i,f])=>`<button class="opt" onclick="closeSheet();${f}"><span class="ico">${I[i]}</span>${l}</button>`).join('')}</div>`;
+}
+function cardPaySheet(id){
+  const c=cards.find(x=>x.id===id)||cards[0];
+  return `<h3 class="sh-t">Pagar ${c.name}</h3><p class="sub">Periodo oct · se generará un egreso corriente</p>
+  <div class="amt-input" style="padding:6px 0 10px">${money(c.debt)}</div>
+  ${grp(fld('Cuenta origen',sel(accounts.map(a=>a.name))))}
+  <button class="btn mt" onclick="closeSheet();toast('Pago registrado · egreso creado')">Confirmar pago</button>`;
+}
+function paySheet(instId,amt,person){
+  return `<h3 class="sh-t">Marcar cuota como pagada</h3><p class="sub">${person} · ${money(amt)}</p>
+  ${grp(fld('Cuenta destino',sel(accounts.map(a=>a.name))))}
+  <button class="btn mt" onclick="confirmPay('${instId}')">Confirmar</button>`;
+}
+function closeListSheet(){
+  const total=parseFloat(document.getElementById('total')?.value)||0;
+  return `<h3 class="sh-t">Cerrar lista</h3><p class="sub">Se registrará un egreso por el total de la compra</p>
+  <div class="amt-input" style="padding:6px 0 10px">${money(total)}</div>
+  ${grp(fld('Cuenta de pago',sel(accounts.map(a=>a.name))))}
+  <p class="note">Los productos no comprados pasan a una nueva lista abierta.</p>
+  <button class="btn mt" onclick="closeSheet();toast('Lista cerrada · egreso creado');back()">Cerrar y registrar egreso</button>`;
+}
+
+/* ============ SCREENS ============ */
+const S={};
+
+S.splash=()=>`<div class="auth-wrap center-all"><div class="logo pulse">M</div><h1 class="auth-t">MONEA</h1><p class="sub">Cargando tus finanzas…</p></div>`;
+
+S.login=()=>`<div class="auth-wrap">
+  <div class="brand"><div class="logo">M</div><h1 class="auth-t">MONEA</h1><p class="sub c">Tus finanzas, en orden</p></div>
+  <div class="group auth-group">
+    ${fld('Correo',inp('correo@ejemplo.com','jose@test.com','email'))}
+    ${fld('Contraseña',inp('Contraseña','Monea123*','password'))}
+  </div>
+  <button class="btn mt" onclick="go('home',{},{root:true})">Iniciar sesión</button>
+  <div class="auth-links"><button class="lnk" onclick="go('register')">Crear cuenta</button></div>
+  <p class="hint">Prototipo: el botón inicia sesión directamente.</p>
+</div>`;
+
+S.register=()=>`${hdr('Crear cuenta',{})}
+  <div class="auth-wrap" style="min-height:auto;margin-top:18px">
+    <div class="group auth-group">
+      ${fld('Nombre',inp('Tu nombre','José'))}
+      ${fld('Correo',inp('correo@ejemplo.com','','email'))}
+      ${fld('Contraseña',inp('Mín. 8 caracteres','','password'))}
+      ${fld('Zona horaria',sel(['America/Guayaquil','America/Bogota','America/Mexico_City']))}
+    </div>
+    <p class="hint">Mínimo 8 caracteres, con mayúscula, minúscula y número.</p>
+    <button class="btn mt" onclick="go('home',{},{root:true})">Crear cuenta</button>
+  </div>`;
+
+S.lock=p=>{
+  const acc=p.kind!=='ip';
+  return `<div class="auth-wrap center-all">
+    <div class="lock-ic">${I.lock}</div>
+    <h1 class="auth-t">${acc?'Cuenta bloqueada':'Acceso bloqueado'}</h1>
+    <p class="sub c" style="max-width:280px">${acc?'Demasiados intentos fallidos. Intenta de nuevo en':'Demasiados intentos desde tu conexión. Intenta de nuevo en'}</p>
+    <div class="timer">${acc?'14:59':'09:12'}</div>
+    <p class="hint">${acc?'Tu cuenta se desbloquea automáticamente.':'El bloqueo es por IP y no afecta a otras cuentas.'}</p>
+    <div style="width:100%;margin-top:22px"><button class="btn" onclick="go('login',{},{root:true})">Entendido</button></div>
+  </div>`;
+};
+
+/* ---- INICIO ---- */
+S.home=()=>{
+  const total=accounts.reduce((s,a)=>s+a.balance,0);
+  return lhdr('Hola, José',{kicker:TODAY,right:`<button class="ib" onclick="go('reminders')" aria-label="Recordatorios">${I.bell}</button>`})+
+  `<div class="hero">
+    <div class="lab">Saldo total</div>
+    <div class="big">${money(total)}</div>
+    <div class="hero-row"><span>Deuda de tarjetas (periodo)</span><b>${money(428)}</b></div>
+    <div class="hero-row"><span>Por cobrar</span><b>${money(166.66)}</b></div>
+  </div>
+  ${sec('Requiere atención')}
+  ${grp(
+    row({ic:I.bell,t:'Pago Visa Pichincha en 3 días',s:'Recordatorio · 13 oct 09:00',on:"go('card-detail',{id:'c1'})"})+
+    row({ic:I.repeat,t:'Luz · define el monto',s:'Egreso de cantidad variable',on:"go('define-amount')"})
+  )}
+  ${sec('Cuentas','<button class="lnk" onclick="go(\'accounts\')">Ver todas</button>')}
+  <div class="hscroll">
+    ${accounts.map(a=>`<div class="mini" onclick="go('account-detail',{id:'${a.id}'})"><div class="mb" style="background:${a.color}"></div><b>${a.name}</b><small>${a.inst}</small><div class="mv">${money(a.balance)}</div></div>`).join('')}
+  </div>
+  ${sec('Tarjetas')}
+  ${grp(cards.map(c=>row({lead:`<div class="ico" style="background:${c.c1}33;color:${c.c1}">${I.card}</div>`,t:c.name,s:`Pago el ${c.pay} de cada mes`,r:money(c.debt),on:`go('card-detail',{id:'${c.id}'})`})).join(''))}
+  ${sec('Esta semana')}
+  ${grp(
+    row({ic:I.down,t:'Ana Torres · cuota 1 de 3',s:'Cobro · vence 15 oct',r:'<span class="pos">+$33.33</span>',on:"go('obligation-detail',{type:'cobros',id:'co1'})"})+
+    row({ic:I.up,t:'Pedro Ruiz · cuota 1 de 3',s:'Deuda · vence 14 oct',r:'<span class="neg">−$30.00</span>',on:"go('obligation-detail',{type:'deudas',id:'d1'})"})+
+    row({ic:I.bank,t:'María Gómez · cuota 1 de 2',s:'Préstamo · vence 20 oct',r:'<span class="neg">−$100.00</span>',on:"go('obligation-detail',{type:'prestamos',id:'p1'})"})
+  )}`;
+};
+
+S.reminders=()=>`${hdr('Recordatorios')}
+  <div class="lhdr" style="padding-top:8px"><div><h1>Próximos</h1><p class="sub">Notificaciones programadas</p></div></div>
+  ${sec('Hoy')}
+  ${grp(row({ic:I.card,t:'Pago Visa Pichincha',s:'Tarjeta · 09:00',r:'<span class="tag acc">3 días</span>'})+row({ic:I.repeat,t:'Luz · definir monto',s:'Recurrente · 09:00'}))}
+  ${sec('Esta semana')}
+  ${grp(row({ic:I.repeat,t:'Gimnasio semanal',s:'Recurrente · dom 08:00',r:'$10.00'})+row({ic:I.down,t:'Ana Torres · cuota 2',s:'Cobro · 15 nov 10:00'}))}
+  ${sec('Más adelante')}
+  ${grp(row({ic:I.up,t:'Pedro Ruiz · cuota 2',s:'Deuda · mié 21 oct 18:00',r:'$30.00'})+row({ic:I.bank,t:'María Gómez · cuota 2',s:'Préstamo · 20 nov 09:00',r:'$100.00'}))}`;
+
+/* ---- CUENTAS (desde Más) ---- */
+S.accounts=p=>{
+  const t=p.tab||'accounts';
+  const head=hdr(t==='cards'?'Tarjetas':'Cuentas')+
+    `<div style="padding-top:12px">${seg([['accounts','Cuentas'],['cards','Tarjetas']],t,k=>`go('accounts',{tab:'${k}'},{replace:true})`)}</div>`;
+  if(t==='accounts'){
+    return head+grp(accounts.map(a=>row({lead:`<div class="ico" style="background:${a.color}22;color:${a.color}">${I.wallet}</div>`,t:a.name,s:a.inst,r:money(a.balance),on:`go('account-detail',{id:'${a.id}'})`})).join(''))+
+    `<div style="margin-top:14px"><button class="btn ghost" onclick="go('account-form')">Nueva cuenta</button></div>`;
+  }
+  return head+cards.map(c=>`<div style="margin-bottom:14px;cursor:pointer" onclick="go('card-detail',{id:'${c.id}'})">${cardVisual(c)}</div>`).join('')+
+    grp(row({t:'Deuda total de tarjetas',r:money(428)})+row({t:'Cupo disponible total',r:money(3200-428)}))+
+    `<div style="margin-top:14px"><button class="btn ghost" onclick="go('card-form')">Nueva tarjeta</button></div>`;
+};
+
+S['account-detail']=p=>{
+  const a=accounts.find(x=>x.id===p.id)||accounts[0];
+  const list=mv.filter(m=>m.acc===a.name);
+  return hdr(a.name,{right:`<button class="tbtn" onclick="go('account-form',{id:'${a.id}'})">Editar</button>`})+
+  `<div class="hero sm" style="margin-top:12px;background:linear-gradient(135deg,${a.color},var(--hero-b))"><div class="lab">${a.inst}</div><div class="big">${money(a.balance)}</div></div>
+  ${sec('Movimientos')}
+  ${grp(list.length?list.map(mvRow).join(''):row({t:'Sin movimientos',s:'Aún no hay registros en esta cuenta'}))}
+  ${a.desc?`<p class="hint">${a.desc}</p>`:''}`;
+};
+
+S['account-form']=p=>{
+  const a=accounts.find(x=>x.id===p.id);
+  return hdr(a?'Editar cuenta':'Nueva cuenta',{right:`<button class="tbtn" onclick="toast('Cuenta guardada');back()">Guardar</button>`})+
+  `<div class="lhdr" style="padding-top:12px"><div><h1>${a?'Editar':'Nueva'} cuenta</h1></div></div>
+  ${grp(fld('Alias',inp('Ej. Ahorros',a?a.name:''))+fld('Entidad',inp('Ej. Banco',a?a.inst:''))+fld('Balance inicial',inp('$0.00',a?a.balance:'','number')))}
+  ${sec('Color')}
+  ${grp(`<div class="colors">${['#fe36c1','#ff9fe6','#ac086b','#ef13a1','#ff64d4','#8f0c5b','#e0068c','#580034'].map((c,i)=>`<span style="background:${c}" class="${i===0?'on':''}" onclick="this.parentElement.querySelectorAll('span').forEach(s=>s.classList.remove('on'));this.classList.add('on')"></span>`).join('')}</div>`)}
+  ${sec('Descripción opcional')}
+  ${grp(`<textarea placeholder="Ej. Cuenta para gastos del mes">${a?a.desc:''}</textarea>`)}
+  <button class="btn mt" onclick="toast('Cuenta guardada');back()">Guardar cuenta</button>`;
+};
+
+S['card-detail']=p=>{
+  const c=cards.find(x=>x.id===p.id)||cards[0];
+  const per=p.period||'2026-10';
+  const rep=(reports[c.id]||{})[per]||{total:0,paid:false,cut:'—',due:'—',items:[]};
+  return hdr(c.name,{right:`<button class="tbtn" onclick="go('card-form',{id:'${c.id}'})">Editar</button>`})+
+  `<div style="margin-top:12px">${cardVisual(c)}</div>
+  ${grp(row({t:'Cupo disponible',r:money(c.limit-c.debt-c.upcoming)})+row({t:'Cupo total',r:money(c.limit)})+row({t:'Fecha de corte',r:`día ${c.cut}`})+row({t:'Fecha de pago',r:`día ${c.pay}`}))}
+  ${sec('Periodo')}
+  ${chips(Object.keys(MONTHS).map(k=>[k,MONTHS[k]]),per,k=>`go('card-detail',{id:'${c.id}',period:'${k}'},{replace:true})`)}
+  <div class="card" style="margin-top:4px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div><div class="muted" style="font-size:13px">Total del periodo</div><div class="amt-big" style="font-size:30px">${money(rep.total)}</div></div>
+      ${rep.paid?'<span class="tag ok">Pagado</span>':(rep.total>0?'<span class="tag acc">Pendiente</span>':'<span class="tag">Sin cargos</span>')}
+    </div>
+    <div class="muted" style="font-size:13px;margin-top:10px">Corte ${rep.cut} · Pago ${rep.due}</div>
+    ${rep.total>0&&!rep.paid?`<button class="btn sm" style="margin-top:14px;width:100%" onclick="openSheet(cardPaySheet('${c.id}'))">Pagar periodo</button>`:''}
+  </div>
+  ${sec('Compras del periodo')}
+  ${grp(rep.items.length?rep.items.map(i=>row({ic:I.cart,t:i[0],s:`Cuota ${i[1]}`,r:money(i[2])})).join(''):row({t:'Sin cargos en este periodo'}))}`;
+};
+
+S['card-form']=p=>{
+  const c=cards.find(x=>x.id===p.id);
+  return hdr(c?'Editar tarjeta':'Nueva tarjeta',{right:`<button class="tbtn" onclick="toast('Tarjeta guardada');back()">Guardar</button>`})+
+  `<div class="lhdr" style="padding-top:12px"><div><h1>${c?'Editar':'Nueva'} tarjeta</h1></div></div>
+  ${grp(fld('Alias',inp('Ej. Visa',c?c.name:''))+fld('Entidad emisora',inp('Ej. Banco',c?c.issuer:''))+fld('Últimos 4 dígitos',inp('0000',c?c.last4:''))+fld('Cupo',inp('$0.00',c?c.limit:'','number')))}
+  ${sec('Fechas')}
+  ${grp(fld('Día de corte',sel(Array.from({length:31},(_,i)=>i+1)))+fld('Día de pago',sel(Array.from({length:31},(_,i)=>i+1))))}
+  ${sec('Recordatorio')}
+  ${grp(fld('Avisar antes del pago',swc(c?c.reminder:true))+fld('Antelación',sel(['1 día','2 días','3 días'])))}
+  ${sec('Color')}
+  ${grp(`<div class="colors">${['#fe36c1','#ff64d4','#ac086b','#8f0c5b','#e0068c','#ff9fe6'].map((x,i)=>`<span style="background:${x}" class="${i===0?'on':''}" onclick="this.parentElement.querySelectorAll('span').forEach(s=>s.classList.remove('on'));this.classList.add('on')"></span>`).join('')}</div>`)}
+  <button class="btn mt" onclick="toast('Tarjeta guardada');back()">Guardar tarjeta</button>`;
+};
+
+/* ---- MOVIMIENTOS ---- */
+S.movements=p=>{
+  const f=p.f||'all';
+  const filt={all:()=>true,ingreso:m=>m.type==='ingreso',egreso:m=>m.type==='egreso',diferido:m=>m.type==='diferido',recurrente:m=>m.src==='Recurrente'};
+  const list=mv.filter(filt[f]||filt.all);
+  const groups={};
+  list.forEach(m=>{(groups[m.day]=groups[m.day]||[]).push(m);});
+  const pend=mv.filter(m=>m.pending).length;
+  return lhdr('Movimientos',{right:`<button class="ib" aria-label="Buscar">${I.search}</button>`})+
+  chips([['all','Todos'],['ingreso','Ingresos'],['egreso','Egresos'],['diferido','Diferidos'],['recurrente','Recurrentes']],f,k=>`go('movements',{f:'${k}'},{replace:true})`)+
+  (pend&&f!=='ingreso'?`<div class="banner" onclick="go('define-amount')"><span class="ico">${I.repeat}</span><div style="flex:1"><b>${pend} egreso necesita monto</b><small>Luz · 15 oct</small></div><span class="chev">${I.chev}</span></div>`:'')+
+  Object.keys(groups).map(d=>`${sec(d)}${grp(groups[d].map(mvRow).join(''))}`).join('')+
+  `<div style="margin-top:14px"><button class="btn ghost" onclick="go('recurring-list')">Ver egresos recurrentes</button></div>`;
+};
+
+S['movement-detail']=p=>{
+  const m=mv.find(x=>x.id===p.id)||mv[0];
+  const auto=m.src!=='Manual';
+  return hdr('Detalle',{right:`<button class="tbtn" ${auto?'disabled style="opacity:.4"':''} onclick="go('movement-new',{type:'${m.type==='ingreso'?'ingreso':'instant'}'})">Editar</button>`})+
+  `<div class="detail-head">
+    <div class="ico" style="margin:0 auto 10px;width:56px;height:56px;border-radius:18px">${I[m.icon]||I.cart}</div>
+    <div class="sub">${m.name}</div>
+    <div class="amt-big ${m.amt>0?'pos':''}" style="margin-top:6px">${sgn(m.amt)}</div>
+    <div class="sub">${m.day} · ${m.time}</div>
+  </div>
+  ${auto?`<div class="note" style="margin-bottom:14px">Generado automáticamente desde <b>${m.src}</b>. El monto se gestiona desde su módulo de origen.</div>`:''}
+  ${grp(row({t:'Cuenta',r:m.acc})+row({t:'Forma de pago',r:m.method})+row({t:'Origen',r:m.src})+row({t:'Fecha',r:m.day}))}
+  <div style="margin-top:18px">${grp(row({t:'Eliminar movimiento',on:"toast('Movimiento eliminado (borrado lógico)');back()"}))}</div>`;
+};
+
+S['deferred-detail']=p=>{
+  const m=mv.find(x=>x.id===p.id)||mv[3];
+  const plan=[['1','Oct 2026',300,true],['2','Nov 2026',300,false],['3','Dic 2026',300,false]];
+  const paid=plan.filter(x=>x[3]).length;
+  return hdr('Compra diferida')+
+  `<div class="detail-head"><div class="sub">${m.name}</div><div class="amt-big" style="margin-top:6px">${money(900)}</div><div class="sub">${cards[0].name} · 3 cuotas</div></div>
+  <div class="card"><div style="display:flex;justify-content:space-between;font-size:14px"><span>Cuotas pagadas</span><b>${paid} de 3</b></div><div class="progress"><i style="width:${paid/3*100}%"></i></div></div>
+  ${sec('Plan de cuotas')}
+  ${grp(plan.map(x=>row({lead:`<div class="ico neutral" style="font-weight:700;font-size:14px">${x[0]}</div>`,t:money(x[2]),s:x[1],r:x[3]?'<span class="tag ok">Pagada</span>':'<span class="tag">Pendiente</span>'})).join(''))}
+  <p class="note">Las cuotas no descuentan del saldo de la cuenta hasta pagar el periodo de la tarjeta.</p>`;
+};
+
+/* Formulario de movimiento. Egreso: la página permite elegir el tipo. */
+S['movement-new']=p=>{
+  const t=p.type||'instant';
+  const s=t==='ingreso'?'':seg([['instant','Instantáneo'],['diferido','Diferido'],['recurrente','Recurrente']],t,k=>`go('movement-new',{type:'${k}'},{replace:true})`);
+  let extra='';
+  if(t==='ingreso') extra=grp(fld('Cuenta destino',sel(accounts.map(a=>a.name))));
+  if(t==='instant') extra=grp(fld('Cuenta',sel(accounts.map(a=>a.name)))+fld('Forma de pago',sel(['Corriente (contado)'])));
+  if(t==='diferido') extra=grp(fld('Tarjeta',sel(cards.map(c=>c.name+' ·'+c.last4)))+fld('Cuotas',stp(3))+fld('Meses de gracia',stp(0))+fld('Fecha de compra',inp('','16/10/2026')));
+  if(t==='recurrente') extra=grp(fld('Cuenta',sel(accounts.map(a=>a.name)))+fld('Frecuencia',sel(['Semanal','Mensual','Anual']))+fld('Día',sel(['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo']))+fld('Monto variable',swc(false))+fld('Fecha de fin',inp('Opcional','','date')))+
+    sec('Recordatorio')+grp(fld('Avisar',swc(true))+fld('Momento',sel(['Mismo día','1 día antes']))+fld('Hora',sel(['08:00','09:00','10:00'])));
+  const title={ingreso:'Nuevo ingreso',instant:'Nuevo egreso',diferido:'Egreso diferido',recurrente:'Egreso recurrente'}[t];
+  return hdr(title)+
+  `<div style="padding-top:8px">${s}</div>
+  <div class="amt-input"><span>$</span><input inputmode="decimal" placeholder="0.00"></div>
+  ${grp(fld('Nombre',inp('Ej. Almuerzo','')))}
+  ${sec('Detalles')}
+  ${extra}
+  ${sec('Descripción opcional')}
+  ${grp(`<textarea placeholder="Notas"></textarea>`)}
+  <button class="btn mt" onclick="toast('Movimiento guardado');back()">Guardar</button>`;
+};
+
+S['recurring-list']=()=>`${hdr('Recurrentes')}
+  <div class="lhdr" style="padding-top:8px"><div><h1>Recurrentes</h1><p class="sub">Configuraciones programadas</p></div></div>
+  ${grp(recs.map(r=>row({lead:`<div class="ico">${I.repeat}</div>`,t:r.name,s:r.freq+' · próximo '+r.next,r:`${r.amount==null?'<span class="tag acc">Variable</span>':money(r.amount)}<span style="margin-left:8px">${swc(r.active)}</span>`,on:`go('recurring-detail',{id:'${r.id}'})`})).join(''))}
+  <div style="margin-top:14px"><button class="btn ghost" onclick="go('movement-new',{type:'recurrente'})">Nuevo recurrente</button></div>`;
+
+S['recurring-detail']=p=>{
+  const r=recs.find(x=>x.id===p.id)||recs[0];
+  return hdr(r.name,{right:`<button class="tbtn" onclick="go('movement-new',{type:'recurrente'})">Editar</button>`})+
+  `<div class="detail-head"><div class="sub">${r.freq}</div><div class="amt-big" style="margin-top:6px">${r.amount==null?'Variable':money(r.amount)}</div><div class="sub">Próximo: ${r.next}</div></div>
+  ${sec('Configuración')}
+  ${grp(row({t:'Cuenta',r:r.acc})+row({t:'Recordatorio',r:r.reminder})+row({t:'Estado',r:r.active?'<span class="tag ok">Activo</span>':'<span class="tag">Inactivo</span>'})+row({t:'Activo',r:swc(r.active)}))}
+  ${sec('Egresos generados')}
+  ${grp(r.hist.length?r.hist.map(h=>row({ic:I.cart,t:'Egreso generado',s:h[0],r:money(h[1])})).join(''):row({t:'Aún no se han generado egresos'}))}
+  <div style="margin-top:18px">${grp(row({t:'Eliminar configuración',on:"toast('Configuración eliminada. Los egresos se conservan')"}))}</div>
+  <p class="hint">Eliminar la configuración no borra los egresos ya generados.</p>`;
+};
+
+S['define-amount']=()=>{
+  const pend=mv.filter(m=>m.pending);
+  return hdr('Definir monto')+
+  `<div class="lhdr" style="padding-top:8px"><div><h1>Montos pendientes</h1><p class="sub">Fija el monto solo de estas ocurrencias. La configuración no cambia.</p></div></div>
+  ${grp(pend.map(m=>`<div class="row i"><div class="ico">${I.repeat}</div><div class="rt"><b>${m.name}</b><small>${m.acc} · ${m.day}</small></div><input class="pinp" placeholder="$0.00" inputmode="decimal"></div>`).join(''))}
+  <button class="btn mt" onclick="toast('Monto guardado');back()">Guardar montos</button>`;
+};
+
+/* ---- GESTIÓN (cobros, préstamos, deudas, listas) ---- */
+S.manage=()=>lhdr('Gestión',{sub:'Lo que te deben, lo que debes y tus compras'})+
+  `<div class="hero sm" style="margin-bottom:6px"><div class="lab">Por cobrar</div><div class="big">${money(166.66)}</div><div class="hero-row"><span>Por pagar</span><b>${money(290)}</b></div></div>`+
+  sec('Cobros y préstamos')+
+  grp(
+    row({ic:I.down,t:'Cobros',s:'2 activos · por cobrar $166.66',on:"go('obligations',{tab:'cobros'})"})+
+    row({ic:I.bank,t:'Préstamos',s:'1 activo · por pagar $200.00',on:"go('obligations',{tab:'prestamos'})"})+
+    row({ic:I.up,t:'Deudas',s:'1 activa · pendiente $90.00',on:"go('obligations',{tab:'deudas'})"})
+  )+
+  sec('Compras')+
+  grp(row({ic:I.cart,t:'Listas de compras',s:'2 abiertas · 1 cerrada',on:"go('shopping',{tab:'open'})"}));
+
+/* ---- MÁS (cuentas, tarjetas y ajustes) ---- */
+S.more=()=>lhdr('Más',{sub:'Cuentas y ajustes'})+
+  sec('Finanzas')+
+  grp(
+    row({ic:I.wallet,t:'Cuentas',s:'3 cuentas · $1,847.00',on:"go('accounts',{tab:'accounts'})"})+
+    row({ic:I.card,t:'Tarjetas',s:'2 tarjetas · deuda $428.00',on:"go('accounts',{tab:'cards'})"})
+  )+
+  sec('Cuenta')+
+  grp(
+    row({ic:I.bell,t:'Recordatorios',s:'3 hoy o próximos',on:"go('reminders')"})+
+    row({ic:I.user,t:'Perfil',s:'José · America/Guayaquil',on:"go('profile')"})+
+    row({ic:I.gear,t:'Ajustes',s:'Apariencia, seguridad, dispositivos',on:"go('settings')"})
+  );
+
+S.obligations=p=>{
+  const t=p.tab||'cobros';
+  const list=obl[t];
+  const pendTotal=list.reduce((s,o)=>s+o.total-(splitAmt(o.total,o.n).slice(0,o.paid).reduce((a,b)=>a+b,0)),0);
+  return lhdr(OBL_TITLE[t],{sub:'Cuotas y recordatorios'})+
+  seg([['cobros','Cobros'],['prestamos','Préstamos'],['deudas','Deudas']],t,k=>`go('obligations',{tab:'${k}'},{replace:true})`)+
+  `<div class="hero sm"><div class="lab">Pendiente total</div><div class="big">${money(pendTotal)}</div></div>
+  ${sec('Activos')}
+  ${grp(list.map(o=>row({lead:`<div class="ini">${ini(o.person)}</div>`,t:o.person,s:`${o.paid} de ${o.n} cuotas pagadas`,r:money(o.total),on:`go('obligation-detail',{type:'${t}',id:'${o.id}'})`})).join(''))}
+  <div style="margin-top:14px"><button class="btn ghost" onclick="go('obligation-form',{type:'${t}'})">Nuevo registro</button></div>`;
+};
+
+S['obligation-detail']=p=>{
+  const t=p.type||'cobros';
+  const o=obl[t].find(x=>x.id===p.id)||obl[t][0];
+  const parts=splitAmt(o.total,o.n);
+  const paidAmt=parts.slice(0,o.paid).reduce((a,b)=>a+b,0);
+  const pct=o.total?paidAmt/o.total*100:0;
+  return hdr(OBL_TITLE[t].slice(0,-1)+' · '+o.person)+
+  `<div class="detail-head"><div class="ini" style="width:64px;height:64px;font-size:22px;margin:0 auto 10px">${ini(o.person)}</div><div class="sub" style="font-size:18px;color:var(--text);font-weight:600">${o.person}</div><div class="sub">${o.desc||'Sin descripción'}</div></div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;font-size:14px"><span>Total</span><b>${money(o.total)}</b></div>
+    <div style="display:flex;justify-content:space-between;font-size:14px;margin-top:8px"><span>Pagado</span><b class="pos">${money(paidAmt)}</b></div>
+    <div style="display:flex;justify-content:space-between;font-size:14px;margin-top:8px"><span>Pendiente</span><b>${money(o.total-paidAmt)}</b></div>
+    <div class="progress"><i style="width:${pct}%"></i></div>
+  </div>
+  ${sec('Cuotas')}
+  ${grp(parts.map((amt,i)=>{
+    const id=`inst-${o.id}-${i}`;
+    const paid=i<o.paid;
+    const right=paid?'<span class="tag ok">Pagada</span>':`<button class="btn sm" id="${id}" onclick="openSheet(paySheet('${id}',${amt},'${o.person}'))">Marcar pagada</button>`;
+    return row({lead:`<div class="ico neutral" style="font-weight:700;font-size:14px">${i+1}</div>`,t:money(amt),s:o.dates[i]||'—',r:right});
+  }).join(''))}
+  ${o.acc?`<p class="hint">Cuenta de salida: ${o.acc}</p>`:''}
+  <div style="margin-top:18px">${grp(row({t:'Eliminar registro',on:"toast('Registro eliminado (borrado lógico)');back()"}))}</div>`;
+};
+
+S['obligation-form']=p=>{
+  const t=p.type||'cobros';
+  const name=OBL_TITLE[t].slice(0,-1).toLowerCase();
+  return hdr(`Nuevo ${name}`,{right:`<button class="tbtn" onclick="toast('Registro guardado');back()">Guardar</button>`})+
+  `<div class="lhdr" style="padding-top:12px"><div><h1>Nuevo ${name}</h1></div></div>
+  ${grp(fld('Persona',inp('Nombre',''))+fld('Monto',inp('$0.00','','number'))+fld('Cuotas',stp(1))+fld('Descripción',inp('Opcional','')))}
+  ${t==='prestamos'?sec('Cuenta de salida')+grp(fld('Cuenta',sel(accounts.map(a=>a.name)))):''}
+  ${sec('Recordatorio')}
+  ${grp(fld('Activar recordatorio',swc(true))+fld('Frecuencia',sel(['Semanal','Mensual','Anual'])))}
+  <button class="btn mt" onclick="toast('Registro guardado');back()">Guardar</button>`;
+};
+
+/* ---- LISTAS DE COMPRAS ---- */
+S.shopping=p=>{
+  const t=p.tab||'open';
+  const head=hdr(t==='open'?'Listas abiertas':'Listas cerradas')+
+    `<div style="padding-top:12px">${seg([['open','Abiertas'],['closed','Cerradas']],t,k=>`go('shopping',{tab:'${k}'},{replace:true})`)}</div>`;
+  if(t==='open'){
+    return head+lists.filter(l=>l.status==='open').map(l=>{
+      const done=l.items.filter(i=>i.ok).length;
+      return `<div class="card" style="cursor:pointer" onclick="go('shopping-detail',{id:'${l.id}'})">
+        <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:17px">${l.name}</b><span class="chev" style="color:var(--muted)">${I.chev}</span></div>
+        <div class="muted" style="font-size:13px;margin-top:4px">${done} de ${l.items.length} comprados</div>
+        <div class="progress"><i style="width:${done/l.items.length*100}%"></i></div></div>`;
+    }).join('')+`<div style="margin-top:6px"><button class="btn ghost" onclick="go('shopping-form')">Nueva lista</button></div>`;
+  }
+  return head+grp(lists.filter(l=>l.status==='closed').map(l=>row({ic:I.cart,t:l.name,s:`${l.date} · ${l.count} ítems · ${l.acc}`,r:money(l.total),on:`go('shopping-detail',{id:'${l.id}'})`})).join(''));
+};
+
+S['shopping-detail']=p=>{
+  const l=lists.find(x=>x.id===p.id)||lists[0];
+  if(l.status==='closed'){
+    return hdr(l.name)+
+    `<div class="detail-head"><div class="sub">Cerrada el ${l.date}</div><div class="amt-big" style="margin-top:6px">${money(l.total)}</div><div class="sub">${l.count} ítems · ${l.acc}</div></div>
+    <div class="note">Lista cerrada e inmutable. Se registró un egreso por el total desde ${l.acc}.</div>`;
+  }
+  const done=l.items.filter(i=>i.ok).length;
+  return hdr(l.name,{right:`<button class="tbtn" onclick="toast('Nombre editado')">Editar</button>`})+
+  `<div class="lhdr" style="padding-top:8px"><div><h1>${l.name}</h1><p class="sub" id="cnt">${done} de ${l.items.length} comprados</p></div></div>
+  ${grp(`<div class="row"><div class="rt"><b>Precios individuales</b><small>Suma cada precio y calcula el total</small></div>${swc(false,'onchange="togglePrices(this.checked)"')}</div>`)}
+  ${sec('Productos')}
+  <div class="group" id="itemsGroup">
+    <div id="itemsList">${l.items.map(i=>itemRow(i.n,i.ok)).join('')}</div>
+    <div class="add-row"><input id="newItem" placeholder="Agregar producto" onkeydown="if(event.key==='Enter')addItem()"><button class="tbtn" onclick="addItem()">Agregar</button></div>
+  </div>
+  ${sec('Total de la compra')}
+  ${grp(`<div class="field"><label>Total</label><input id="total" class="tot" value="0.00" inputmode="decimal"></div>`)}
+  <p class="note" id="totNote">Escribe el total de la compra. Activa precios individuales para calcularlo.</p>
+  <div style="margin-top:16px"><button class="btn" onclick="openSheet(closeListSheet())">Cerrar lista</button></div>`;
+};
+
+S['shopping-form']=()=>`${hdr('Nueva lista',{right:`<button class="tbtn" onclick="toast('Lista creada');back()">Crear</button>`})}
+  <div class="lhdr" style="padding-top:12px"><div><h1>Nueva lista</h1></div></div>
+  ${grp(fld('Nombre',inp('Ej. Compras de la semana','')))}
+  ${sec('Productos iniciales')}
+  ${grp(`<textarea placeholder="Un producto por línea&#10;Leche&#10;Pan&#10;Huevos"></textarea>`)}
+  <button class="btn mt" onclick="toast('Lista creada');back()">Crear lista</button>`;
+
+/* ---- PERFIL / AJUSTES ---- */
+S.profile=()=>`${hdr('Perfil')}
+  <div class="detail-head"><div class="avatar">J</div><div style="font-size:22px;font-weight:700">José</div><div class="sub">jose@test.com</div></div>
+  ${grp(row({t:'Nombre',r:'José'})+row({t:'Correo',r:'jose@test.com'})+row({t:'Zona horaria',r:'America/Guayaquil'})+row({t:'Moneda',r:'USD'}))}
+  <div style="margin-top:16px"><button class="btn ghost" onclick="toast('Perfil guardado')">Editar perfil</button></div>`;
+
+S.settings=()=>`${hdr('Ajustes')}
+  ${sec('Apariencia')}
+  ${grp(`<div style="padding:12px 14px">${seg([['system','Sistema'],['light','Claro'],['dark','Oscuro']],themePref,k=>`setTheme('${k}')`).replace('class="seg"','class="seg" style="margin:0"')}</div>`)}
+  ${sec('Seguridad')}
+  ${grp(row({ic:I.key,t:'Cambiar contraseña',on:"go('change-password')"})+row({ic:I.logout,t:'Cerrar sesión',on:"go('login',{},{root:true})"})+row({ic:I.device,t:'Cerrar todas las sesiones',on:"toast('Sesiones cerradas en todos los dispositivos')"}))}
+  ${sec('Notificaciones')}
+  ${grp(row({ic:I.bell,t:'Notificaciones push',r:swc(true)})+row({ic:I.device,t:'Dispositivos',r:'1 activo',on:"toast('1 dispositivo Android registrado')"}))}
+  ${sec('Desarrollo')}
+  ${grp(row({ic:I.grid,t:'Vista previa de todas las pantallas',on:"go('dev')"}))}
+  <p class="hint">MONEA · prototipo v0.2</p>`;
+
+S['change-password']=()=>`${hdr('Cambiar contraseña',{right:`<button class="tbtn" onclick="toast('Contraseña actualizada');back()">Guardar</button>`})}
+  <div class="lhdr" style="padding-top:12px"><div><h1>Contraseña</h1><p class="sub">Al cambiarla se cerrarán tus sesiones activas.</p></div></div>
+  ${grp(fld('Actual',inp('','','password'))+fld('Nueva',inp('','','password'))+fld('Confirmar',inp('','','password')))}
+  <button class="btn mt" onclick="toast('Contraseña actualizada');back()">Actualizar contraseña</button>`;
+
+/* ---- DEV: índice de todas las pantallas ---- */
+S.dev=()=>{
+  const groups=[
+    ['Autenticación',[['Splash','splash','{}'],['Login','login','{}'],['Registro','register','{}'],['Bloqueo de cuenta','lock',"{kind:'account'}"],['Bloqueo por IP','lock',"{kind:'ip'}"]]],
+    ['Inicio',[['Inicio','home','{}'],['Recordatorios','reminders','{}']]],
+    ['Movimientos',[['Movimientos','movements','{}'],['Detalle de egreso','movement-detail',"{id:'m1'}"],['Detalle de ingreso','movement-detail',"{id:'m3'}"],['Diferido','deferred-detail',"{id:'m4'}"],['Nuevo ingreso','movement-new',"{type:'ingreso'}"],['Egreso (elegir tipo)','movement-new',"{type:'instant'}"],['Egreso diferido','movement-new',"{type:'diferido'}"],['Egreso recurrente','movement-new',"{type:'recurrente'}"],['Recurrentes','recurring-list','{}'],['Detalle recurrente','recurring-detail',"{id:'r1'}"],['Definir monto','define-amount','{}']]],
+    ['Gestión',[['Gestión','manage','{}'],['Cobros','obligations',"{tab:'cobros'}"],['Préstamos','obligations',"{tab:'prestamos'}"],['Deudas','obligations',"{tab:'deudas'}"],['Detalle de cobro','obligation-detail',"{type:'cobros',id:'co1'}"],['Nuevo registro','obligation-form',"{type:'prestamos'}"],['Listas abiertas','shopping',"{tab:'open'}"],['Listas cerradas','shopping',"{tab:'closed'}"],['Detalle de lista','shopping-detail',"{id:'s1'}"],['Nueva lista','shopping-form','{}']]],
+    ['Más y cuentas',[['Más','more','{}'],['Cuentas','accounts',"{tab:'accounts'}"],['Tarjetas','accounts',"{tab:'cards'}"],['Detalle de cuenta','account-detail',"{id:'a1'}"],['Nueva cuenta','account-form','{}'],['Detalle de tarjeta','card-detail',"{id:'c1',period:'2026-10'}"],['Nueva tarjeta','card-form','{}'],['Perfil','profile','{}'],['Ajustes','settings','{}'],['Cambiar contraseña','change-password','{}']]]
+  ];
+  return `${hdr('Vista previa',{})}
+  <div class="lhdr" style="padding-top:8px"><div><h1>Pantallas</h1><p class="sub">Índice del prototipo. Navega a cualquier pantalla.</p></div></div>
+  ${groups.map(([t,items])=>`${sec(t)}${grp(items.map(([l,r,p])=>row({t:l,on:`go('${r}',${p})`})).join(''))}`).join('')}
+  ${sec('Hojas (sheets)')}
+  ${grp(
+    row({t:'Acciones rápidas (+)',on:"openSheet(newSheet())"})+
+    row({t:'Pagar tarjeta',on:"openSheet(cardPaySheet('c1'))"})+
+    row({t:'Cerrar lista de compras',on:"openSheet(closeListSheet())"})+
+    row({t:'Marcar cuota pagada',on:"openSheet(paySheet('demo',33.33,'Ana Torres'))"})
+  )}`;
+};
+
+/* ============ INIT ============ */
+applyTheme();
+cur={route:'login',params:{}};
+render();
+</script>
+</body>
+</html>
