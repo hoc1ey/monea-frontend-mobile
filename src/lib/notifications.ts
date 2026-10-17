@@ -1,6 +1,7 @@
 import { Linking, Platform } from 'react-native';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { isRunningInExpoGo } from 'expo';
 import * as Device from 'expo-device';
 
 import { registerDevice, unregisterDevice } from '@/api/notifications';
@@ -16,15 +17,21 @@ type NotificationResponse = Parameters<
 
 /**
  * Lazily requires `expo-notifications`. Remote push requires a development build
- * (Expo Go on Android has lacked its native modules since SDK 53), so importing
- * the package eagerly would throw at bundle load and take the whole app down.
- * The module is loaded on first use and any failure degrades to a no-op.
+ * and Expo Go on Android has lacked the package's native modules since SDK 53,
+ * so evaluating it there throws and importing it eagerly would take the whole
+ * app down. The module is only loaded outside Expo Go and any failure degrades
+ * to a no-op instead of crashing.
  */
 let notificationsModule: NotificationsModule | null | undefined;
 
 function getNotificationsModule(): NotificationsModule | null {
   if (notificationsModule !== undefined) {
     return notificationsModule;
+  }
+
+  if (isRunningInExpoGo()) {
+    notificationsModule = null;
+    return null;
   }
 
   try {
