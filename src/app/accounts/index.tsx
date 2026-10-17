@@ -9,7 +9,6 @@ import {
   Button,
   EmptyState,
   Group,
-  Note,
   Row,
   ScreenContainer,
   Segmented,
@@ -18,6 +17,8 @@ import {
   type SegmentedOption,
 } from '@/components/ui';
 import { useAccounts } from '@/features/accounts/useAccounts';
+import { CardsTab } from '@/features/cards/CardsTab';
+import { useCardsOverview } from '@/features/cards/useCardsOverview';
 import { formatMoney } from '@/lib/format';
 import { ICON_STROKE, radii, useThemeColors } from '@/theme';
 
@@ -71,10 +72,18 @@ export default function AccountsScreen() {
   const params = useLocalSearchParams<{ tab?: string }>();
   const tab: AccountsTab = params.tab === 'cards' ? 'cards' : 'accounts';
   const accounts = useAccounts();
+  const cards = useCardsOverview(tab === 'cards');
 
   const refresh = () => {
-    void accounts.refetch();
+    if (tab === 'cards') {
+      void cards.refetch();
+    } else {
+      void accounts.refetch();
+    }
   };
+
+  const refreshing =
+    tab === 'cards' ? cards.isRefreshing : !accounts.isPending && accounts.isFetching;
 
   const list = accounts.data ?? [];
 
@@ -83,14 +92,12 @@ export default function AccountsScreen() {
       <TopBar title={tab === 'cards' ? 'Tarjetas' : 'Cuentas'} onBack={() => router.back()} />
       <ScreenContainer
         refreshControl={
-          tab === 'accounts' ? (
-            <RefreshControl
-              refreshing={!accounts.isPending && accounts.isFetching}
-              onRefresh={refresh}
-              tintColor={colors.accent}
-              colors={[colors.accent]}
-            />
-          ) : undefined
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={refresh}
+            tintColor={colors.accent}
+            colors={[colors.accent]}
+          />
         }
       >
         <View style={styles.segmentWrap}>
@@ -98,7 +105,7 @@ export default function AccountsScreen() {
         </View>
 
         {tab === 'cards' ? (
-          <Note>Las tarjetas de crédito se implementan en la feature F07.</Note>
+          <CardsTab overview={cards} />
         ) : accounts.isPending ? (
           <AccountsSkeleton />
         ) : accounts.isError ? (
