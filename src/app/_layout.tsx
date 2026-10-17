@@ -1,5 +1,7 @@
 import '@/global.css';
 
+import { useEffect } from 'react';
+
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
@@ -13,6 +15,7 @@ import { ConfigError } from '@/components/ConfigError';
 import { QuickActionsSheet } from '@/components/navigation/QuickActionsSheet';
 import { ToastProvider } from '@/components/ui';
 import { envError } from '@/config/env';
+import { configureNotificationChannel, configureNotificationHandler } from '@/lib/notifications';
 import { useAuthStore } from '@/stores/auth';
 import { darkTheme, lightTheme } from '@/theme/tokens';
 
@@ -22,6 +25,11 @@ export default function RootLayout() {
   const theme = vars(isDark ? darkTheme : lightTheme);
   const backgroundColor = isDark ? darkTheme['--color-bg'] : lightTheme['--color-bg'];
   const status = useAuthStore((state) => state.status);
+
+  useEffect(() => {
+    configureNotificationHandler();
+    void configureNotificationChannel();
+  }, []);
 
   return (
     <GestureHandlerRootView style={[{ flex: 1 }, theme]}>
