@@ -23,6 +23,7 @@ import {
   registerDeviceToken,
 } from '@/lib/notifications';
 import { useAuthStore } from '@/stores/auth';
+import { useThemeStore } from '@/stores/theme';
 import { darkTheme, lightTheme } from '@/theme/tokens';
 
 export default function RootLayout() {
@@ -31,11 +32,16 @@ export default function RootLayout() {
   const theme = vars(isDark ? darkTheme : lightTheme);
   const backgroundColor = isDark ? darkTheme['--color-bg'] : lightTheme['--color-bg'];
   const status = useAuthStore((state) => state.status);
+  const hydrateTheme = useThemeStore((state) => state.hydrate);
 
   useEffect(() => {
     configureNotificationHandler();
     void configureNotificationChannel();
   }, []);
+
+  useEffect(() => {
+    void hydrateTheme();
+  }, [hydrateTheme]);
 
   useEffect(() => {
     if (status !== 'authenticated') {
