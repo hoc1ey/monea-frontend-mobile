@@ -49,7 +49,10 @@ function SelectBase<T extends string>({
       >
         {showSeparator ? <Separator /> : null}
         <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
-        <Text style={[styles.value, { color: selected ? colors.accentInk : colors.muted }]}>
+        <Text
+          numberOfLines={1}
+          style={[styles.value, { color: selected ? colors.accentInk : colors.muted }]}
+        >
           {selected ? selected.label : placeholder}
         </Text>
       </Pressable>
