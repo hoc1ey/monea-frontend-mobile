@@ -24,6 +24,7 @@ const config: ExpoConfig = {
   },
   android: {
     package: 'com.tuempresa.monea',
+    versionCode: 1,
     ...(hasGoogleServicesFile ? { googleServicesFile } : {}),
     adaptiveIcon: {
       backgroundColor: '#8F0C5B',
