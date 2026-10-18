@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 import { useController, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { getRetryAfterMinutes, isApiError } from '@/api/client';
+import { getErrorMessage, getRetryAfterMinutes, isApiError } from '@/api/client';
 import { signIn } from '@/auth/session';
 import { BrandLogo } from '@/components/auth/BrandLogo';
 import { Button, Field, Group } from '@/components/ui';
@@ -53,7 +53,7 @@ export default function LoginScreen() {
         return;
       }
 
-      setFormError(status === 401 || status === 400 ? 'Credenciales inválidas' : isApiError(error) ? error.message : 'Error inesperado');
+      setFormError(status === 401 || status === 400 ? 'Credenciales inválidas' : getErrorMessage(error, 'Error inesperado'));
     }
   });
 

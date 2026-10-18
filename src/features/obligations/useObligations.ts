@@ -6,7 +6,6 @@ import {
   OBLIGATION_QUERY_KEYS,
   type ObligationKind,
 } from './obligations';
-import { retryObligation } from './retry';
 
 /** `GET /collections` | `/loans` | `/debts` — recordings with paid/pending totals. */
 export function useObligations(kind: ObligationKind) {
@@ -22,6 +21,5 @@ export function useObligation(kind: ObligationKind, id: string) {
     queryKey: [...OBLIGATION_QUERY_KEYS[kind], id],
     queryFn: () => fetchObligation(kind, id),
     enabled: Boolean(id),
-    retry: retryObligation,
   });
 }

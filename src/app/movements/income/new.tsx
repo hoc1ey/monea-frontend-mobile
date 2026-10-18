@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowUpDown, WifiOff } from 'lucide-react-native';
 
-import { isApiError } from '@/api/client';
+import { getErrorMessage, isApiError } from '@/api/client';
 import {
   Banner,
   Button,
@@ -99,7 +99,7 @@ export default function NewIncomeScreen() {
       }
       router.back();
     } catch (error) {
-      toast.show(isApiError(error) ? error.message : 'No se pudo guardar el ingreso');
+      toast.show(getErrorMessage(error, 'No se pudo guardar el ingreso'));
     }
   };
 

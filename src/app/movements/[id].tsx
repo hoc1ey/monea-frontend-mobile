@@ -4,7 +4,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { toZonedTime } from 'date-fns-tz';
 import { ArrowUpDown, WifiOff } from 'lucide-react-native';
 
-import { isApiError } from '@/api/client';
+import { getErrorMessage, isApiError } from '@/api/client';
 import type { Expense } from '@/api/expenses';
 import type { Income } from '@/api/incomes';
 import {
@@ -97,7 +97,7 @@ export default function MovementDetailScreen() {
         router.replace('/movements');
       }
     } catch (error) {
-      toast.show(isApiError(error) ? error.message : 'No se pudo eliminar el movimiento');
+      toast.show(getErrorMessage(error, 'No se pudo eliminar el movimiento'));
     }
   };
 

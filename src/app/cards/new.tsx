@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 
-import { isApiError } from '@/api/client';
+import { getErrorMessage } from '@/api/client';
 import { useToast } from '@/components/ui';
 import { CardForm } from '@/features/cards/CardForm';
 import { useCreateCreditCard } from '@/features/cards/useCreditCardMutations';
@@ -19,7 +19,7 @@ export default function NewCardScreen() {
           toast.show('Tarjeta creada');
           router.back();
         } catch (error) {
-          toast.show(isApiError(error) ? error.message : 'No se pudo guardar la tarjeta');
+          toast.show(getErrorMessage(error, 'No se pudo guardar la tarjeta'));
         }
       }}
     />

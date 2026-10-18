@@ -4,7 +4,7 @@ import { Alert, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowDown, CreditCard, Repeat, ShoppingCart, Wallet, WifiOff } from 'lucide-react-native';
 
-import { isApiError } from '@/api/client';
+import { getErrorMessage } from '@/api/client';
 
 import {
   Banner,
@@ -120,7 +120,7 @@ export default function AccountDetailScreen() {
         router.replace('/accounts');
       }
     } catch (error) {
-      toast.show(isApiError(error) ? error.message : 'No se pudo eliminar la cuenta');
+      toast.show(getErrorMessage(error, 'No se pudo eliminar la cuenta'));
     }
   };
 

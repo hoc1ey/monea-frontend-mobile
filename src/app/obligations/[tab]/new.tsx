@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { Landmark, WifiOff } from 'lucide-react-native';
 
-import { isApiError } from '@/api/client';
+import { getErrorMessage, isApiError } from '@/api/client';
 import {
   Banner,
   Button,
@@ -114,7 +114,7 @@ export default function NewObligationScreen() {
         router.replace({ pathname: '/obligations/[tab]', params: { tab: kind } });
       }
     } catch (error) {
-      toast.show(isApiError(error) ? error.message : 'No se pudo guardar el registro');
+      toast.show(getErrorMessage(error, 'No se pudo guardar el registro'));
     }
   };
 

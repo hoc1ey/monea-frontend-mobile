@@ -4,7 +4,7 @@ import { RefreshControl, StyleSheet, Text, TextInput, View } from 'react-native'
 import { router } from 'expo-router';
 import { Repeat, WifiOff } from 'lucide-react-native';
 
-import { isApiError } from '@/api/client';
+import { getErrorMessage } from '@/api/client';
 import {
   Banner,
   Button,
@@ -101,9 +101,7 @@ export default function DefineAmountScreen() {
     const apiErrors: Record<string, string> = {};
     results.forEach((result, index) => {
       if (result.status === 'rejected') {
-        apiErrors[valid[index][0]] = isApiError(result.reason)
-          ? result.reason.message
-          : 'No se pudo guardar';
+        apiErrors[valid[index][0]] = getErrorMessage(result.reason, 'No se pudo guardar');
       }
     });
 

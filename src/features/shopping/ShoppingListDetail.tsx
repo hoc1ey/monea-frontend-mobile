@@ -4,7 +4,7 @@ import { Alert, RefreshControl, StyleSheet, Text, TextInput, View } from 'react-
 import { router } from 'expo-router';
 import { ShoppingCart, WifiOff } from 'lucide-react-native';
 
-import { isApiError } from '@/api/client';
+import { getErrorMessage } from '@/api/client';
 import type { CloseShoppingListInput, ShoppingListItem } from '@/api/shoppingLists';
 import {
   Banner,
@@ -137,7 +137,7 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
       setPendingItems((previous) => previous.filter((pending) => pending.tempId !== tempId));
     } catch (error) {
       setPendingItems((previous) => previous.filter((pending) => pending.tempId !== tempId));
-      toast.show(isApiError(error) ? error.message : 'No se pudo agregar el producto');
+      toast.show(getErrorMessage(error, 'No se pudo agregar el producto'));
     }
   };
 
@@ -149,7 +149,7 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
     try {
       await updateItem.mutateAsync({ itemId, input: { name } });
     } catch (error) {
-      toast.show(isApiError(error) ? error.message : 'No se pudo guardar el producto');
+      toast.show(getErrorMessage(error, 'No se pudo guardar el producto'));
     }
   };
 
@@ -158,7 +158,7 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
       await updateItem.mutateAsync({ itemId, input: { price } });
       setHighlightItemId((current) => (current === itemId ? null : current));
     } catch (error) {
-      toast.show(isApiError(error) ? error.message : 'No se pudo guardar el precio');
+      toast.show(getErrorMessage(error, 'No se pudo guardar el precio'));
     }
   };
 
@@ -172,7 +172,7 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
           try {
             await deleteItem.mutateAsync(item.id);
           } catch (error) {
-            toast.show(isApiError(error) ? error.message : 'No se pudo quitar el producto');
+            toast.show(getErrorMessage(error, 'No se pudo quitar el producto'));
           }
         },
       },
@@ -190,7 +190,7 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
       }
       router.replace({ pathname: '/shopping/[tab]', params: { tab: 'open' } });
     } catch (error) {
-      toast.show(isApiError(error) ? error.message : 'No se pudo cerrar la lista');
+      toast.show(getErrorMessage(error, 'No se pudo cerrar la lista'));
     }
   };
 
@@ -200,7 +200,7 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
       setRenaming(false);
       toast.show('Lista renombrada');
     } catch (error) {
-      toast.show(isApiError(error) ? error.message : 'No se pudo renombrar la lista');
+      toast.show(getErrorMessage(error, 'No se pudo renombrar la lista'));
     }
   };
 
@@ -219,7 +219,7 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
             toast.show('Lista eliminada');
             router.replace({ pathname: '/shopping/[tab]', params: { tab: 'open' } });
           } catch (error) {
-            toast.show(isApiError(error) ? error.message : 'No se pudo eliminar la lista');
+            toast.show(getErrorMessage(error, 'No se pudo eliminar la lista'));
           }
         },
       },

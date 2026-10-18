@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Wallet, WifiOff } from 'lucide-react-native';
 
-import { isApiError } from '@/api/client';
+import { getErrorMessage, isApiError } from '@/api/client';
 import {
   Banner,
   Button,
@@ -75,7 +75,7 @@ export default function EditAccountScreen() {
           toast.show(result.message || 'Cuenta actualizada');
           router.back();
         } catch (error) {
-          toast.show(isApiError(error) ? error.message : 'No se pudo guardar la cuenta');
+          toast.show(getErrorMessage(error, 'No se pudo guardar la cuenta'));
         }
       }}
     />

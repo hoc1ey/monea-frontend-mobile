@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Animated, Pressable, StyleSheet } from 'react-native';
 
 import { elevation, radii, useThemeColors } from '@/theme';
@@ -19,8 +19,13 @@ const TRAVEL = TRACK_WIDTH - KNOB_SIZE - 4;
 export function Switch({ value, onValueChange, disabled, accessibilityLabel }: SwitchProps) {
   const colors = useThemeColors();
   const [progress] = useState(() => new Animated.Value(value ? 1 : 0));
+  const animated = useRef(value);
 
   useEffect(() => {
+    if (animated.current === value) {
+      return;
+    }
+    animated.current = value;
     Animated.timing(progress, {
       toValue: value ? 1 : 0,
       duration: 200,

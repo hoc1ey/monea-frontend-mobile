@@ -1,15 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { isApiError } from '@/api/client';
 import { getExpense, type Expense } from '@/api/expenses';
 import { getIncome, type Income } from '@/api/incomes';
 
 import type { MovementKind } from './movements';
-
-/** Stop retrying on 404 so the "Movimiento no encontrado" flow reacts immediately. */
-export function retryMovement(failureCount: number, error: unknown): boolean {
-  return failureCount < 2 && !(isApiError(error) && error.status === 404);
-}
 
 /** `GET /incomes/:id` — used by the income form when editing. */
 export function useIncomeDetail(id: string) {
@@ -17,7 +11,6 @@ export function useIncomeDetail(id: string) {
     queryKey: ['incomes', id],
     queryFn: () => getIncome(id),
     enabled: Boolean(id),
-    retry: retryMovement,
   });
 }
 
@@ -27,7 +20,6 @@ export function useExpenseDetail(id: string) {
     queryKey: ['expenses', id],
     queryFn: () => getExpense(id),
     enabled: Boolean(id),
-    retry: retryMovement,
   });
 }
 
@@ -40,6 +32,5 @@ export function useMovementDetail(kind: MovementKind, id: string) {
     queryKey: [kind === 'income' ? 'incomes' : 'expenses', id],
     queryFn: () => (kind === 'income' ? getIncome(id) : getExpense(id)),
     enabled: Boolean(id),
-    retry: retryMovement,
   });
 }

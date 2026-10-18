@@ -7,6 +7,7 @@ import {
   Text,
   TextInput,
   View,
+  type LayoutChangeEvent,
   type ListRenderItemInfo,
 } from 'react-native';
 
@@ -38,7 +39,7 @@ import {
 import { useMovements, usePendingExpenses } from '@/features/movements/useMovements';
 import { formatDate, formatMoney } from '@/lib/format';
 import { useUiStore } from '@/stores/ui';
-import { ICON_STROKE, radii, typography, useThemeColors } from '@/theme';
+import { ICON_STROKE, radii, spacing, typography, useThemeColors } from '@/theme';
 
 const FILTERS: ChipOption<MovementFilter>[] = [
   { value: 'all', label: 'Todos' },
@@ -47,6 +48,20 @@ const FILTERS: ChipOption<MovementFilter>[] = [
   { value: 'deferred', label: 'Diferidos' },
   { value: 'recurring', label: 'Recurrentes' },
 ];
+
+/**
+ * Fixed heights for `getItemLayout` (F16): every section is
+ * `SectionHeader` (24 + 18 + 8) + `Group` (4 bottom margin) + `data.length`
+ * rows (12 + 22 + 1 + 18 + 12 each).
+ */
+const SECTION_HEADER_HEIGHT = spacing.xl + typography.sectionHeader.lineHeight + spacing.sm;
+const GROUP_GAP = spacing.xs;
+const ROW_HEIGHT = spacing.md * 2 + typography.bodyMedium.lineHeight + 1 + typography.footnote.lineHeight;
+
+/** Height of one section item (header + rows + group gap). */
+function sectionHeight(section: MovementSection): number {
+  return SECTION_HEADER_HEIGHT + GROUP_GAP + section.data.length * ROW_HEIGHT;
+}
 
 /** 36 dp circular `fill` icon-button (prototype `.ib`). */
 function IconButton({
@@ -140,6 +155,7 @@ export default function MovementsScreen() {
   const [filter, setFilter] = useState<MovementFilter>('all');
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [headerHeight, setHeaderHeight] = useState(0);
 
   const movements = useMovements(filter, search);
   const pending = usePendingExpenses();
@@ -175,8 +191,25 @@ export default function MovementsScreen() {
     </View>
   );
 
+  const handleHeaderLayout = useCallback((event: LayoutChangeEvent) => {
+    const next = event.nativeEvent.layout.height;
+    setHeaderHeight((current) => (current === next ? current : next));
+  }, []);
+
+  const getItemLayout = useCallback(
+    (data: ArrayLike<MovementSection> | null | undefined, index: number) => {
+      const sections = data ?? [];
+      let offset = headerHeight;
+      for (let i = 0; i < index; i += 1) {
+        offset += sectionHeight(sections[i]);
+      }
+      return { length: sectionHeight(sections[index]), offset, index };
+    },
+    [headerHeight],
+  );
+
   const header = (
-    <View>
+    <View onLayout={handleHeaderLayout}>
       <LargeHeader
         title="Movimientos"
         right={
@@ -260,8 +293,9 @@ export default function MovementsScreen() {
     <View style={styles.flex}>
       <FlatList
         data={movements.sections}
-        keyExtractor={(section) => `${section.title}-${section.data[0]?.id ?? ''}`}
+        keyExtractor={(section) => section.data[0]?.id ?? section.title}
         renderItem={renderSection}
+        getItemLayout={getItemLayout}
         ListHeaderComponent={header}
         ListEmptyComponent={empty}
         ListFooterComponent={footer}

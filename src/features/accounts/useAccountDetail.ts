@@ -7,8 +7,6 @@ import { isApiError } from '@/api/client';
 import { getExpenses, type ExpenseSourceType } from '@/api/expenses';
 import { getIncomes, type IncomeSourceType } from '@/api/incomes';
 
-import { retryAccount } from './retry';
-
 const INCOME_ORIGIN: Record<IncomeSourceType, string> = {
   MANUAL: 'Manual',
   COLLECTION_INSTALLMENT: 'Cobro',
@@ -80,7 +78,6 @@ export function useAccountDetail(id: string) {
     queryKey: ['accounts', id],
     queryFn: () => getAccount(id),
     enabled: Boolean(id),
-    retry: retryAccount,
   });
 
   const incomesQuery = useQuery({

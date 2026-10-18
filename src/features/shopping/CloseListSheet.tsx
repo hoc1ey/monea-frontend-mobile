@@ -7,7 +7,7 @@ import { AmountInput, Button, Group, Note, Select, Sheet, type SelectOption } fr
 import { formatMoney, roundMoney } from '@/lib/format';
 import { typography, useThemeColors } from '@/theme';
 
-import { purchasedWithoutPrice } from './shopping';
+import { buildCloseInput } from './shopping';
 
 export interface CloseListSheetProps {
   visible: boolean;
@@ -53,10 +53,10 @@ export function CloseListSheet({
 
   const selectedId = accountId || firstAccountId;
 
-  const purchased = items.filter((item) => item.isPurchased);
-  const notPurchased = items.filter((item) => !item.isPurchased);
   const purchasedTotal = roundMoney(
-    purchased.reduce((total, item) => total + (item.price ?? 0), 0),
+    items
+      .filter((item) => item.isPurchased)
+      .reduce((total, item) => total + (item.price ?? 0), 0),
   );
   const manual = roundMoney(Number(manualTotal) || 0);
   const effectiveTotal = pricesOn ? purchasedTotal : manual;
@@ -67,42 +67,17 @@ export function CloseListSheet({
   }));
 
   const confirm = () => {
-    if (purchased.length === 0) {
-      setError('Marca al menos un producto como comprado');
-      return;
-    }
-
-    if (pricesOn) {
-      const missing = purchasedWithoutPrice(purchased);
-      if (missing.length > 0) {
-        setError(`Falta el precio de «${missing[0].name}»`);
-        onHighlightItem(missing[0].id);
-        return;
+    const result = buildCloseInput(items, pricesOn, manualTotal, selectedId);
+    if (!result.ok) {
+      setError(result.error);
+      if (result.highlightItemId) {
+        onHighlightItem(result.highlightItemId);
       }
-    } else if (manual <= 0) {
-      setError('Escribe el total de la compra');
       return;
     }
 
     setError(null);
-
-    const notPurchasedItems = notPurchased.map((item) => ({ id: item.id }));
-
-    if (pricesOn) {
-      onConfirm({
-        accountId: selectedId,
-        purchasedItems: purchased.map((item) => ({ id: item.id, price: item.price ?? 0 })),
-        ...(notPurchasedItems.length > 0 ? { notPurchasedItems } : {}),
-      });
-      return;
-    }
-
-    onConfirm({
-      accountId: selectedId,
-      purchasedItems: purchased.map((item) => ({ id: item.id })),
-      ...(notPurchasedItems.length > 0 ? { notPurchasedItems } : {}),
-      total: manual,
-    });
+    onConfirm(result.input);
   };
 
   return (

@@ -2,8 +2,6 @@ import { useQuery } from '@tanstack/react-query';
 
 import { getAccount, getAccounts } from '@/api/accounts';
 
-import { retryAccount } from './retry';
-
 /** Shared cache key for the accounts list; the F05 dashboard reads it as `['accounts']`. */
 export const ACCOUNTS_QUERY_KEY = ['accounts'] as const;
 
@@ -18,6 +16,5 @@ export function useAccount(id: string) {
     queryKey: ['accounts', id],
     queryFn: () => getAccount(id),
     enabled: Boolean(id),
-    retry: retryAccount,
   });
 }

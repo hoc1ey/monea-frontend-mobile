@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { WifiOff } from 'lucide-react-native';
 
-import { isApiError } from '@/api/client';
+import { getErrorMessage } from '@/api/client';
 import type { UserProfile } from '@/api/users';
 import {
   Avatar,
@@ -78,7 +78,7 @@ function ProfileForm({ profile }: { profile: UserProfile }) {
       await update.mutateAsync({ name: trimmed, timezone });
       show('Perfil guardado');
     } catch (error) {
-      show(isApiError(error) ? error.message : 'No se pudo guardar el perfil');
+      show(getErrorMessage(error, 'No se pudo guardar el perfil'));
     }
   };
 

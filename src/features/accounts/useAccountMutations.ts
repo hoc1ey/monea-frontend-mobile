@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
 
 import {
   createAccount,
@@ -10,13 +10,26 @@ import {
 
 import { ACCOUNTS_QUERY_KEY } from './useAccounts';
 
+/**
+ * F16 invalidation table: an account change affects the list, the home
+ * dashboard (same `accounts` key) and the movement rows, which display the
+ * account name.
+ */
+function invalidateAccounts(queryClient: QueryClient): Promise<unknown> {
+  return Promise.all([
+    queryClient.invalidateQueries({ queryKey: ACCOUNTS_QUERY_KEY }),
+    queryClient.invalidateQueries({ queryKey: ['incomes'] }),
+    queryClient.invalidateQueries({ queryKey: ['expenses'] }),
+  ]);
+}
+
 /** POST /accounts — invalidates the list (and every derived account query). */
 export function useCreateAccount() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (input: AccountInput) => createAccount(input),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ACCOUNTS_QUERY_KEY }),
+    onSuccess: () => invalidateAccounts(queryClient),
   });
 }
 
@@ -26,7 +39,7 @@ export function useUpdateAccount(id: string) {
 
   return useMutation({
     mutationFn: (input: AccountUpdateInput) => updateAccount(id, input),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ACCOUNTS_QUERY_KEY }),
+    onSuccess: () => invalidateAccounts(queryClient),
   });
 }
 
@@ -36,6 +49,6 @@ export function useDeleteAccount(id: string) {
 
   return useMutation({
     mutationFn: () => deleteAccount(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ACCOUNTS_QUERY_KEY }),
+    onSuccess: () => invalidateAccounts(queryClient),
   });
 }

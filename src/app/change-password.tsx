@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 import { useController, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { isApiError } from '@/api/client';
+import { getErrorMessage, isApiError } from '@/api/client';
 import { clearSession } from '@/auth/session';
 import {
   Button,
@@ -71,7 +71,7 @@ export default function ChangePasswordScreen() {
         setFormError('La contraseña actual no es correcta');
         return;
       }
-      setFormError(isApiError(error) ? error.message : 'No se pudo cambiar la contraseña');
+      setFormError(getErrorMessage(error, 'No se pudo cambiar la contraseña'));
     }
   });
 
