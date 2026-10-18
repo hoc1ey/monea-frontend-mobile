@@ -3,9 +3,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   addShoppingListItem,
   checkShoppingListItem,
+  closeShoppingList,
   createShoppingList,
   deleteShoppingListItem,
   updateShoppingListItem,
+  type CloseShoppingListInput,
   type CreateShoppingListInput,
   type ShoppingList,
   type ShoppingListItem,
@@ -104,5 +106,22 @@ export function useDeleteShoppingListItem(id: string) {
   return useMutation({
     mutationFn: (itemId: string) => deleteShoppingListItem(id, itemId),
     onSuccess: () => invalidateShoppingLists(queryClient),
+  });
+}
+
+/**
+ * POST /shopping-lists/:id/close — creates the expense and moves the pending
+ * items to a new list. The accounts and the movements change too.
+ */
+export function useCloseShoppingList(id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: CloseShoppingListInput) => closeShoppingList(id, input),
+    onSuccess: () =>
+      Promise.all([
+        invalidateShoppingLists(queryClient),
+        queryClient.invalidateQueries({ queryKey: ['accounts'] }),
+        queryClient.invalidateQueries({ queryKey: ['expenses'] }),
+      ]),
   });
 }

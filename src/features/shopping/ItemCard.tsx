@@ -18,6 +18,8 @@ export interface ItemCardProps {
   onDelete: () => void;
   /** Dims the card while a request for it is in flight. */
   pending?: boolean;
+  /** Highlights the card in `negative` (e.g. a purchased item without price). */
+  highlight?: boolean;
 }
 
 const PRICE_DEBOUNCE = 600;
@@ -34,6 +36,7 @@ export function ItemCard({
   onSavePrice,
   onDelete,
   pending,
+  highlight,
 }: ItemCardProps) {
   const colors = useThemeColors();
   const [editing, setEditing] = useState(false);
@@ -109,7 +112,13 @@ export function ItemCard({
   }
 
   return (
-    <View style={[styles.card, { backgroundColor: colors.surface, opacity: pending ? 0.6 : 1 }]}>
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: colors.surface, opacity: pending ? 0.6 : 1 },
+        highlight && { borderWidth: 1.5, borderColor: colors.negative },
+      ]}
+    >
       <Checkbox
         checked={item.isPurchased}
         onToggle={onToggle}

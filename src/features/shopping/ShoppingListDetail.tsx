@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 import { ShoppingCart, WifiOff } from 'lucide-react-native';
 
 import { isApiError } from '@/api/client';
-import type { ShoppingListItem } from '@/api/shoppingLists';
+import type { CloseShoppingListInput, ShoppingListItem } from '@/api/shoppingLists';
 import {
   Banner,
   Button,
@@ -27,10 +27,12 @@ import { formatDate, formatMoney } from '@/lib/format';
 import { radii, typography, useThemeColors } from '@/theme';
 
 import { ItemCard } from './ItemCard';
+import { CloseListSheet } from './CloseListSheet';
 import { itemsOf, purchasedCount, sumPurchasedPrices } from './shopping';
 import {
   useAddShoppingListItem,
   useCheckShoppingListItem,
+  useCloseShoppingList,
   useDeleteShoppingListItem,
   useUpdateShoppingListItem,
 } from './useShoppingListMutations';
@@ -95,11 +97,14 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
   const checkItem = useCheckShoppingListItem(id);
   const updateItem = useUpdateShoppingListItem(id);
   const deleteItem = useDeleteShoppingListItem(id);
+  const closeList = useCloseShoppingList(id);
 
   const [newName, setNewName] = useState('');
   const [pendingItems, setPendingItems] = useState<{ tempId: string; name: string }[]>([]);
   const [pricesOn, setPricesOn] = useState(false);
   const [manualTotal, setManualTotal] = useState('');
+  const [closing, setClosing] = useState(false);
+  const [highlightItemId, setHighlightItemId] = useState<string | null>(null);
   const inputRef = useRef<TextInput>(null);
 
   const list = query.data;
@@ -144,6 +149,7 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
   const handleSavePrice = async (itemId: string, price: number) => {
     try {
       await updateItem.mutateAsync({ itemId, input: { price } });
+      setHighlightItemId((current) => (current === itemId ? null : current));
     } catch (error) {
       toast.show(isApiError(error) ? error.message : 'No se pudo guardar el precio');
     }
@@ -164,6 +170,21 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
         },
       },
     ]);
+  };
+
+  const handleCloseConfirm = async (input: CloseShoppingListInput) => {
+    try {
+      const result = await closeList.mutateAsync(input);
+      setClosing(false);
+      toast.show('Lista cerrada · egreso creado');
+      if (result.newList) {
+        const pending = itemsOf(result.newList).length;
+        setTimeout(() => toast.show(`Se creó una lista con ${pending} pendientes`), 2200);
+      }
+      router.replace({ pathname: '/shopping/[tab]', params: { tab: 'open' } });
+    } catch (error) {
+      toast.show(isApiError(error) ? error.message : 'No se pudo cerrar la lista');
+    }
   };
 
   const renderContent = () => {
@@ -256,6 +277,7 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
               key={item.id}
               item={item}
               pricesOn={pricesOn}
+              highlight={highlightItemId === item.id}
               onToggle={() => handleToggle(item.id, !item.isPurchased)}
               onSaveName={(name) => handleSaveName(item.id, name)}
               onSavePrice={(price) => handleSavePrice(item.id, price)}
@@ -292,6 +314,8 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
             ? 'El total se calcula sumando los precios de cada producto.'
             : 'Escribe el total de la compra. Activa precios individuales para calcularlo.'}
         </Note>
+
+        <Button title="Cerrar lista" onPress={() => setClosing(true)} style={styles.close} />
       </>
     );
   };
@@ -311,6 +335,20 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
       >
         {renderContent()}
       </ScreenContainer>
+
+      {list && list.status === 'OPEN' ? (
+        <CloseListSheet
+          visible={closing}
+          items={items}
+          pricesOn={pricesOn}
+          manualTotal={manualTotal}
+          accounts={accounts.data ?? []}
+          isClosing={closeList.isPending}
+          onClose={() => setClosing(false)}
+          onHighlightItem={setHighlightItemId}
+          onConfirm={handleCloseConfirm}
+        />
+      ) : null}
     </View>
   );
 }
@@ -367,6 +405,9 @@ const styles = StyleSheet.create({
     minWidth: 0,
     textAlign: 'right',
     fontVariant: ['tabular-nums'],
+  },
+  close: {
+    marginTop: 16,
   },
   skeletonGroup: {
     gap: 12,
