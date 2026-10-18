@@ -106,6 +106,7 @@ export const elevation = {
   flat: 0,
   segmented: 1,
   switch: 2,
+  button: 4,
   miniCard: 4,
   hero: 6,
   tabBar: 8,
