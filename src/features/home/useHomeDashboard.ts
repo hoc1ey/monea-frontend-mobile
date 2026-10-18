@@ -195,9 +195,9 @@ export function useHomeDashboard(): HomeDashboard {
         { queryKey: ['users', 'me'], queryFn: getMe, staleTime: STALE_TIME },
         { queryKey: ['accounts'], queryFn: getAccounts, staleTime: STALE_TIME },
         { queryKey: ['credit-cards'], queryFn: getCreditCards, staleTime: STALE_TIME },
-        { queryKey: ['collections'], queryFn: getCollections, staleTime: STALE_TIME },
-        { queryKey: ['loans'], queryFn: getLoans, staleTime: STALE_TIME },
-        { queryKey: ['debts'], queryFn: getDebts, staleTime: STALE_TIME },
+        { queryKey: ['collections'], queryFn: () => getCollections(), staleTime: STALE_TIME },
+        { queryKey: ['loans'], queryFn: () => getLoans(), staleTime: STALE_TIME },
+        { queryKey: ['debts'], queryFn: () => getDebts(), staleTime: STALE_TIME },
         {
           queryKey: ['expenses', { amountPending: true }],
           queryFn: getPendingExpenses,
