@@ -1,4 +1,8 @@
-import type { ShoppingList, ShoppingListItem } from '@/api/shoppingLists';
+import type {
+  CloseShoppingListInput,
+  ShoppingList,
+  ShoppingListItem,
+} from '@/api/shoppingLists';
 import type { SegmentedOption } from '@/components/ui';
 import { roundMoney, sumMoney } from '@/lib/format';
 
@@ -53,4 +57,67 @@ export function purchasedWithoutPrice(items: ShoppingListItem[]): ShoppingListIt
 /** Effectively rounds a manual total coming from the input. */
 export function parseTotal(value: string): number {
   return roundMoney(Number(value) || 0);
+}
+
+/** Result of validating the close rules: a payload or a user-facing error. */
+export type CloseListValidation =
+  | { ok: true; input: CloseShoppingListInput }
+  | { ok: false; error: string; highlightItemId?: string };
+
+/**
+ * Applies the API XOR rule (F14) and builds `POST /shopping-lists/:id/close`:
+ * with individual prices the total comes from the purchased items (no `total`);
+ * otherwise the manual `total` is sent. Also covers every active item.
+ */
+export function buildCloseInput(
+  items: ShoppingListItem[],
+  pricesOn: boolean,
+  manualTotal: string,
+  accountId: string,
+): CloseListValidation {
+  const purchased = items.filter((item) => item.isPurchased);
+  const notPurchased = items.filter((item) => !item.isPurchased);
+
+  if (purchased.length === 0) {
+    return { ok: false, error: 'Marca al menos un producto como comprado' };
+  }
+
+  const notPurchasedItems = notPurchased.map((item) => ({ id: item.id }));
+  const shared = {
+    accountId,
+    ...(notPurchasedItems.length > 0 ? { notPurchasedItems } : {}),
+  };
+
+  if (pricesOn) {
+    const missing = purchasedWithoutPrice(purchased);
+    if (missing.length > 0) {
+      return {
+        ok: false,
+        error: `Falta el precio de «${missing[0].name}»`,
+        highlightItemId: missing[0].id,
+      };
+    }
+
+    return {
+      ok: true,
+      input: {
+        ...shared,
+        purchasedItems: purchased.map((item) => ({ id: item.id, price: item.price ?? 0 })),
+      },
+    };
+  }
+
+  const total = parseTotal(manualTotal);
+  if (total <= 0) {
+    return { ok: false, error: 'Escribe el total de la compra' };
+  }
+
+  return {
+    ok: true,
+    input: {
+      ...shared,
+      purchasedItems: purchased.map((item) => ({ id: item.id })),
+      total,
+    },
+  };
 }

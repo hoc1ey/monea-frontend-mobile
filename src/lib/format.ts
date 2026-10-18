@@ -20,7 +20,7 @@ export function formatMoney(value: number): string {
   return `${sign}$${grouped}.${decimals}`;
 }
 
-export function formatDate(value: Date | string, pattern = "d 'de' MMMM yyyy"): string {
+export function formatDate(value: Date | string, pattern = "d 'de' MMMM 'de' yyyy"): string {
   const date = typeof value === 'string' ? parseISO(value) : value;
   return format(date, pattern, { locale: es });
 }
