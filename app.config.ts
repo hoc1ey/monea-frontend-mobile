@@ -55,6 +55,7 @@ const config: ExpoConfig = {
         color: '#EF13A1',
       },
     ],
+    '@react-native-community/datetimepicker',
   ],
   experiments: {
     typedRoutes: true,
