@@ -5,7 +5,9 @@ import {
   checkShoppingListItem,
   closeShoppingList,
   createShoppingList,
+  deleteShoppingList,
   deleteShoppingListItem,
+  renameShoppingList,
   updateShoppingListItem,
   type CloseShoppingListInput,
   type CreateShoppingListInput,
@@ -105,6 +107,28 @@ export function useDeleteShoppingListItem(id: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (itemId: string) => deleteShoppingListItem(id, itemId),
+    onSuccess: () => invalidateShoppingLists(queryClient),
+  });
+}
+
+/**
+ * PATCH /shopping-lists/:id — renames an open list.
+ */
+export function useRenameShoppingList(id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (name: string) => renameShoppingList(id, name),
+    onSuccess: () => invalidateShoppingLists(queryClient),
+  });
+}
+
+/**
+ * DELETE /shopping-lists/:id — logical delete of the list and its items.
+ */
+export function useDeleteShoppingList(id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => deleteShoppingList(id),
     onSuccess: () => invalidateShoppingLists(queryClient),
   });
 }

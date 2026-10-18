@@ -19,6 +19,7 @@ import {
   SectionHeader,
   Skeleton,
   Switch,
+  TextButton,
   TopBar,
   useToast,
 } from '@/components/ui';
@@ -28,12 +29,15 @@ import { radii, typography, useThemeColors } from '@/theme';
 
 import { ItemCard } from './ItemCard';
 import { CloseListSheet } from './CloseListSheet';
+import { RenameListSheet } from './RenameListSheet';
 import { itemsOf, purchasedCount, sumPurchasedPrices } from './shopping';
 import {
   useAddShoppingListItem,
   useCheckShoppingListItem,
   useCloseShoppingList,
   useDeleteShoppingListItem,
+  useDeleteShoppingList,
+  useRenameShoppingList,
   useUpdateShoppingListItem,
 } from './useShoppingListMutations';
 import { useShoppingList } from './useShoppingLists';
@@ -98,12 +102,15 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
   const updateItem = useUpdateShoppingListItem(id);
   const deleteItem = useDeleteShoppingListItem(id);
   const closeList = useCloseShoppingList(id);
+  const renameList = useRenameShoppingList(id);
+  const deleteList = useDeleteShoppingList(id);
 
   const [newName, setNewName] = useState('');
   const [pendingItems, setPendingItems] = useState<{ tempId: string; name: string }[]>([]);
   const [pricesOn, setPricesOn] = useState(false);
   const [manualTotal, setManualTotal] = useState('');
   const [closing, setClosing] = useState(false);
+  const [renaming, setRenaming] = useState(false);
   const [highlightItemId, setHighlightItemId] = useState<string | null>(null);
   const inputRef = useRef<TextInput>(null);
 
@@ -185,6 +192,38 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
     } catch (error) {
       toast.show(isApiError(error) ? error.message : 'No se pudo cerrar la lista');
     }
+  };
+
+  const handleRename = async (name: string) => {
+    try {
+      await renameList.mutateAsync(name);
+      setRenaming(false);
+      toast.show('Lista renombrada');
+    } catch (error) {
+      toast.show(isApiError(error) ? error.message : 'No se pudo renombrar la lista');
+    }
+  };
+
+  const handleDeleteList = () => {
+    if (!list) {
+      return;
+    }
+    Alert.alert('Eliminar lista', `Se eliminará «${list.name}» y sus productos.`, [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Eliminar',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteList.mutateAsync();
+            toast.show('Lista eliminada');
+            router.replace({ pathname: '/shopping/[tab]', params: { tab: 'open' } });
+          } catch (error) {
+            toast.show(isApiError(error) ? error.message : 'No se pudo eliminar la lista');
+          }
+        },
+      },
+    ]);
   };
 
   const renderContent = () => {
@@ -316,13 +355,30 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
         </Note>
 
         <Button title="Cerrar lista" onPress={() => setClosing(true)} style={styles.close} />
+
+        <Group>
+          <Button
+            title="Eliminar lista"
+            variant="danger"
+            loading={deleteList.isPending}
+            onPress={handleDeleteList}
+          />
+        </Group>
       </>
     );
   };
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.bg }]}>
-      <TopBar title={list?.name ?? 'Lista'} onBack={() => router.back()} />
+      <TopBar
+        title={list?.name ?? 'Lista'}
+        onBack={() => router.back()}
+        right={
+          list?.status === 'OPEN' ? (
+            <TextButton title="Editar" onPress={() => setRenaming(true)} />
+          ) : undefined
+        }
+      />
       <ScreenContainer
         refreshControl={
           <RefreshControl
@@ -349,6 +405,14 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
           onConfirm={handleCloseConfirm}
         />
       ) : null}
+
+      <RenameListSheet
+        visible={renaming}
+        currentName={list?.name ?? ''}
+        isRenaming={renameList.isPending}
+        onClose={() => setRenaming(false)}
+        onConfirm={(name) => void handleRename(name)}
+      />
     </View>
   );
 }
