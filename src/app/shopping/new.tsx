@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 
-import { isApiError } from '@/api/client';
+import { getErrorMessage } from '@/api/client';
 import { useToast } from '@/components/ui';
 import {
   NewShoppingListForm,
@@ -19,7 +19,7 @@ export default function NewShoppingListScreen() {
       toast.show('Lista creada');
       router.replace({ pathname: '/shopping/[tab]/[id]', params: { tab: 'open', id: created.id } });
     } catch (error) {
-      toast.show(isApiError(error) ? error.message : 'No se pudo crear la lista');
+      toast.show(getErrorMessage(error, 'No se pudo crear la lista'));
     }
   };
 

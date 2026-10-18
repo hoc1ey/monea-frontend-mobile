@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 import { useController, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { isApiError } from '@/api/client';
+import { getErrorMessage } from '@/api/client';
 import { signUp } from '@/auth/session';
 import { Button, Field, Group, Note, ScreenContainer, Select, TopBar } from '@/components/ui';
 import { shouldShowNotificationOnboarding } from '@/lib/notifications';
@@ -55,7 +55,7 @@ export default function RegisterScreen() {
       const showOnboarding = await shouldShowNotificationOnboarding();
       router.replace(showOnboarding ? '/notifications-onboarding' : '/');
     } catch (error) {
-      setFormError(isApiError(error) ? error.message : 'No se pudo crear la cuenta');
+      setFormError(getErrorMessage(error, 'No se pudo crear la cuenta'));
     }
   });
 

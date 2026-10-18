@@ -4,7 +4,11 @@ import { router } from 'expo-router';
 import { clearTokens, getAccessToken, getRefreshToken, saveTokens } from '@/auth/tokens';
 import { env } from '@/config/env';
 
+import type { ApiError } from './errors';
 import { queryClient } from './queryClient';
+
+export { getErrorMessage, getRetryAfterMinutes, isApiError, shouldRetry } from './errors';
+export type { ApiError } from './errors';
 
 export interface ApiEnvelope<T> {
   success: boolean;
@@ -12,13 +16,6 @@ export interface ApiEnvelope<T> {
   data: T;
   message: string;
   errors?: unknown;
-}
-
-export interface ApiError {
-  status: number;
-  message: string;
-  errors?: unknown;
-  data?: unknown;
 }
 
 export const api = axios.create({
@@ -45,23 +42,6 @@ const PUBLIC_PATHS = ['/auth/login', '/auth/register', '/auth/refresh', '/health
 
 function isPublicRequest(url?: string): boolean {
   return url ? PUBLIC_PATHS.some((path) => url.includes(path)) : false;
-}
-
-export function isApiError(error: unknown): error is ApiError {
-  return typeof error === 'object' && error !== null && 'status' in error && 'message' in error;
-}
-
-/** Reads `retryAfterMinutes` from a 423/429 login error (F03 lock screen). */
-export function getRetryAfterMinutes(error: unknown): number | null {
-  if (!isApiError(error)) {
-    return null;
-  }
-
-  const data = error.data as { retryAfterMinutes?: unknown } | undefined;
-  const errors = error.errors as { retryAfterMinutes?: unknown } | undefined;
-  const value = data?.retryAfterMinutes ?? errors?.retryAfterMinutes;
-
-  return typeof value === 'number' ? value : null;
 }
 
 api.interceptors.request.use((config) => {

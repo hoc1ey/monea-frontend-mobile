@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 
-import { isApiError } from '@/api/client';
+import { getErrorMessage } from '@/api/client';
 import { useToast } from '@/components/ui';
 import { AccountForm } from '@/features/accounts/AccountForm';
 import { useCreateAccount } from '@/features/accounts/useAccountMutations';
@@ -19,7 +19,7 @@ export default function NewAccountScreen() {
           toast.show('Cuenta creada');
           router.back();
         } catch (error) {
-          toast.show(isApiError(error) ? error.message : 'No se pudo guardar la cuenta');
+          toast.show(getErrorMessage(error, 'No se pudo guardar la cuenta'));
         }
       }}
     />

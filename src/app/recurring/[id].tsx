@@ -5,7 +5,7 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { toZonedTime } from 'date-fns-tz';
 import { Repeat, ShoppingCart, WifiOff } from 'lucide-react-native';
 
-import { isApiError } from '@/api/client';
+import { getErrorMessage, isApiError } from '@/api/client';
 import type { Expense } from '@/api/expenses';
 import type { RecurringExpenseConfig } from '@/api/recurringExpenses';
 import {
@@ -111,7 +111,7 @@ export default function RecurringDetailScreen() {
         router.replace('/recurring');
       }
     } catch (error) {
-      toast.show(isApiError(error) ? error.message : 'No se pudo eliminar la configuración');
+      toast.show(getErrorMessage(error, 'No se pudo eliminar la configuración'));
     }
   };
 

@@ -4,7 +4,7 @@ import { Alert, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { ArrowDown, ArrowUp, Landmark, WifiOff } from 'lucide-react-native';
 
-import { isApiError } from '@/api/client';
+import { getErrorMessage, isApiError } from '@/api/client';
 import type { ObligationInstallment } from '@/api/obligations';
 import {
   Avatar,
@@ -147,7 +147,7 @@ export function ObligationDetail({ kind, id }: ObligationDetailProps) {
         toast.show('Esta cuota ya está pagada');
         return;
       }
-      toast.show(isApiError(error) ? error.message : 'No se pudo marcar la cuota');
+      toast.show(getErrorMessage(error, 'No se pudo marcar la cuota'));
     }
   };
 
@@ -157,7 +157,7 @@ export function ObligationDetail({ kind, id }: ObligationDetailProps) {
       toast.show('Registro eliminado');
       backOrFallback();
     } catch (error) {
-      toast.show(isApiError(error) ? error.message : 'No se pudo eliminar el registro');
+      toast.show(getErrorMessage(error, 'No se pudo eliminar el registro'));
     }
   };
 

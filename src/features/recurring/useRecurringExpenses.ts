@@ -4,7 +4,6 @@ import { getExpenses } from '@/api/expenses';
 import { getRecurringExpense, getRecurringExpenses } from '@/api/recurringExpenses';
 
 import { RECURRING_QUERY_KEY } from './keys';
-import { retryRecurring } from './retry';
 
 /** `GET /recurring-expenses` — configurations ordered by `createdAt` DESC. */
 export function useRecurringExpenses() {
@@ -17,7 +16,6 @@ export function useRecurringExpense(id: string) {
     queryKey: ['recurring-expenses', id],
     queryFn: () => getRecurringExpense(id),
     enabled: Boolean(id),
-    retry: retryRecurring,
   });
 }
 

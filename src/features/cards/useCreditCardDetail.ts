@@ -3,15 +3,12 @@ import { useQuery } from '@tanstack/react-query';
 import { isApiError } from '@/api/client';
 import { getCreditCard, getCreditCardDebt, getCreditCardReport } from '@/api/creditCards';
 
-import { retryCard } from './retry';
-
 /** Card detail: the card, its debt/credit summary and the selected statement. */
 export function useCreditCardDetail(id: string, period: string) {
   const cardQuery = useQuery({
     queryKey: ['credit-cards', id],
     queryFn: () => getCreditCard(id),
     enabled: Boolean(id),
-    retry: retryCard,
   });
 
   const debtQuery = useQuery({

@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ShoppingCart, WifiOff } from 'lucide-react-native';
 
-import { isApiError } from '@/api/client';
+import { getErrorMessage, isApiError } from '@/api/client';
 import type { RecurringExpenseInput } from '@/api/recurringExpenses';
 import {
   Banner,
@@ -175,7 +175,7 @@ export default function NewExpenseScreen() {
       }
       router.back();
     } catch (error) {
-      toast.show(isApiError(error) ? error.message : 'No se pudo guardar el egreso');
+      toast.show(getErrorMessage(error, 'No se pudo guardar el egreso'));
     }
   };
 
@@ -195,7 +195,7 @@ export default function NewExpenseScreen() {
       toast.show('Compra diferida creada');
       router.back();
     } catch (error) {
-      toast.show(isApiError(error) ? error.message : 'No se pudo guardar la compra diferida');
+      toast.show(getErrorMessage(error, 'No se pudo guardar la compra diferida'));
     }
   };
 
@@ -210,7 +210,7 @@ export default function NewExpenseScreen() {
       }
       router.back();
     } catch (error) {
-      toast.show(isApiError(error) ? error.message : 'No se pudo guardar la recurrencia');
+      toast.show(getErrorMessage(error, 'No se pudo guardar la recurrencia'));
     }
   };
 
