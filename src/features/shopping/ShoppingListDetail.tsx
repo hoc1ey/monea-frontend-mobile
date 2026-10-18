@@ -1,10 +1,11 @@
 import { useRef, useState } from 'react';
-import { RefreshControl, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, RefreshControl, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { router } from 'expo-router';
 import { ShoppingCart, WifiOff } from 'lucide-react-native';
 
 import { isApiError } from '@/api/client';
+import type { ShoppingListItem } from '@/api/shoppingLists';
 import {
   Banner,
   Button,
@@ -23,7 +24,12 @@ import { radii, typography, useThemeColors } from '@/theme';
 
 import { ItemCard } from './ItemCard';
 import { itemsOf, purchasedCount } from './shopping';
-import { useAddShoppingListItem, useCheckShoppingListItem } from './useShoppingListMutations';
+import {
+  useAddShoppingListItem,
+  useCheckShoppingListItem,
+  useDeleteShoppingListItem,
+  useUpdateShoppingListItem,
+} from './useShoppingListMutations';
 import { useShoppingList } from './useShoppingLists';
 
 function DetailSkeleton() {
@@ -83,6 +89,8 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
   const accounts = useAccounts();
   const addItem = useAddShoppingListItem(id);
   const checkItem = useCheckShoppingListItem(id);
+  const updateItem = useUpdateShoppingListItem(id);
+  const deleteItem = useDeleteShoppingListItem(id);
 
   const [newName, setNewName] = useState('');
   const [pendingItems, setPendingItems] = useState<{ tempId: string; name: string }[]>([]);
@@ -116,6 +124,31 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
 
   const handleToggle = (itemId: string, isPurchased: boolean) => {
     checkItem.mutate({ itemId, isPurchased });
+  };
+
+  const handleSaveName = async (itemId: string, name: string) => {
+    try {
+      await updateItem.mutateAsync({ itemId, input: { name } });
+    } catch (error) {
+      toast.show(isApiError(error) ? error.message : 'No se pudo guardar el producto');
+    }
+  };
+
+  const handleDelete = (item: ShoppingListItem) => {
+    Alert.alert('Eliminar producto', `Se quitará «${item.name}» de la lista.`, [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Eliminar',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteItem.mutateAsync(item.id);
+          } catch (error) {
+            toast.show(isApiError(error) ? error.message : 'No se pudo quitar el producto');
+          }
+        },
+      },
+    ]);
   };
 
   const renderContent = () => {
@@ -194,6 +227,8 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
               key={item.id}
               item={item}
               onToggle={() => handleToggle(item.id, !item.isPurchased)}
+              onSaveName={(name) => handleSaveName(item.id, name)}
+              onDelete={() => handleDelete(item)}
             />
           ))
         )}

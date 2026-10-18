@@ -4,9 +4,12 @@ import {
   addShoppingListItem,
   checkShoppingListItem,
   createShoppingList,
+  deleteShoppingListItem,
+  updateShoppingListItem,
   type CreateShoppingListInput,
   type ShoppingList,
   type ShoppingListItem,
+  type UpdateShoppingListItemInput,
 } from '@/api/shoppingLists';
 
 import { SHOPPING_QUERY_KEY, shoppingListKey } from './keys';
@@ -77,5 +80,29 @@ export function useCheckShoppingListItem(id: string) {
       }
     },
     onSettled: () => invalidateShoppingLists(queryClient),
+  });
+}
+
+interface UpdateItemVariables {
+  itemId: string;
+  input: UpdateShoppingListItemInput;
+}
+
+/** PATCH /shopping-lists/:id/items/:itemId — renames or sets the price. */
+export function useUpdateShoppingListItem(id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ itemId, input }: UpdateItemVariables) =>
+      updateShoppingListItem(id, itemId, input),
+    onSuccess: () => invalidateShoppingLists(queryClient),
+  });
+}
+
+/** DELETE /shopping-lists/:id/items/:itemId — removes an item from an open list. */
+export function useDeleteShoppingListItem(id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (itemId: string) => deleteShoppingListItem(id, itemId),
+    onSuccess: () => invalidateShoppingLists(queryClient),
   });
 }
