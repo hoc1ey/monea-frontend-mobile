@@ -13,7 +13,7 @@ export default function TabsLayout() {
     <SafeAreaView edges={['top']} style={[styles.safeArea, { backgroundColor: colors.bg }]}>
       <Tabs
         tabBar={(props) => <TabBar {...props} />}
-        screenOptions={{ headerShown: false }}
+        screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.bg } }}
       >
         <Tabs.Screen name="index" options={{ title: 'Inicio' }} />
         <Tabs.Screen name="movements" options={{ title: 'Movimientos' }} />
