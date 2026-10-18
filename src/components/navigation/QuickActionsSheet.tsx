@@ -21,17 +21,17 @@ const ACTIONS: QuickAction[] = [
   {
     label: 'Cobro',
     icon: ArrowDown,
-    href: { pathname: '/obligations/[type]/new', params: { type: 'cobros' } },
+    href: { pathname: '/obligations/[tab]/new', params: { tab: 'cobros' } },
   },
   {
     label: 'Préstamo',
     icon: Landmark,
-    href: { pathname: '/obligations/[type]/new', params: { type: 'prestamos' } },
+    href: { pathname: '/obligations/[tab]/new', params: { tab: 'prestamos' } },
   },
   {
     label: 'Deuda',
     icon: ArrowUp,
-    href: { pathname: '/obligations/[type]/new', params: { type: 'deudas' } },
+    href: { pathname: '/obligations/[tab]/new', params: { tab: 'deudas' } },
   },
   { label: 'Lista', icon: ShoppingCart, href: '/shopping/new' },
 ];

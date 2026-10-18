@@ -165,8 +165,8 @@ function WeekRows({ items }: { items: HomeWeekInstallment[] }) {
           subtitle={item.subtitle}
           onPress={() =>
             router.push({
-              pathname: '/obligations/[type]/[id]',
-              params: { type: item.kind, id: item.parentId },
+              pathname: '/obligations/[tab]/[id]',
+              params: { tab: item.kind, id: item.parentId },
             })
           }
           right={
