@@ -1,14 +1,27 @@
 import { router } from 'expo-router';
 
-import { Note, ScreenContainer, TopBar } from '@/components/ui';
+import { isApiError } from '@/api/client';
+import { useToast } from '@/components/ui';
+import {
+  NewShoppingListForm,
+  type NewShoppingListValues,
+} from '@/features/shopping/NewShoppingListForm';
+import { useCreateShoppingList } from '@/features/shopping/useShoppingListMutations';
 
+/** `/shopping/new` — creates an open shopping list with initial items (F14). */
 export default function NewShoppingListScreen() {
-  return (
-    <>
-      <TopBar title="Nueva lista" onBack={() => router.back()} />
-      <ScreenContainer>
-        <Note>El formulario de lista de compras se implementa en la feature de listas (F14).</Note>
-      </ScreenContainer>
-    </>
-  );
+  const toast = useToast();
+  const createList = useCreateShoppingList();
+
+  const handleSubmit = async (values: NewShoppingListValues) => {
+    try {
+      const created = await createList.mutateAsync(values);
+      toast.show('Lista creada');
+      router.replace({ pathname: '/shopping/[tab]/[id]', params: { tab: 'open', id: created.id } });
+    } catch (error) {
+      toast.show(isApiError(error) ? error.message : 'No se pudo crear la lista');
+    }
+  };
+
+  return <NewShoppingListForm onBack={() => router.back()} onSubmit={handleSubmit} />;
 }
