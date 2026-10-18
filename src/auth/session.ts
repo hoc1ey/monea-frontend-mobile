@@ -86,3 +86,15 @@ export async function signOutAll(): Promise<void> {
   setUser(null);
   setStatus('unauthenticated');
 }
+
+/**
+ * Clears every piece of local session state without calling the API. Used after
+ * the backend already revoked all sessions (e.g. a password change).
+ */
+export async function clearSession(): Promise<void> {
+  await clearTokens();
+  queryClient.clear();
+  const { setUser, setStatus } = useAuthStore.getState();
+  setUser(null);
+  setStatus('unauthenticated');
+}

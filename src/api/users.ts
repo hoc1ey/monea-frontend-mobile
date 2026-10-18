@@ -28,3 +28,17 @@ export async function updateMe(input: UpdateProfileInput): Promise<UserProfile> 
   const { data } = await api.patch<ApiEnvelope<UserProfile>>('/users/me', input);
   return data.data;
 }
+
+/** Body accepted by `PATCH /users/me/password` (never includes `userId`). */
+export interface ChangePasswordInput {
+  currentPassword: string;
+  newPassword: string;
+}
+
+/**
+ * PATCH /users/me/password — changes the password. The backend then closes
+ * every session, so the app must clear the tokens and return to login.
+ */
+export async function changePassword(input: ChangePasswordInput): Promise<void> {
+  await api.patch<ApiEnvelope<null>>('/users/me/password', input);
+}

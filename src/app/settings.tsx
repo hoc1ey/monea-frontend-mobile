@@ -1,12 +1,18 @@
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { router } from 'expo-router';
+import { Key, LogOut, Smartphone } from 'lucide-react-native';
 
+import { signOut, signOutAll } from '@/auth/session';
 import {
+  Button,
   Group,
+  Row,
   ScreenContainer,
   SectionHeader,
   Segmented,
+  Sheet,
   TopBar,
   type SegmentedOption,
 } from '@/components/ui';
@@ -24,6 +30,18 @@ export default function SettingsScreen() {
   const colors = useThemeColors();
   const preference = useThemeStore((state) => state.preference);
   const setPreference = useThemeStore((state) => state.setPreference);
+  const [confirmCloseAll, setConfirmCloseAll] = useState(false);
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.replace('/login');
+  };
+
+  const handleSignOutAll = async () => {
+    setConfirmCloseAll(false);
+    await signOutAll();
+    router.replace('/login');
+  };
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.bg }]}>
@@ -40,7 +58,31 @@ export default function SettingsScreen() {
             />
           </View>
         </Group>
+
+        <SectionHeader title="Seguridad" />
+        <Group>
+          <Row
+            icon={Key}
+            title="Cambiar contraseña"
+            onPress={() => router.push('/change-password')}
+          />
+          <Row icon={LogOut} title="Cerrar sesión" onPress={handleSignOut} />
+          <Row
+            icon={Smartphone}
+            title="Cerrar todas las sesiones"
+            onPress={() => setConfirmCloseAll(true)}
+          />
+        </Group>
       </ScreenContainer>
+
+      <Sheet
+        visible={confirmCloseAll}
+        onClose={() => setConfirmCloseAll(false)}
+        title="Cerrar todas las sesiones"
+        subtitle="Se cerrará la sesión en todos los dispositivos."
+      >
+        <Button title="Cerrar todas las sesiones" onPress={handleSignOutAll} />
+      </Sheet>
     </View>
   );
 }
