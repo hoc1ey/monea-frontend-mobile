@@ -32,7 +32,6 @@ export function TopBar({ title, onBack, showBack, right, style }: TopBarProps) {
       <BlurView
         intensity={60}
         tint={isDark ? 'dark' : 'light'}
-        blurMethod="dimezisBlurView"
         style={[StyleSheet.absoluteFill, { backgroundColor: colors.glass }]}
       />
       <View style={[styles.line, { backgroundColor: colors.separator }]} />
