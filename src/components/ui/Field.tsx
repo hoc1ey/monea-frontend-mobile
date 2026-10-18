@@ -15,7 +15,7 @@ import { Separator } from './Separator';
 
 export interface FieldProps extends Omit<TextInputProps, 'style'> {
   label: string;
-  /** Text alignment; auth screens use `left` (prototype `.auth-group`). */
+  /** Text alignment; entries are right aligned by default (CONVENCIONES 1.3). */
   align?: 'left' | 'right';
   right?: ReactNode;
   /** Validation message rendered below the field in 13 `negative` (F03). */

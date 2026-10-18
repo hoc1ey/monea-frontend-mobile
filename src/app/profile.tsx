@@ -19,7 +19,7 @@ import {
   useToast,
 } from '@/components/ui';
 import { useProfile, useUpdateProfile } from '@/features/profile/useProfile';
-import { TIMEZONE_OPTIONS, detectTimezone } from '@/lib/timezone';
+import { TIMEZONE_OPTIONS, buildTimezoneOptions, detectTimezone } from '@/lib/timezone';
 import { radii, typography, useThemeColors } from '@/theme';
 
 const detectedTimezone = detectTimezone();
@@ -58,10 +58,7 @@ function ProfileForm({ profile }: { profile: UserProfile }) {
       (value): value is string => Boolean(value),
     );
 
-    return Array.from(new Set(values)).map((value) => ({
-      value,
-      label: value === detectedTimezone ? `${value} (dispositivo)` : value,
-    }));
+    return buildTimezoneOptions(values);
   }, [profile.timezone]);
 
   const handleSave = async () => {

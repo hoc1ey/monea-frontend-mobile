@@ -16,6 +16,10 @@ Estas decisiones adaptan el prototipo a lo que realmente soporta el backend. La 
 | 10 | Contador de bloqueo fijo | Contador con `retryAfterMinutes` real | Lo devuelve la API en 423 y 429 |
 | 11 | Botón "Eliminar movimiento" siempre visible | Visible solo si la API lo permite | Reglas de borrado por `sourceType` |
 | 12 | Cuotas con botón sin estado de carga | Botón con estado de carga y bloqueo doble | Evita doble pago de la misma cuota |
+| 13 | Login: texto de ayuda "Prototipo: el botón inicia sesión directamente." | Texto eliminado | Ajuste solicitado en la revisión |
+| 14 | Auth: entradas alineadas a la izquierda | Valores y placeholders alineados a la derecha con ejemplos "Ej. …" | Así lo pediste |
+| 15 | Registro: contraseña sin confirmación | Campo "Repetir contraseña" con validación de coincidencia | Así lo pediste |
+| 16 | Zona horaria: identificador IANA y sufijo "(dispositivo)" | Etiquetas amigables (ciudad y GMT); la del dispositivo se preselecciona sin texto extra | Así lo pediste |
 
 ---
 

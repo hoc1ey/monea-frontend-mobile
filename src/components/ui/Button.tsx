@@ -1,6 +1,6 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, type StyleProp, type ViewStyle } from 'react-native';
 
-import { ICON_STROKE, radii, typography, useThemeColors } from '@/theme';
+import { ICON_STROKE, elevation, radii, typography, useThemeColors } from '@/theme';
 
 import type { IconComponent } from './types';
 
@@ -36,6 +36,16 @@ export function Button({
     variant === 'primary' ? colors.accent : variant === 'ghost' ? colors.fill : 'transparent';
   const textColor =
     variant === 'primary' ? colors.onAccent : variant === 'danger' ? colors.negative : colors.accentInk;
+  const shadow =
+    variant === 'primary' && !small
+      ? {
+          shadowColor: colors.accent,
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.3,
+          shadowRadius: 10,
+          elevation: elevation.button,
+        }
+      : null;
 
   return (
     <Pressable
@@ -46,6 +56,7 @@ export function Button({
       style={({ pressed }) => [
         small ? styles.small : styles.base,
         { backgroundColor },
+        shadow,
         (disabled || loading) && styles.disabled,
         pressed && styles.pressed,
         style,
@@ -65,7 +76,7 @@ export function Button({
 
 const styles = StyleSheet.create({
   base: {
-    width: '100%',
+    alignSelf: 'stretch',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

@@ -10,28 +10,31 @@ import { getErrorMessage } from '@/api/client';
 import { signUp } from '@/auth/session';
 import { Button, Field, Group, Note, ScreenContainer, Select, TopBar } from '@/components/ui';
 import { shouldShowNotificationOnboarding } from '@/lib/notifications';
-import { detectTimezone, TIMEZONE_OPTIONS } from '@/lib/timezone';
+import { buildTimezoneOptions, detectTimezone, TIMEZONE_OPTIONS } from '@/lib/timezone';
 import { typography, useThemeColors } from '@/theme';
 
-const schema = z.object({
-  name: z.string().min(2, 'Ingresa tu nombre'),
-  email: z.string().min(1, 'Ingresa tu correo').email('Correo inválido'),
-  password: z
-    .string()
-    .min(8, 'Mínimo 8 caracteres')
-    .regex(/[A-Z]/, 'Debe incluir una mayúscula')
-    .regex(/[a-z]/, 'Debe incluir una minúscula')
-    .regex(/\d/, 'Debe incluir un número'),
-  timezone: z.string().min(1, 'Selecciona una zona horaria'),
-});
+const schema = z
+  .object({
+    name: z.string().min(2, 'Ingresa tu nombre'),
+    email: z.string().min(1, 'Ingresa tu correo').email('Correo inválido'),
+    password: z
+      .string()
+      .min(8, 'Mínimo 8 caracteres')
+      .regex(/[A-Z]/, 'Debe incluir una mayúscula')
+      .regex(/[a-z]/, 'Debe incluir una minúscula')
+      .regex(/\d/, 'Debe incluir un número'),
+    confirmPassword: z.string().min(1, 'Repite la contraseña'),
+    timezone: z.string().min(1, 'Selecciona una zona horaria'),
+  })
+  .refine((values) => values.password === values.confirmPassword, {
+    message: 'Las contraseñas no coinciden',
+    path: ['confirmPassword'],
+  });
 
 type RegisterForm = z.infer<typeof schema>;
 
 const detectedTimezone = detectTimezone();
-const timezoneOptions = Array.from(new Set([detectedTimezone, ...TIMEZONE_OPTIONS])).map((value) => ({
-  value,
-  label: value === detectedTimezone ? `${value} (dispositivo)` : value,
-}));
+const timezoneOptions = buildTimezoneOptions([detectedTimezone, ...TIMEZONE_OPTIONS]);
 
 export default function RegisterScreen() {
   const colors = useThemeColors();
@@ -39,19 +42,31 @@ export default function RegisterScreen() {
 
   const { control, handleSubmit, formState } = useForm<RegisterForm>({
     resolver: zodResolver(schema),
-    defaultValues: { name: '', email: '', password: '', timezone: detectedTimezone },
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      timezone: detectedTimezone,
+    },
   });
 
   const name = useController({ control, name: 'name' });
   const email = useController({ control, name: 'email' });
   const password = useController({ control, name: 'password' });
+  const confirmPassword = useController({ control, name: 'confirmPassword' });
   const timezone = useController({ control, name: 'timezone' });
 
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null);
 
     try {
-      await signUp(values);
+      await signUp({
+        name: values.name,
+        email: values.email,
+        password: values.password,
+        timezone: values.timezone,
+      });
       const showOnboarding = await shouldShowNotificationOnboarding();
       router.replace(showOnboarding ? '/notifications-onboarding' : '/');
     } catch (error) {
@@ -67,7 +82,7 @@ export default function RegisterScreen() {
           <Group>
             <Field
               label="Nombre"
-              align="left"
+              placeholder="Ej. Juan"
               value={name.field.value}
               onChangeText={name.field.onChange}
               onBlur={name.field.onBlur}
@@ -75,7 +90,7 @@ export default function RegisterScreen() {
             />
             <Field
               label="Correo"
-              align="left"
+              placeholder="Ej. juan@correo.com"
               autoCapitalize="none"
               autoComplete="email"
               keyboardType="email-address"
@@ -86,13 +101,23 @@ export default function RegisterScreen() {
             />
             <Field
               label="Contraseña"
-              align="left"
+              placeholder="Ej. Monea123*"
               autoCapitalize="none"
               secureTextEntry
               value={password.field.value}
               onChangeText={password.field.onChange}
               onBlur={password.field.onBlur}
               error={password.fieldState.error?.message}
+            />
+            <Field
+              label="Repetir contraseña"
+              placeholder="Ej. Monea123*"
+              autoCapitalize="none"
+              secureTextEntry
+              value={confirmPassword.field.value}
+              onChangeText={confirmPassword.field.onChange}
+              onBlur={confirmPassword.field.onBlur}
+              error={confirmPassword.fieldState.error?.message}
             />
             <Select
               label="Zona horaria"
