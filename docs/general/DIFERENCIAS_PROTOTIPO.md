@@ -20,6 +20,7 @@ Estas decisiones adaptan el prototipo a lo que realmente soporta el backend. La 
 | 14 | Auth: entradas alineadas a la izquierda | Valores y placeholders alineados a la derecha con ejemplos "Ej. …" | Así lo pediste |
 | 15 | Registro: contraseña sin confirmación | Campo "Repetir contraseña" con validación de coincidencia | Así lo pediste |
 | 16 | Zona horaria: identificador IANA y sufijo "(dispositivo)" | Etiquetas amigables (ciudad y GMT); la del dispositivo se preselecciona sin texto extra | Así lo pediste |
+| 17 | Botón "Ver egresos recurrentes" siempre al final de la lista | Visible solo con el filtro "Egresos" activo | Ajuste solicitado en la revisión |
 
 ---
 
