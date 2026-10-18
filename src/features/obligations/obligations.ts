@@ -215,7 +215,12 @@ export async function createObligation(
     });
   }
   if (kind === 'deudas') {
-    return createDebt(base);
+    return createDebt({
+      personName: payload.personName,
+      totalAmount: payload.totalAmount,
+      installmentsCount: payload.installmentsCount,
+      ...payload.reminder,
+    });
   }
   return createCollection({
     ...base,
@@ -239,7 +244,13 @@ export async function updateObligation(
     return updateLoan(id, base);
   }
   if (kind === 'deudas') {
-    return updateDebt(id, base);
+    return updateDebt(id, {
+      personName: payload.personName,
+      ...(payload.installmentsCount != null
+        ? { installmentsCount: payload.installmentsCount }
+        : {}),
+      ...payload.reminder,
+    });
   }
   return updateCollection(id, base);
 }
