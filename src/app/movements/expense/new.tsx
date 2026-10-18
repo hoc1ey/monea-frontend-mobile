@@ -5,6 +5,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { ShoppingCart, WifiOff } from 'lucide-react-native';
 
 import { isApiError } from '@/api/client';
+import type { RecurringExpenseInput } from '@/api/recurringExpenses';
 import {
   Banner,
   Button,
@@ -27,15 +28,31 @@ import {
   useCreateExpense,
   useUpdateExpense,
 } from '@/features/movements/useMovementMutations';
+import { RecurringExpenseForm } from '@/features/recurring/RecurringExpenseForm';
+import {
+  useCreateRecurringExpense,
+  useUpdateRecurringExpense,
+} from '@/features/recurring/useRecurringMutations';
+import { useRecurringExpense } from '@/features/recurring/useRecurringExpenses';
 import { radii, useThemeColors } from '@/theme';
+
+const EXPENSE_KINDS: ExpenseKind[] = ['instant', 'diferido', 'recurrente'];
+
+function isExpenseKind(value: unknown): value is ExpenseKind {
+  return typeof value === 'string' && EXPENSE_KINDS.includes(value as ExpenseKind);
+}
 
 export default function NewExpenseScreen() {
   const colors = useThemeColors();
   const toast = useToast();
-  const { id } = useLocalSearchParams<{ id?: string }>();
+  const params = useLocalSearchParams<{ id?: string; kind?: string; recurringId?: string }>();
+  const id = params.id;
+  const recurringId = params.recurringId;
   const editing = Boolean(id);
 
-  const [kind, setKind] = useState<ExpenseKind>('instant');
+  const [kind, setKind] = useState<ExpenseKind>(() =>
+    isExpenseKind(params.kind) ? params.kind : 'instant',
+  );
 
   const accounts = useAccounts();
   const cards = useCreditCards();
@@ -43,6 +60,10 @@ export default function NewExpenseScreen() {
   const createExpense = useCreateExpense();
   const createDeferred = useCreateDeferredExpense();
   const updateExpense = useUpdateExpense(id ?? '');
+
+  const recurringDetail = useRecurringExpense(recurringId ?? '');
+  const createRecurring = useCreateRecurringExpense();
+  const updateRecurring = useUpdateRecurringExpense(recurringId ?? '');
 
   if (editing && expenseDetail.isPending) {
     return (
@@ -79,6 +100,49 @@ export default function NewExpenseScreen() {
                 title="Reintentar"
                 variant="ghost"
                 onPress={() => void expenseDetail.refetch()}
+              />
+            </>
+          )}
+        </ScreenContainer>
+      </View>
+    );
+  }
+
+  if (recurringId && recurringDetail.isPending) {
+    return (
+      <View style={[styles.screen, { backgroundColor: colors.bg }]}>
+        <TopBar title="Editar recurrente" onBack={() => router.back()} />
+        <ScreenContainer>
+          <View style={styles.skeleton}>
+            <Skeleton height={80} radius={radii.card} />
+            <Skeleton height={220} radius={radii.card} />
+          </View>
+        </ScreenContainer>
+      </View>
+    );
+  }
+
+  if (recurringId && (recurringDetail.isError || !recurringDetail.data)) {
+    const notFound = isApiError(recurringDetail.error) && recurringDetail.error.status === 404;
+
+    return (
+      <View style={[styles.screen, { backgroundColor: colors.bg }]}>
+        <TopBar title="Editar recurrente" onBack={() => router.back()} />
+        <ScreenContainer>
+          {notFound ? (
+            <EmptyState icon={ShoppingCart} title="Recurrente no encontrado" />
+          ) : (
+            <>
+              <Banner
+                icon={WifiOff}
+                title="Sin conexión"
+                subtitle="No pudimos cargar la recurrencia"
+                onPress={() => void recurringDetail.refetch()}
+              />
+              <Button
+                title="Reintentar"
+                variant="ghost"
+                onPress={() => void recurringDetail.refetch()}
               />
             </>
           )}
@@ -135,6 +199,35 @@ export default function NewExpenseScreen() {
     }
   };
 
+  const handleRecurringSubmit = async (input: RecurringExpenseInput) => {
+    try {
+      if (recurringId) {
+        await updateRecurring.mutateAsync(input);
+        toast.show('Recurrencia actualizada');
+      } else {
+        await createRecurring.mutateAsync(input);
+        toast.show('Recurrencia creada');
+      }
+      router.back();
+    } catch (error) {
+      toast.show(isApiError(error) ? error.message : 'No se pudo guardar la recurrencia');
+    }
+  };
+
+  if (recurringId && recurringDetail.data) {
+    return (
+      <RecurringExpenseForm
+        title="Editar recurrente"
+        accounts={accounts.data ?? []}
+        config={recurringDetail.data}
+        kind="recurrente"
+        onKindChange={setKind}
+        onBack={() => router.back()}
+        onSubmit={handleRecurringSubmit}
+      />
+    );
+  }
+
   if (!editing && kind === 'diferido') {
     return (
       <DeferredExpenseForm
@@ -145,6 +238,19 @@ export default function NewExpenseScreen() {
         onKindChange={setKind}
         onBack={() => router.back()}
         onSubmit={handleDeferredSubmit}
+      />
+    );
+  }
+
+  if (!editing && kind === 'recurrente') {
+    return (
+      <RecurringExpenseForm
+        title="Egreso recurrente"
+        accounts={accounts.data ?? []}
+        kind={kind}
+        onKindChange={setKind}
+        onBack={() => router.back()}
+        onSubmit={handleRecurringSubmit}
       />
     );
   }
