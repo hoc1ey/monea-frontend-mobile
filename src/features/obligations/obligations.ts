@@ -60,7 +60,7 @@ export const OBLIGATION_KIND_CONFIG: Record<ObligationKind, ObligationKindConfig
     plural: 'Préstamos',
     singular: 'Préstamo',
     newTitle: 'Nuevo préstamo',
-    createdToast: 'Préstamo creado',
+    createdToast: 'Préstamo registrado · egreso creado',
     hasDescription: true,
     hasAccount: true,
   },

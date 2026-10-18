@@ -196,18 +196,24 @@ export function ObligationForm({
               onChangeText={description.field.onChange}
             />
           ) : null}
-          {config.hasAccount ? (
-            <Select
-              label="Cuenta"
-              value={account.field.value || undefined}
-              options={accountOptions}
-              onChange={account.field.onChange}
-              placeholder="Seleccionar cuenta"
-            />
-          ) : null}
         </Group>
-        {accountError ? (
-          <Text style={[styles.error, { color: colors.negative }]}>{accountError}</Text>
+
+        {config.hasAccount ? (
+          <>
+            <SectionHeader title="Cuenta de salida" />
+            <Group>
+              <Select
+                label="Cuenta"
+                value={account.field.value || undefined}
+                options={accountOptions}
+                onChange={account.field.onChange}
+                placeholder="Seleccionar cuenta"
+              />
+            </Group>
+            {accountError ? (
+              <Text style={[styles.error, { color: colors.negative }]}>{accountError}</Text>
+            ) : null}
+          </>
         ) : null}
 
         <SectionHeader title="Recordatorio" />
