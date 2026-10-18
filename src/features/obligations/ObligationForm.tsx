@@ -11,6 +11,7 @@ import {
   Field,
   Group,
   LargeHeader,
+  Note,
   ScreenContainer,
   SectionHeader,
   Segmented,
@@ -23,10 +24,12 @@ import {
   type SelectOption,
 } from '@/components/ui';
 import { DateField } from '@/features/movements/DateField';
+import { formatMoney } from '@/lib/format';
 import { typography, useThemeColors } from '@/theme';
 
 import {
   OBLIGATION_KIND_CONFIG,
+  type Obligation,
   type ObligationFormPayload,
   type ObligationKind,
 } from './obligations';
@@ -36,6 +39,7 @@ import {
   DAY_OF_MONTH_OPTIONS,
   defaultReminderState,
   HOUR_OPTIONS,
+  initialReminderState,
   MONTH_OPTIONS,
   OPTIONAL_DAY_OF_MONTH_OPTIONS,
   REMINDER_FREQUENCY_OPTIONS,
@@ -75,6 +79,8 @@ export interface ObligationFormProps {
   accounts: Account[];
   /** User timezone used to build the ISO UTC `reminderAt`. */
   timezone: string;
+  /** Present when editing an existing record. */
+  obligation?: Obligation;
   onBack: () => void;
   onSubmit: (payload: ObligationFormPayload) => Promise<void>;
 }
@@ -82,11 +88,16 @@ export interface ObligationFormProps {
 /**
  * Generic obligation form (collection / loan / debt) with the reminder rules
  * from F11: a single installment uses a date + hour, several use a recurrence.
+ *
+ * While editing a loan the account and the total are immutable; once an
+ * installment has been paid, the total and the plan are locked too and only
+ * the person, the description and the reminder stay editable.
  */
 export function ObligationForm({
   kind,
   accounts,
   timezone,
+  obligation,
   onBack,
   onSubmit,
 }: ObligationFormProps) {
@@ -94,14 +105,24 @@ export function ObligationForm({
   const config = OBLIGATION_KIND_CONFIG[kind];
   const schema = useMemo(() => makeSchema(config.hasAccount), [config.hasAccount]);
 
+  const editing = Boolean(obligation);
+  const paidCount = obligation?.installments?.filter((installment) => installment.isPaid).length ?? 0;
+  const locked = editing && paidCount > 0;
+  const amountLocked = editing && (config.hasAccount || locked);
+  const installmentsLocked = locked;
+  const accountLocked = editing && config.hasAccount;
+  const title = editing ? `Editar ${config.singular.toLowerCase()}` : config.newTitle;
+
   const { control, handleSubmit, formState } = useForm<ObligationFormFields>({
     resolver: zodResolver(schema),
     defaultValues: {
-      personName: '',
-      totalAmount: '',
-      installmentsCount: 1,
-      description: '',
-      accountId: accounts[0]?.id ?? '',
+      personName: obligation?.personName ?? '',
+      totalAmount: obligation ? String(obligation.totalAmount) : '',
+      installmentsCount: obligation?.installmentsCount ?? 1,
+      description:
+        obligation && 'description' in obligation ? (obligation.description ?? '') : '',
+      accountId:
+        (obligation && 'accountId' in obligation ? obligation.accountId : accounts[0]?.id) ?? '',
     },
   });
 
@@ -111,12 +132,16 @@ export function ObligationForm({
   const description = useController({ control, name: 'description' });
   const account = useController({ control, name: 'accountId' });
 
-  const [reminder, setReminder] = useState<ReminderState>(defaultReminderState);
+  const [reminder, setReminder] = useState<ReminderState>(() =>
+    obligation ? initialReminderState(obligation, timezone) : defaultReminderState(),
+  );
 
   const accountOptions: SelectOption<string>[] = accounts.map((item) => ({
     value: item.id,
     label: item.name,
   }));
+
+  const sourceAccountName = accounts.find((item) => item.id === account.field.value)?.name ?? '—';
 
   const mode = reminderModeFor(installmentsCount.field.value);
   const frequencyOptions: SegmentedOption<ReminderState['frequency']>[] = REMINDER_FREQUENCY_OPTIONS;
@@ -134,7 +159,7 @@ export function ObligationForm({
       reminder: buildReminderInput(reminder, values.installmentsCount, timezone),
     };
 
-    if (config.hasDescription && values.description.trim()) {
+    if (config.hasDescription) {
       payload.description = values.description.trim();
     }
 
@@ -151,12 +176,12 @@ export function ObligationForm({
   return (
     <View style={[styles.screen, { backgroundColor: colors.bg }]}>
       <TopBar
-        title={config.newTitle}
+        title={title}
         onBack={onBack}
         right={<TextButton title="Guardar" disabled={formState.isSubmitting} onPress={submit} />}
       />
       <ScreenContainer>
-        <LargeHeader title={config.newTitle} />
+        <LargeHeader title={title} />
 
         <Group>
           <Field
@@ -168,23 +193,40 @@ export function ObligationForm({
             onBlur={personName.field.onBlur}
             error={personName.fieldState.error?.message}
           />
-          <Field
-            label="Monto"
-            placeholder="$0.00"
-            keyboardType="decimal-pad"
-            value={totalAmount.field.value}
-            onChangeText={totalAmount.field.onChange}
-            onBlur={totalAmount.field.onBlur}
-            error={amountError}
-          />
+          {amountLocked ? (
+            <Field
+              label="Monto"
+              right={
+                <Text style={[styles.readonly, { color: colors.muted }]}>
+                  {formatMoney(Number(totalAmount.field.value) || 0)}
+                </Text>
+              }
+            />
+          ) : (
+            <Field
+              label="Monto"
+              placeholder="$0.00"
+              keyboardType="decimal-pad"
+              value={totalAmount.field.value}
+              onChangeText={totalAmount.field.onChange}
+              onBlur={totalAmount.field.onBlur}
+              error={amountError}
+            />
+          )}
           <Field
             label="Cuotas"
             right={
-              <Stepper
-                value={installmentsCount.field.value}
-                min={1}
-                onChange={changeInstallments}
-              />
+              installmentsLocked ? (
+                <Text style={[styles.readonly, { color: colors.muted }]}>
+                  {installmentsCount.field.value}
+                </Text>
+              ) : (
+                <Stepper
+                  value={installmentsCount.field.value}
+                  min={1}
+                  onChange={changeInstallments}
+                />
+              )
             }
           />
           {config.hasDescription ? (
@@ -196,18 +238,37 @@ export function ObligationForm({
               onChangeText={description.field.onChange}
             />
           ) : null}
-          {config.hasAccount ? (
-            <Select
-              label="Cuenta"
-              value={account.field.value || undefined}
-              options={accountOptions}
-              onChange={account.field.onChange}
-              placeholder="Seleccionar cuenta"
-            />
-          ) : null}
         </Group>
-        {accountError ? (
-          <Text style={[styles.error, { color: colors.negative }]}>{accountError}</Text>
+
+        {locked ? <Note>Bloqueado porque ya hay cuotas pagadas.</Note> : null}
+
+        {config.hasAccount ? (
+          <>
+            <SectionHeader title="Cuenta de salida" />
+            <Group>
+              {accountLocked ? (
+                <Field
+                  label="Cuenta"
+                  right={
+                    <Text style={[styles.readonly, { color: colors.muted }]}>
+                      {sourceAccountName}
+                    </Text>
+                  }
+                />
+              ) : (
+                <Select
+                  label="Cuenta"
+                  value={account.field.value || undefined}
+                  options={accountOptions}
+                  onChange={account.field.onChange}
+                  placeholder="Seleccionar cuenta"
+                />
+              )}
+            </Group>
+            {!accountLocked && accountError ? (
+              <Text style={[styles.error, { color: colors.negative }]}>{accountError}</Text>
+            ) : null}
+          </>
         ) : null}
 
         <SectionHeader title="Recordatorio" />
@@ -331,6 +392,14 @@ const styles = StyleSheet.create({
     ...typography.footnote,
     paddingHorizontal: 14,
     paddingTop: 8,
+  },
+  readonly: {
+    ...typography.body,
+    fontWeight: '500',
+    flex: 1,
+    minWidth: 0,
+    textAlign: 'right',
+    fontVariant: ['tabular-nums'],
   },
   button: {
     marginTop: 16,

@@ -14,6 +14,9 @@ import {
   payCollectionInstallment,
   payDebtInstallment,
   payLoanInstallment,
+  updateCollection,
+  updateDebt,
+  updateLoan,
   type Collection,
   type Debt,
   type Loan,
@@ -39,6 +42,10 @@ export interface ObligationKindConfig {
   newTitle: string;
   /** Toast shown after a successful creation. */
   createdToast: string;
+  /** Toast shown after an installment is paid. */
+  paidToast: string;
+  /** Label of the account row in the pay sheet (destination/origin). */
+  payAccountLabel: string;
   /** Collections and loans accept a description; debts do not. */
   hasDescription: boolean;
   /** Only loans require the source account. */
@@ -52,6 +59,8 @@ export const OBLIGATION_KIND_CONFIG: Record<ObligationKind, ObligationKindConfig
     singular: 'Cobro',
     newTitle: 'Nuevo cobro',
     createdToast: 'Cobro creado',
+    paidToast: 'Cuota marcada como pagada',
+    payAccountLabel: 'Cuenta destino',
     hasDescription: true,
     hasAccount: false,
   },
@@ -60,7 +69,9 @@ export const OBLIGATION_KIND_CONFIG: Record<ObligationKind, ObligationKindConfig
     plural: 'Préstamos',
     singular: 'Préstamo',
     newTitle: 'Nuevo préstamo',
-    createdToast: 'Préstamo creado',
+    createdToast: 'Préstamo registrado · egreso creado',
+    paidToast: 'Cuota cobrada · ingreso creado',
+    payAccountLabel: 'Cuenta destino',
     hasDescription: true,
     hasAccount: true,
   },
@@ -70,6 +81,8 @@ export const OBLIGATION_KIND_CONFIG: Record<ObligationKind, ObligationKindConfig
     singular: 'Deuda',
     newTitle: 'Nueva deuda',
     createdToast: 'Deuda creada',
+    paidToast: 'Cuota pagada · egreso creado',
+    payAccountLabel: 'Cuenta origen',
     hasDescription: false,
     hasAccount: false,
   },
@@ -149,6 +162,18 @@ export interface ObligationFormPayload {
   reminder: ObligationReminderInput;
 }
 
+/**
+ * Editable fields of an existing obligation. `accountId` and `totalAmount` are
+ * never sent: loans keep them immutable and the plan is only regenerated when
+ * no installment has been paid yet.
+ */
+export interface ObligationUpdatePayload {
+  personName: string;
+  installmentsCount?: number;
+  description?: string;
+  reminder: ObligationReminderInput;
+}
+
 /* ------------------------------ API dispatch ------------------------------ */
 
 export async function fetchObligations(kind: ObligationKind): Promise<Obligation[]> {
@@ -196,6 +221,27 @@ export async function createObligation(
     ...base,
     ...(payload.description ? { description: payload.description } : {}),
   });
+}
+
+export async function updateObligation(
+  kind: ObligationKind,
+  id: string,
+  payload: ObligationUpdatePayload,
+): Promise<Obligation> {
+  const base = {
+    personName: payload.personName,
+    ...(payload.installmentsCount != null ? { installmentsCount: payload.installmentsCount } : {}),
+    ...payload.reminder,
+    ...(payload.description != null ? { description: payload.description } : {}),
+  };
+
+  if (kind === 'prestamos') {
+    return updateLoan(id, base);
+  }
+  if (kind === 'deudas') {
+    return updateDebt(id, base);
+  }
+  return updateCollection(id, base);
 }
 
 export async function deleteObligation(kind: ObligationKind, id: string): Promise<void> {
