@@ -1,6 +1,10 @@
-import { fromZonedTime } from 'date-fns-tz';
+import { fromZonedTime, toZonedTime } from 'date-fns-tz';
 
-import type { ObligationReminderInput, ReminderFrequency } from '@/api/obligations';
+import type {
+  ObligationReminder,
+  ObligationReminderInput,
+  ReminderFrequency,
+} from '@/api/obligations';
 import type { SegmentedOption, SelectOption } from '@/components/ui';
 
 export const REMINDER_FREQUENCY_OPTIONS: SegmentedOption<ReminderFrequency>[] = [
@@ -155,4 +159,32 @@ export function buildReminderInput(
   }
 
   return input;
+}
+
+/** Rebuilds the editable reminder state from a stored obligation (edit mode). */
+export function initialReminderState(
+  obligation: ObligationReminder & { installmentsCount: number },
+  timezone: string,
+): ReminderState {
+  const base = defaultReminderState();
+
+  if (reminderModeFor(obligation.installmentsCount) === 'single') {
+    const at = obligation.reminderAt ? toZonedTime(obligation.reminderAt, timezone) : new Date();
+    return { ...base, enabled: obligation.reminderEnabled, atDate: at, atHour: String(at.getHours()) };
+  }
+
+  const yearly = obligation.reminderFrequency === 'YEARLY';
+
+  return {
+    ...base,
+    enabled: obligation.reminderEnabled,
+    frequency: obligation.reminderFrequency ?? base.frequency,
+    dayOfWeek: obligation.reminderDayOfWeek != null ? String(obligation.reminderDayOfWeek) : base.dayOfWeek,
+    dayOfMonth:
+      obligation.reminderDayOfMonth != null ? String(obligation.reminderDayOfMonth) : base.dayOfMonth,
+    month: obligation.reminderMonth != null ? String(obligation.reminderMonth) : base.month,
+    yearDayOfMonth:
+      yearly && obligation.reminderDayOfMonth != null ? String(obligation.reminderDayOfMonth) : '',
+    hour: obligation.reminderHour != null ? String(obligation.reminderHour) : base.hour,
+  };
 }

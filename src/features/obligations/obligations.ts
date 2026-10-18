@@ -14,6 +14,9 @@ import {
   payCollectionInstallment,
   payDebtInstallment,
   payLoanInstallment,
+  updateCollection,
+  updateDebt,
+  updateLoan,
   type Collection,
   type Debt,
   type Loan,
@@ -149,6 +152,18 @@ export interface ObligationFormPayload {
   reminder: ObligationReminderInput;
 }
 
+/**
+ * Editable fields of an existing obligation. `accountId` and `totalAmount` are
+ * never sent: loans keep them immutable and the plan is only regenerated when
+ * no installment has been paid yet.
+ */
+export interface ObligationUpdatePayload {
+  personName: string;
+  installmentsCount?: number;
+  description?: string;
+  reminder: ObligationReminderInput;
+}
+
 /* ------------------------------ API dispatch ------------------------------ */
 
 export async function fetchObligations(kind: ObligationKind): Promise<Obligation[]> {
@@ -196,6 +211,27 @@ export async function createObligation(
     ...base,
     ...(payload.description ? { description: payload.description } : {}),
   });
+}
+
+export async function updateObligation(
+  kind: ObligationKind,
+  id: string,
+  payload: ObligationUpdatePayload,
+): Promise<Obligation> {
+  const base = {
+    personName: payload.personName,
+    ...(payload.installmentsCount != null ? { installmentsCount: payload.installmentsCount } : {}),
+    ...payload.reminder,
+    ...(payload.description != null ? { description: payload.description } : {}),
+  };
+
+  if (kind === 'prestamos') {
+    return updateLoan(id, base);
+  }
+  if (kind === 'deudas') {
+    return updateDebt(id, base);
+  }
+  return updateCollection(id, base);
 }
 
 export async function deleteObligation(kind: ObligationKind, id: string): Promise<void> {

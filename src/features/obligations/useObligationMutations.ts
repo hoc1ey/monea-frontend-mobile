@@ -8,8 +8,10 @@ import {
   deleteObligation,
   OBLIGATION_QUERY_KEYS,
   payObligationInstallment,
+  updateObligation,
   type ObligationFormPayload,
   type ObligationKind,
+  type ObligationUpdatePayload,
 } from './obligations';
 
 /**
@@ -33,6 +35,15 @@ export function useCreateObligation(kind: ObligationKind) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (payload: ObligationFormPayload) => createObligation(kind, payload),
+    onSuccess: () => invalidateObligations(queryClient, kind),
+  });
+}
+
+/** PATCH /collections | /loans | /debts/:id — updates the editable subset. */
+export function useUpdateObligation(kind: ObligationKind, id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: ObligationUpdatePayload) => updateObligation(kind, id, payload),
     onSuccess: () => invalidateObligations(queryClient, kind),
   });
 }

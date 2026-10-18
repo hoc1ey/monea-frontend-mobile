@@ -16,6 +16,7 @@ import {
   ScreenContainer,
   SectionHeader,
   Skeleton,
+  TextButton,
   TopBar,
   useToast,
   type IconComponent,
@@ -122,6 +123,9 @@ export function ObligationDetail({ kind, id }: ObligationDetailProps) {
     }
   };
 
+  const edit = () =>
+    router.push({ pathname: '/obligations/[tab]/new', params: { tab: kind, id } });
+
   const sourceAccountName =
     view?.accountId != null
       ? accounts.data?.find((account) => account.id === view.accountId)?.name
@@ -208,12 +212,6 @@ export function ObligationDetail({ kind, id }: ObligationDetailProps) {
 
         <SummaryCard view={view} />
 
-        {sourceAccountName ? (
-          <Text style={[styles.hint, { color: colors.muted }]}>
-            Cuenta de salida: {sourceAccountName}
-          </Text>
-        ) : null}
-
         <SectionHeader title="Cuotas" />
         <Group>
           {view.installments.map((installment) => (
@@ -226,6 +224,12 @@ export function ObligationDetail({ kind, id }: ObligationDetailProps) {
             />
           ))}
         </Group>
+
+        {sourceAccountName ? (
+          <Text style={[styles.hint, { color: colors.muted }]}>
+            Cuenta de salida: {sourceAccountName}
+          </Text>
+        ) : null}
 
         <Button
           title="Eliminar registro"
@@ -243,6 +247,7 @@ export function ObligationDetail({ kind, id }: ObligationDetailProps) {
       <TopBar
         title={view ? `${config.singular} · ${view.personName}` : config.singular}
         onBack={backOrFallback}
+        right={view ? <TextButton title="Editar" onPress={edit} /> : undefined}
       />
       <ScreenContainer
         refreshControl={
