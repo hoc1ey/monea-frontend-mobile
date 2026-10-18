@@ -281,11 +281,13 @@ export default function MovementsScreen() {
   const footer = (
     <View style={styles.footer}>
       {movements.isFetchingNextPage ? <Skeleton height={44} radius={radii.button} /> : null}
-      <Button
-        title="Ver egresos recurrentes"
-        variant="ghost"
-        onPress={() => router.push('/recurring')}
-      />
+      {filter === 'expense' ? (
+        <Button
+          title="Ver egresos recurrentes"
+          variant="ghost"
+          onPress={() => router.push('/recurring')}
+        />
+      ) : null}
     </View>
   );
 

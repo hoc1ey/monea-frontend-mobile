@@ -49,7 +49,6 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
         <BlurView
           intensity={60}
           tint={isDark ? 'dark' : 'light'}
-          blurMethod="dimezisBlurView"
           style={StyleSheet.absoluteFill}
         />
         {state.routes.map((route, index) => {
