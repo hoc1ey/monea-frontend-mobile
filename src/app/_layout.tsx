@@ -1,10 +1,10 @@
 import '@/global.css';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { Stack } from 'expo-router';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme, vars } from 'nativewind';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -31,6 +31,10 @@ export default function RootLayout() {
   const isDark = colorScheme === 'dark';
   const theme = vars(isDark ? darkTheme : lightTheme);
   const backgroundColor = isDark ? darkTheme['--color-bg'] : lightTheme['--color-bg'];
+  const navigationTheme = useMemo(() => {
+    const base = isDark ? DarkTheme : DefaultTheme;
+    return { ...base, colors: { ...base.colors, background: backgroundColor } };
+  }, [isDark, backgroundColor]);
   const status = useAuthStore((state) => state.status);
   const hydrateTheme = useThemeStore((state) => state.hydrate);
 
@@ -56,33 +60,35 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={[{ flex: 1 }, theme]}>
       <SafeAreaProvider>
-        {envError ? (
-          <ConfigError message={envError} />
-        ) : (
-          <QueryClientProvider client={queryClient}>
-            <BottomSheetModalProvider>
-              <ToastProvider>
-                <StatusBar style="auto" />
-                <Stack
-                  screenOptions={{
-                    headerShown: false,
-                    animation: 'slide_from_right',
-                    contentStyle: { backgroundColor },
-                  }}
-                >
-                  <Stack.Protected guard={status !== 'authenticated'}>
-                    <Stack.Screen name="(auth)" />
-                  </Stack.Protected>
-                  <Stack.Protected guard={status === 'authenticated'}>
-                    <Stack.Screen name="(tabs)" />
-                  </Stack.Protected>
-                </Stack>
-                <QuickActionsSheet />
-                <NotificationObserver />
-              </ToastProvider>
-            </BottomSheetModalProvider>
-          </QueryClientProvider>
-        )}
+        <ThemeProvider value={navigationTheme}>
+          {envError ? (
+            <ConfigError message={envError} />
+          ) : (
+            <QueryClientProvider client={queryClient}>
+              <BottomSheetModalProvider>
+                <ToastProvider>
+                  <StatusBar style="auto" />
+                  <Stack
+                    screenOptions={{
+                      headerShown: false,
+                      animation: 'slide_from_right',
+                      contentStyle: { backgroundColor },
+                    }}
+                  >
+                    <Stack.Protected guard={status !== 'authenticated'}>
+                      <Stack.Screen name="(auth)" />
+                    </Stack.Protected>
+                    <Stack.Protected guard={status === 'authenticated'}>
+                      <Stack.Screen name="(tabs)" />
+                    </Stack.Protected>
+                  </Stack>
+                  <QuickActionsSheet />
+                  <NotificationObserver />
+                </ToastProvider>
+              </BottomSheetModalProvider>
+            </QueryClientProvider>
+          )}
+        </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
