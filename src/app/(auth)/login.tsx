@@ -68,7 +68,6 @@ export default function LoginScreen() {
       <Group>
         <Field
           label="Correo"
-          align="left"
           autoCapitalize="none"
           autoComplete="email"
           keyboardType="email-address"
@@ -79,7 +78,6 @@ export default function LoginScreen() {
         />
         <Field
           label="Contraseña"
-          align="left"
           autoCapitalize="none"
           secureTextEntry
           value={password.field.value}
@@ -103,12 +101,6 @@ export default function LoginScreen() {
           <Text style={[styles.link, { color: colors.accentInk }]}>Crear cuenta</Text>
         </Pressable>
       </View>
-
-      {__DEV__ ? (
-        <Text style={[styles.hint, { color: colors.muted }]}>
-          Prototipo: el botón inicia sesión directamente.
-        </Text>
-      ) : null}
     </View>
   );
 }
@@ -150,10 +142,5 @@ const styles = StyleSheet.create({
   link: {
     ...typography.subhead,
     fontWeight: '500',
-  },
-  hint: {
-    ...typography.footnote,
-    textAlign: 'center',
-    marginTop: 14,
   },
 });
