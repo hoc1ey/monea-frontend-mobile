@@ -15,6 +15,12 @@ import {
   useToast,
 } from '@/components/ui';
 import { useAccounts } from '@/features/accounts/useAccounts';
+import { useCreditCards } from '@/features/cards/useCreditCards';
+import {
+  DeferredExpenseForm,
+  type DeferredExpenseFormPayload,
+} from '@/features/deferred/DeferredExpenseForm';
+import { useCreateDeferredExpense } from '@/features/deferred/useDeferredExpense';
 import { ExpenseForm, type ExpenseFormPayload, type ExpenseKind } from '@/features/movements/ExpenseForm';
 import { useExpenseDetail } from '@/features/movements/useMovementDetail';
 import {
@@ -32,8 +38,10 @@ export default function NewExpenseScreen() {
   const [kind, setKind] = useState<ExpenseKind>('instant');
 
   const accounts = useAccounts();
+  const cards = useCreditCards();
   const expenseDetail = useExpenseDetail(id ?? '');
   const createExpense = useCreateExpense();
+  const createDeferred = useCreateDeferredExpense();
   const updateExpense = useUpdateExpense(id ?? '');
 
   if (editing && expenseDetail.isPending) {
@@ -106,6 +114,40 @@ export default function NewExpenseScreen() {
       toast.show(isApiError(error) ? error.message : 'No se pudo guardar el egreso');
     }
   };
+
+  const handleDeferredSubmit = async (payload: DeferredExpenseFormPayload) => {
+    try {
+      await createDeferred.mutateAsync({
+        accountId: payload.accountId,
+        name: payload.name,
+        amount: payload.amount,
+        description: payload.description,
+        date: payload.date,
+        paymentMethod: 'DIFERIDO',
+        creditCardId: payload.creditCardId,
+        installments: payload.installments,
+        graceMonths: payload.graceMonths,
+      });
+      toast.show('Compra diferida creada');
+      router.back();
+    } catch (error) {
+      toast.show(isApiError(error) ? error.message : 'No se pudo guardar la compra diferida');
+    }
+  };
+
+  if (!editing && kind === 'diferido') {
+    return (
+      <DeferredExpenseForm
+        title="Egreso diferido"
+        accounts={accounts.data ?? []}
+        cards={cards.data ?? []}
+        kind={kind}
+        onKindChange={setKind}
+        onBack={() => router.back()}
+        onSubmit={handleDeferredSubmit}
+      />
+    );
+  }
 
   return (
     <ExpenseForm
