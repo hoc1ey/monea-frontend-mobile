@@ -89,8 +89,8 @@ export function incomeToMovement(income: Income): Movement {
 }
 
 /**
- * Maps an expense to the unified movement shape. Deferred expenses are owned
- * by F09, so they stay read-only here until that feature lands.
+ * Maps an expense to the unified movement shape. Deferred expenses (F09) open
+ * their own detail and stay read-only in the generic movement detail.
  */
 export function expenseToMovement(expense: Expense): Movement {
   const deferred = expense.paymentMethod === 'DIFERIDO';

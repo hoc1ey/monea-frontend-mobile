@@ -85,6 +85,10 @@ function MovementRow({ movement, accountName }: { movement: Movement; accountNam
       router.push('/recurring/define-amount');
       return;
     }
+    if (movement.deferred) {
+      router.push({ pathname: '/movements/deferred/[id]', params: { id: movement.id } });
+      return;
+    }
     router.push({ pathname: '/movements/[id]', params: { id: movement.id, kind: movement.kind } });
   };
 

@@ -27,7 +27,7 @@ import { DateField } from './DateField';
 
 export type ExpenseKind = 'instant' | 'diferido' | 'recurrente';
 
-const KIND_OPTIONS: SegmentedOption<ExpenseKind>[] = [
+export const KIND_OPTIONS: SegmentedOption<ExpenseKind>[] = [
   { value: 'instant', label: 'Instantáneo' },
   { value: 'diferido', label: 'Diferido' },
   { value: 'recurrente', label: 'Recurrente' },
@@ -67,9 +67,8 @@ export interface ExpenseFormProps {
 }
 
 /**
- * Expense form (`movements/expense/new`). The segmented control switches the
- * type; only "Instantáneo" is implemented in F08 (deferred is F09, recurring
- * is F10).
+ * Instant expense form (`movements/expense/new`). The segmented control switches
+ * the type; "Instantáneo" lives here, "Diferido" is F09 and "Recurrente" is F10.
  */
 export function ExpenseForm({
   title,
