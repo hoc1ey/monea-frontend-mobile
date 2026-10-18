@@ -139,7 +139,7 @@ export function ObligationDetail({ kind, id }: ObligationDetailProps) {
     try {
       await payInstallment.mutateAsync({ installmentId: target.id, input: { accountId } });
       setTarget(null);
-      toast.show('Cuota marcada como pagada');
+      toast.show(config.paidToast);
     } catch (error) {
       if (isApiError(error) && error.status === 400) {
         setTarget(null);
@@ -267,6 +267,7 @@ export function ObligationDetail({ kind, id }: ObligationDetailProps) {
         personName={view?.personName ?? ''}
         amount={target?.amount ?? 0}
         accounts={accounts.data ?? []}
+        accountLabel={config.payAccountLabel}
         isPaying={payInstallment.isPending}
         onClose={() => setTarget(null)}
         onConfirm={(accountId) => void handleConfirmPay(accountId)}

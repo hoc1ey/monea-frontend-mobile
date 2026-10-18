@@ -42,6 +42,10 @@ export interface ObligationKindConfig {
   newTitle: string;
   /** Toast shown after a successful creation. */
   createdToast: string;
+  /** Toast shown after an installment is paid. */
+  paidToast: string;
+  /** Label of the account row in the pay sheet (destination/origin). */
+  payAccountLabel: string;
   /** Collections and loans accept a description; debts do not. */
   hasDescription: boolean;
   /** Only loans require the source account. */
@@ -55,6 +59,8 @@ export const OBLIGATION_KIND_CONFIG: Record<ObligationKind, ObligationKindConfig
     singular: 'Cobro',
     newTitle: 'Nuevo cobro',
     createdToast: 'Cobro creado',
+    paidToast: 'Cuota marcada como pagada',
+    payAccountLabel: 'Cuenta destino',
     hasDescription: true,
     hasAccount: false,
   },
@@ -64,6 +70,8 @@ export const OBLIGATION_KIND_CONFIG: Record<ObligationKind, ObligationKindConfig
     singular: 'Préstamo',
     newTitle: 'Nuevo préstamo',
     createdToast: 'Préstamo registrado · egreso creado',
+    paidToast: 'Cuota cobrada · ingreso creado',
+    payAccountLabel: 'Cuenta destino',
     hasDescription: true,
     hasAccount: true,
   },
@@ -73,6 +81,8 @@ export const OBLIGATION_KIND_CONFIG: Record<ObligationKind, ObligationKindConfig
     singular: 'Deuda',
     newTitle: 'Nueva deuda',
     createdToast: 'Deuda creada',
+    paidToast: 'Cuota pagada · egreso creado',
+    payAccountLabel: 'Cuenta origen',
     hasDescription: false,
     hasAccount: false,
   },
