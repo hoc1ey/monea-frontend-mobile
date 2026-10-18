@@ -88,6 +88,14 @@ export const OBLIGATION_KIND_CONFIG: Record<ObligationKind, ObligationKindConfig
   },
 };
 
+/** Detail title; debts have no description and read "Deuda con {persona}". */
+export function obligationDetailTitle(kind: ObligationKind, personName: string): string {
+  const config = OBLIGATION_KIND_CONFIG[kind];
+  return config.hasDescription
+    ? `${config.singular} · ${personName}`
+    : `${config.singular} con ${personName}`;
+}
+
 export const OBLIGATION_TABS: SegmentedOption<ObligationKind>[] = [
   { value: 'cobros', label: 'Cobros' },
   { value: 'prestamos', label: 'Préstamos' },
