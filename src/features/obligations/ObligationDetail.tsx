@@ -30,6 +30,7 @@ import { radii, typography, useThemeColors } from '@/theme';
 import { InstallmentRow } from './InstallmentRow';
 import {
   OBLIGATION_KIND_CONFIG,
+  obligationDetailTitle,
   toObligationView,
   type ObligationKind,
   type ObligationView,
@@ -205,9 +206,11 @@ export function ObligationDetail({ kind, id }: ObligationDetailProps) {
         <View style={styles.header}>
           <Avatar name={view.personName} size={64} />
           <Text style={[styles.name, { color: colors.text }]}>{view.personName}</Text>
-          <Text style={[styles.description, { color: colors.muted }]}>
-            {view.description ?? 'Sin descripción'}
-          </Text>
+          {config.hasDescription ? (
+            <Text style={[styles.description, { color: colors.muted }]}>
+              {view.description ?? 'Sin descripción'}
+            </Text>
+          ) : null}
         </View>
 
         <SummaryCard view={view} />
@@ -245,7 +248,7 @@ export function ObligationDetail({ kind, id }: ObligationDetailProps) {
   return (
     <>
       <TopBar
-        title={view ? `${config.singular} · ${view.personName}` : config.singular}
+        title={view ? obligationDetailTitle(kind, view.personName) : config.singular}
         onBack={backOrFallback}
         right={view ? <TextButton title="Editar" onPress={edit} /> : undefined}
       />

@@ -88,6 +88,14 @@ export const OBLIGATION_KIND_CONFIG: Record<ObligationKind, ObligationKindConfig
   },
 };
 
+/** Detail title; debts have no description and read "Deuda con {persona}". */
+export function obligationDetailTitle(kind: ObligationKind, personName: string): string {
+  const config = OBLIGATION_KIND_CONFIG[kind];
+  return config.hasDescription
+    ? `${config.singular} · ${personName}`
+    : `${config.singular} con ${personName}`;
+}
+
 export const OBLIGATION_TABS: SegmentedOption<ObligationKind>[] = [
   { value: 'cobros', label: 'Cobros' },
   { value: 'prestamos', label: 'Préstamos' },
@@ -215,7 +223,12 @@ export async function createObligation(
     });
   }
   if (kind === 'deudas') {
-    return createDebt(base);
+    return createDebt({
+      personName: payload.personName,
+      totalAmount: payload.totalAmount,
+      installmentsCount: payload.installmentsCount,
+      ...payload.reminder,
+    });
   }
   return createCollection({
     ...base,
@@ -239,7 +252,13 @@ export async function updateObligation(
     return updateLoan(id, base);
   }
   if (kind === 'deudas') {
-    return updateDebt(id, base);
+    return updateDebt(id, {
+      personName: payload.personName,
+      ...(payload.installmentsCount != null
+        ? { installmentsCount: payload.installmentsCount }
+        : {}),
+      ...payload.reminder,
+    });
   }
   return updateCollection(id, base);
 }
