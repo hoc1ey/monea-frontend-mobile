@@ -1,36 +1,68 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Pencil, Trash2 } from 'lucide-react-native';
 
 import type { ShoppingListItem } from '@/api/shoppingLists';
 import { Button, Checkbox } from '@/components/ui';
+import { formatMoney, roundMoney } from '@/lib/format';
 import { ICON_STROKE, radii, typography, useThemeColors } from '@/theme';
 
 export interface ItemCardProps {
   item: ShoppingListItem;
+  /** Enables the price field and the formatted price under the name. */
+  pricesOn?: boolean;
   onToggle: () => void;
   onSaveName: (name: string) => Promise<void> | void;
+  onSavePrice: (price: number) => Promise<void> | void;
   onDelete: () => void;
   /** Dims the card while a request for it is in flight. */
   pending?: boolean;
 }
 
+const PRICE_DEBOUNCE = 600;
+
 /**
- * Item card of an open shopping list (F14): checkbox and name in view mode,
- * with the edit and delete actions; the name is edited in place.
+ * Item card of an open shopping list (F14): checkbox and name in view mode, the
+ * optional price field and the edit/delete actions; the name is edited in place.
  */
-export function ItemCard({ item, onToggle, onSaveName, onDelete, pending }: ItemCardProps) {
+export function ItemCard({
+  item,
+  pricesOn,
+  onToggle,
+  onSaveName,
+  onSavePrice,
+  onDelete,
+  pending,
+}: ItemCardProps) {
   const colors = useThemeColors();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(item.name);
+  const [priceDraft, setPriceDraft] = useState(item.price != null ? String(item.price) : '');
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const priceFocused = useRef(false);
+
+  useEffect(() => {
+    if (!priceFocused.current) {
+      setPriceDraft(item.price != null ? String(item.price) : '');
+    }
+  }, [item.price]);
+
+  useEffect(
+    () => () => {
+      if (timer.current) {
+        clearTimeout(timer.current);
+      }
+    },
+    [],
+  );
 
   const startEditing = () => {
     setDraft(item.name);
     setEditing(true);
   };
 
-  const save = async () => {
+  const saveName = async () => {
     const name = draft.trim();
     if (!name || name === item.name) {
       setEditing(false);
@@ -38,6 +70,24 @@ export function ItemCard({ item, onToggle, onSaveName, onDelete, pending }: Item
     }
     await onSaveName(name);
     setEditing(false);
+  };
+
+  const commitPrice = () => {
+    const raw = priceDraft.trim();
+    if (!raw) {
+      return;
+    }
+    const value = roundMoney(Number(raw.replace(',', '.')));
+    if (value > 0 && value !== item.price) {
+      void onSavePrice(value);
+    }
+  };
+
+  const schedulePriceSave = () => {
+    if (timer.current) {
+      clearTimeout(timer.current);
+    }
+    timer.current = setTimeout(commitPrice, PRICE_DEBOUNCE);
   };
 
   if (editing) {
@@ -53,7 +103,7 @@ export function ItemCard({ item, onToggle, onSaveName, onDelete, pending }: Item
           style={[styles.editInput, { backgroundColor: colors.fill, color: colors.text }]}
         />
         <Button title="Cancelar" variant="ghost" small onPress={() => setEditing(false)} />
-        <Button title="Guardar" small onPress={() => void save()} />
+        <Button title="Guardar" small onPress={() => void saveName()} />
       </View>
     );
   }
@@ -77,7 +127,28 @@ export function ItemCard({ item, onToggle, onSaveName, onDelete, pending }: Item
         >
           {item.name}
         </Text>
+        {pricesOn && item.price != null ? (
+          <Text style={[styles.price, { color: colors.muted }]}>{formatMoney(item.price)}</Text>
+        ) : null}
       </View>
+      {pricesOn ? (
+        <TextInput
+          value={priceDraft}
+          onChangeText={setPriceDraft}
+          onFocus={() => {
+            priceFocused.current = true;
+          }}
+          onBlur={() => {
+            priceFocused.current = false;
+            schedulePriceSave();
+          }}
+          placeholder="$0.00"
+          placeholderTextColor={colors.muted}
+          keyboardType="decimal-pad"
+          inputMode="decimal"
+          style={[styles.priceInput, { backgroundColor: colors.fill, color: colors.text }]}
+        />
+      ) : null}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`Editar ${item.name}`}
@@ -118,6 +189,20 @@ const styles = StyleSheet.create({
   },
   purchased: {
     textDecorationLine: 'line-through',
+  },
+  price: {
+    ...typography.footnote,
+    marginTop: 1,
+  },
+  priceInput: {
+    width: 96,
+    borderRadius: radii.icon,
+    paddingVertical: 7,
+    paddingHorizontal: 8,
+    fontSize: 15,
+    lineHeight: 20,
+    textAlign: 'right',
+    fontVariant: ['tabular-nums'],
   },
   editInput: {
     ...typography.body,

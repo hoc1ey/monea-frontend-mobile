@@ -10,11 +10,15 @@ import {
   Banner,
   Button,
   EmptyState,
+  Field,
+  Group,
   LargeHeader,
   Note,
+  Row,
   ScreenContainer,
   SectionHeader,
   Skeleton,
+  Switch,
   TopBar,
   useToast,
 } from '@/components/ui';
@@ -23,7 +27,7 @@ import { formatDate, formatMoney } from '@/lib/format';
 import { radii, typography, useThemeColors } from '@/theme';
 
 import { ItemCard } from './ItemCard';
-import { itemsOf, purchasedCount } from './shopping';
+import { itemsOf, purchasedCount, sumPurchasedPrices } from './shopping';
 import {
   useAddShoppingListItem,
   useCheckShoppingListItem,
@@ -94,10 +98,13 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
 
   const [newName, setNewName] = useState('');
   const [pendingItems, setPendingItems] = useState<{ tempId: string; name: string }[]>([]);
+  const [pricesOn, setPricesOn] = useState(false);
+  const [manualTotal, setManualTotal] = useState('');
   const inputRef = useRef<TextInput>(null);
 
   const list = query.data;
   const items = itemsOf(list);
+  const purchasedTotal = sumPurchasedPrices(items);
   const accountName =
     (list?.accountId && accounts.data?.find((account) => account.id === list.accountId)?.name) ||
     '—';
@@ -131,6 +138,14 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
       await updateItem.mutateAsync({ itemId, input: { name } });
     } catch (error) {
       toast.show(isApiError(error) ? error.message : 'No se pudo guardar el producto');
+    }
+  };
+
+  const handleSavePrice = async (itemId: string, price: number) => {
+    try {
+      await updateItem.mutateAsync({ itemId, input: { price } });
+    } catch (error) {
+      toast.show(isApiError(error) ? error.message : 'No se pudo guardar el precio');
     }
   };
 
@@ -188,6 +203,20 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
           subtitle={`${purchasedCount(items)} de ${items.length} comprados`}
         />
 
+        <Group>
+          <Row
+            title="Precios individuales"
+            subtitle="Suma cada precio y calcula el total"
+            right={
+              <Switch
+                value={pricesOn}
+                onValueChange={setPricesOn}
+                accessibilityLabel="Precios individuales"
+              />
+            }
+          />
+        </Group>
+
         <SectionHeader title="Productos" />
         <View style={[styles.addRow, { backgroundColor: colors.surface }]}>
           <TextInput
@@ -226,12 +255,43 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
             <ItemCard
               key={item.id}
               item={item}
+              pricesOn={pricesOn}
               onToggle={() => handleToggle(item.id, !item.isPurchased)}
               onSaveName={(name) => handleSaveName(item.id, name)}
+              onSavePrice={(price) => handleSavePrice(item.id, price)}
               onDelete={() => handleDelete(item)}
             />
           ))
         )}
+
+        <SectionHeader title="Total de la compra" />
+        <Group>
+          <Field
+            label="Total"
+            right={
+              pricesOn ? (
+                <Text style={[styles.totalValue, { color: colors.muted }]}>
+                  {formatMoney(purchasedTotal)}
+                </Text>
+              ) : (
+                <TextInput
+                  value={manualTotal}
+                  onChangeText={setManualTotal}
+                  placeholder="0.00"
+                  placeholderTextColor={colors.muted}
+                  keyboardType="decimal-pad"
+                  inputMode="decimal"
+                  style={[styles.totalValue, { color: colors.text }]}
+                />
+              )
+            }
+          />
+        </Group>
+        <Note>
+          {pricesOn
+            ? 'El total se calcula sumando los precios de cada producto.'
+            : 'Escribe el total de la compra. Activa precios individuales para calcularlo.'}
+        </Note>
       </>
     );
   };
@@ -298,6 +358,15 @@ const styles = StyleSheet.create({
   },
   pendingName: {
     ...typography.bodyMedium,
+  },
+  totalValue: {
+    ...typography.body,
+    fontSize: 18,
+    fontWeight: '600',
+    flex: 1,
+    minWidth: 0,
+    textAlign: 'right',
+    fontVariant: ['tabular-nums'],
   },
   skeletonGroup: {
     gap: 12,
