@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
+import Constants from 'expo-constants';
 import { router } from 'expo-router';
-import { Key, LogOut, Smartphone } from 'lucide-react-native';
+import { Bell, Key, LayoutGrid, LogOut, Smartphone } from 'lucide-react-native';
 
 import { signOut, signOutAll } from '@/auth/session';
 import {
@@ -13,11 +14,13 @@ import {
   SectionHeader,
   Segmented,
   Sheet,
+  Switch,
   TopBar,
   type SegmentedOption,
 } from '@/components/ui';
+import { useNotificationPermission } from '@/features/settings/useNotificationPermission';
 import { useThemeStore, type ThemePreference } from '@/stores/theme';
-import { useThemeColors } from '@/theme';
+import { typography, useThemeColors } from '@/theme';
 
 const THEME_OPTIONS: SegmentedOption<ThemePreference>[] = [
   { value: 'system', label: 'Sistema' },
@@ -25,11 +28,14 @@ const THEME_OPTIONS: SegmentedOption<ThemePreference>[] = [
   { value: 'dark', label: 'Oscuro' },
 ];
 
+const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0';
+
 /** `/settings` — appearance, security and notification settings (F15). */
 export default function SettingsScreen() {
   const colors = useThemeColors();
   const preference = useThemeStore((state) => state.preference);
   const setPreference = useThemeStore((state) => state.setPreference);
+  const notifications = useNotificationPermission();
   const [confirmCloseAll, setConfirmCloseAll] = useState(false);
 
   const handleSignOut = async () => {
@@ -73,6 +79,37 @@ export default function SettingsScreen() {
             onPress={() => setConfirmCloseAll(true)}
           />
         </Group>
+
+        <SectionHeader title="Notificaciones" />
+        <Group>
+          <Row
+            icon={Bell}
+            title="Notificaciones push"
+            right={
+              <Switch
+                value={notifications.granted}
+                onValueChange={() => void notifications.toggle()}
+                accessibilityLabel="Notificaciones push"
+              />
+            }
+          />
+          <Row icon={Smartphone} title="Dispositivos" value="1 activo" />
+        </Group>
+
+        {__DEV__ ? (
+          <>
+            <SectionHeader title="Desarrollo" />
+            <Group>
+              <Row
+                icon={LayoutGrid}
+                title="Vista previa de todas las pantallas"
+                onPress={() => router.push('/dev')}
+              />
+            </Group>
+          </>
+        ) : null}
+
+        <Text style={[styles.hint, { color: colors.muted }]}>MONEA · v{APP_VERSION}</Text>
       </ScreenContainer>
 
       <Sheet
@@ -98,5 +135,10 @@ const styles = StyleSheet.create({
   segment: {
     marginTop: 0,
     marginBottom: 0,
+  },
+  hint: {
+    ...typography.footnote,
+    textAlign: 'center',
+    marginTop: 24,
   },
 });
