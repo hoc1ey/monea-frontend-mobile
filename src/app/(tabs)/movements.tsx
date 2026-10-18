@@ -1,25 +1,331 @@
-import { View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import {
+  FlatList,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  type ListRenderItemInfo,
+} from 'react-native';
 
-import { ArrowUpDown } from 'lucide-react-native';
+import { router } from 'expo-router';
+import { ArrowUpDown, Repeat, Search, WifiOff, X } from 'lucide-react-native';
 
+import {
+  Banner,
+  Button,
+  Chips,
+  EmptyState,
+  Group,
+  LargeHeader,
+  Row,
+  SectionHeader,
+  Skeleton,
+  Tag,
+  type ChipOption,
+  type IconComponent,
+} from '@/components/ui';
 import { Fab } from '@/components/navigation/Fab';
-import { EmptyState, LargeHeader, ScreenContainer } from '@/components/ui';
+import { useAccounts } from '@/features/accounts/useAccounts';
+import {
+  movementIcon,
+  type Movement,
+  type MovementFilter,
+  type MovementSection,
+} from '@/features/movements/movements';
+import { useMovements, usePendingExpenses } from '@/features/movements/useMovements';
+import { formatDate, formatMoney } from '@/lib/format';
 import { useUiStore } from '@/stores/ui';
+import { ICON_STROKE, radii, typography, useThemeColors } from '@/theme';
 
-export default function MovementsScreen() {
-  const openQuickActions = useUiStore((state) => state.openQuickActions);
+const FILTERS: ChipOption<MovementFilter>[] = [
+  { value: 'all', label: 'Todos' },
+  { value: 'income', label: 'Ingresos' },
+  { value: 'expense', label: 'Egresos' },
+  { value: 'deferred', label: 'Diferidos' },
+  { value: 'recurring', label: 'Recurrentes' },
+];
+
+/** 36 dp circular `fill` icon-button (prototype `.ib`). */
+function IconButton({
+  icon: Icon,
+  label,
+  onPress,
+}: {
+  icon: IconComponent;
+  label: string;
+  onPress: () => void;
+}) {
+  const colors = useThemeColors();
 
   return (
-    <View style={{ flex: 1 }}>
-      <ScreenContainer>
-        <LargeHeader title="Movimientos" />
-        <EmptyState
-          icon={ArrowUpDown}
-          title="Sin movimientos"
-          message="Registra tu primer ingreso o egreso con el botón +."
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.iconButton,
+        { backgroundColor: colors.fill },
+        pressed && { opacity: 0.8 },
+      ]}
+    >
+      <Icon size={20} color={colors.accentInk} strokeWidth={ICON_STROKE} />
+    </Pressable>
+  );
+}
+
+function MovementRow({ movement, accountName }: { movement: Movement; accountName: string }) {
+  const colors = useThemeColors();
+  const income = movement.kind === 'income';
+
+  const open = () => {
+    if (movement.pending) {
+      router.push('/recurring/define-amount');
+      return;
+    }
+    router.push({ pathname: '/movements/[id]', params: { id: movement.id, kind: movement.kind } });
+  };
+
+  return (
+    <Row
+      icon={movementIcon(movement)}
+      title={movement.name}
+      subtitle={`${accountName || '—'} · ${movement.origin}`}
+      onPress={open}
+      right={
+        movement.pending ? (
+          <Tag label="Definir monto" variant="acc" />
+        ) : (
+          <Text
+            style={[styles.amount, { color: income ? colors.positive : colors.text }]}
+          >
+            {income ? '+' : '−'}
+            {formatMoney(movement.amount)}
+          </Text>
+        )
+      }
+    />
+  );
+}
+
+function MovementsSkeleton() {
+  const colors = useThemeColors();
+
+  return (
+    <View>
+      {[0, 1].map((index) => (
+        <View key={index}>
+          <Skeleton width="30%" height={14} style={styles.skeletonHeader} />
+          <View style={[styles.skeletonGroup, { backgroundColor: colors.surface }]}>
+            <Skeleton height={32} />
+            <Skeleton height={32} />
+            <Skeleton height={32} />
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+export default function MovementsScreen() {
+  const colors = useThemeColors();
+  const openQuickActions = useUiStore((state) => state.openQuickActions);
+
+  const [filter, setFilter] = useState<MovementFilter>('all');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [search, setSearch] = useState('');
+
+  const movements = useMovements(filter, search);
+  const pending = usePendingExpenses();
+  const accounts = useAccounts();
+
+  const accountNames = useMemo(
+    () => new Map((accounts.data ?? []).map((account) => [account.id, account.name])),
+    [accounts.data],
+  );
+
+  const pendingList = pending.data ?? [];
+  const showBanner = filter !== 'income' && pendingList.length > 0;
+  const bannerExpense = pendingList[0];
+
+  const refresh = useCallback(() => {
+    void movements.refetch();
+    void pending.refetch();
+    void accounts.refetch();
+  }, [movements, pending, accounts]);
+
+  const renderSection = ({ item }: ListRenderItemInfo<MovementSection>) => (
+    <View>
+      <SectionHeader title={item.title} />
+      <Group>
+        {item.data.map((movement) => (
+          <MovementRow
+            key={movement.id}
+            movement={movement}
+            accountName={accountNames.get(movement.accountId) ?? ''}
+          />
+        ))}
+      </Group>
+    </View>
+  );
+
+  const header = (
+    <View>
+      <LargeHeader
+        title="Movimientos"
+        right={
+          <IconButton
+            icon={searchOpen ? X : Search}
+            label={searchOpen ? 'Cerrar búsqueda' : 'Buscar'}
+            onPress={() => {
+              setSearchOpen((open) => !open);
+              if (searchOpen) {
+                setSearch('');
+              }
+            }}
+          />
+        }
+      />
+      {searchOpen ? (
+        <View style={[styles.search, { backgroundColor: colors.fill }]}>
+          <Search size={18} color={colors.muted} strokeWidth={ICON_STROKE} />
+          <TextInput
+            value={search}
+            onChangeText={setSearch}
+            placeholder="Buscar por nombre"
+            placeholderTextColor={colors.muted}
+            autoFocus
+            style={[styles.searchInput, { color: colors.text }]}
+          />
+        </View>
+      ) : null}
+
+      <Chips options={FILTERS} value={filter} onChange={setFilter} />
+
+      {showBanner && bannerExpense ? (
+        <Banner
+          icon={Repeat}
+          title={`${pendingList.length} egreso necesita monto`}
+          subtitle={`${bannerExpense.name} · ${formatDate(bannerExpense.date, 'd MMM')}`}
+          onPress={() => router.push('/recurring/define-amount')}
         />
-      </ScreenContainer>
+      ) : null}
+    </View>
+  );
+
+  const empty = () => {
+    if (movements.isLoading) {
+      return <MovementsSkeleton />;
+    }
+    if (movements.isError) {
+      return (
+        <>
+          <Banner
+            icon={WifiOff}
+            title="Sin conexión"
+            subtitle="No pudimos cargar tus movimientos"
+            onPress={refresh}
+          />
+          <Button title="Reintentar" variant="ghost" onPress={refresh} />
+        </>
+      );
+    }
+    return (
+      <EmptyState
+        icon={ArrowUpDown}
+        title="Sin movimientos"
+        message="Registra tu primer ingreso o egreso con el botón +."
+      />
+    );
+  };
+
+  const footer = (
+    <View style={styles.footer}>
+      {movements.isFetchingNextPage ? <Skeleton height={44} radius={radii.button} /> : null}
+      <Button
+        title="Ver egresos recurrentes"
+        variant="ghost"
+        onPress={() => router.push('/recurring')}
+      />
+    </View>
+  );
+
+  return (
+    <View style={styles.flex}>
+      <FlatList
+        data={movements.sections}
+        keyExtractor={(section) => `${section.title}-${section.data[0]?.id ?? ''}`}
+        renderItem={renderSection}
+        ListHeaderComponent={header}
+        ListEmptyComponent={empty}
+        ListFooterComponent={footer}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        onEndReached={movements.hasNextPage ? movements.fetchNextPage : undefined}
+        onEndReachedThreshold={0.4}
+        refreshControl={
+          <RefreshControl
+            refreshing={movements.isRefreshing}
+            onRefresh={refresh}
+            tintColor={colors.accent}
+            colors={[colors.accent]}
+          />
+        }
+      />
       <Fab onPress={openQuickActions} />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
+  content: {
+    paddingHorizontal: 16,
+    paddingBottom: 150,
+  },
+  iconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  search: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    minHeight: 40,
+    paddingHorizontal: 12,
+    borderRadius: radii.field,
+    marginBottom: 12,
+  },
+  searchInput: {
+    ...typography.body,
+    flex: 1,
+    minWidth: 0,
+    padding: 0,
+  },
+  amount: {
+    ...typography.body,
+    textAlign: 'right',
+    fontVariant: ['tabular-nums'],
+  },
+  footer: {
+    marginTop: 14,
+    gap: 12,
+  },
+  skeletonHeader: {
+    marginTop: 24,
+    marginBottom: 8,
+    marginLeft: 14,
+  },
+  skeletonGroup: {
+    gap: 12,
+    padding: 14,
+    borderRadius: radii.card,
+  },
+});
