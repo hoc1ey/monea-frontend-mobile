@@ -1,26 +1,29 @@
-import { RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { RefreshControl, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { router } from 'expo-router';
 import { ShoppingCart, WifiOff } from 'lucide-react-native';
 
+import { isApiError } from '@/api/client';
 import {
   Banner,
   Button,
   EmptyState,
-  Group,
   LargeHeader,
   Note,
-  Row,
   ScreenContainer,
   SectionHeader,
   Skeleton,
   TopBar,
+  useToast,
 } from '@/components/ui';
 import { useAccounts } from '@/features/accounts/useAccounts';
 import { formatDate, formatMoney } from '@/lib/format';
 import { radii, typography, useThemeColors } from '@/theme';
 
+import { ItemCard } from './ItemCard';
 import { itemsOf, purchasedCount } from './shopping';
+import { useAddShoppingListItem, useCheckShoppingListItem } from './useShoppingListMutations';
 import { useShoppingList } from './useShoppingLists';
 
 function DetailSkeleton() {
@@ -36,13 +39,11 @@ function DetailSkeleton() {
 }
 
 function ClosedDetail({
-  name,
   closedAt,
   total,
   count,
   accountName,
 }: {
-  name: string;
   closedAt: string | null;
   total: number;
   count: number;
@@ -73,18 +74,49 @@ export interface ShoppingListDetailProps {
 
 /**
  * Shopping list detail (F14). Closed lists render an immutable summary; open
- * lists are completed by the item, price and closing sections of the feature.
+ * lists get the product entry, the item cards and the totals section.
  */
 export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
   const colors = useThemeColors();
+  const toast = useToast();
   const query = useShoppingList(id);
   const accounts = useAccounts();
+  const addItem = useAddShoppingListItem(id);
+  const checkItem = useCheckShoppingListItem(id);
+
+  const [newName, setNewName] = useState('');
+  const [pendingItems, setPendingItems] = useState<{ tempId: string; name: string }[]>([]);
+  const inputRef = useRef<TextInput>(null);
 
   const list = query.data;
   const items = itemsOf(list);
   const accountName =
     (list?.accountId && accounts.data?.find((account) => account.id === list.accountId)?.name) ||
     '—';
+
+  const handleAdd = async () => {
+    const name = newName.trim();
+    if (!name) {
+      return;
+    }
+
+    const tempId = `pending-${Date.now()}`;
+    setPendingItems((previous) => [...previous, { tempId, name }]);
+    setNewName('');
+    inputRef.current?.focus();
+
+    try {
+      await addItem.mutateAsync(name.slice(0, 120));
+      setPendingItems((previous) => previous.filter((pending) => pending.tempId !== tempId));
+    } catch (error) {
+      setPendingItems((previous) => previous.filter((pending) => pending.tempId !== tempId));
+      toast.show(isApiError(error) ? error.message : 'No se pudo agregar el producto');
+    }
+  };
+
+  const handleToggle = (itemId: string, isPurchased: boolean) => {
+    checkItem.mutate({ itemId, isPurchased });
+  };
 
   const renderContent = () => {
     if (query.isPending) {
@@ -108,7 +140,6 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
     if (list.status === 'CLOSED') {
       return (
         <ClosedDetail
-          name={list.name}
           closedAt={list.closedAt}
           total={list.total ?? 0}
           count={items.length}
@@ -123,19 +154,48 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
           title={list.name}
           subtitle={`${purchasedCount(items)} de ${items.length} comprados`}
         />
+
         <SectionHeader title="Productos" />
-        {items.length === 0 ? (
+        <View style={[styles.addRow, { backgroundColor: colors.surface }]}>
+          <TextInput
+            ref={inputRef}
+            value={newName}
+            onChangeText={setNewName}
+            placeholder="Agregar producto"
+            placeholderTextColor={colors.muted}
+            maxLength={120}
+            returnKeyType="done"
+            onSubmitEditing={() => void handleAdd()}
+            style={[styles.addInput, { color: colors.text }]}
+          />
+          <Button title="Agregar" small onPress={() => void handleAdd()} disabled={!newName.trim()} />
+        </View>
+
+        {pendingItems.map((pending) => (
+          <View
+            key={pending.tempId}
+            style={[styles.pendingCard, { backgroundColor: colors.surface }]}
+          >
+            <Text style={[styles.pendingName, { color: colors.muted }]} numberOfLines={1}>
+              {pending.name}
+            </Text>
+          </View>
+        ))}
+
+        {items.length === 0 && pendingItems.length === 0 ? (
           <EmptyState
             icon={ShoppingCart}
             title="Aún no hay productos"
             message="Agrega el primero arriba."
           />
         ) : (
-          <Group>
-            {items.map((item) => (
-              <Row key={item.id} title={item.name} />
-            ))}
-          </Group>
+          items.map((item) => (
+            <ItemCard
+              key={item.id}
+              item={item}
+              onToggle={() => handleToggle(item.id, !item.isPurchased)}
+            />
+          ))
         )}
       </>
     );
@@ -178,6 +238,31 @@ const styles = StyleSheet.create({
   },
   closedSub: {
     ...typography.subhead,
+  },
+  addRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderRadius: radii.listItem,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    marginBottom: 12,
+  },
+  addInput: {
+    ...typography.body,
+    flex: 1,
+    minWidth: 0,
+    paddingVertical: 8,
+  },
+  pendingCard: {
+    borderRadius: radii.listItem,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: 8,
+    opacity: 0.6,
+  },
+  pendingName: {
+    ...typography.bodyMedium,
   },
   skeletonGroup: {
     gap: 12,
