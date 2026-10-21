@@ -60,7 +60,7 @@ export default function LoginScreen() {
   return (
     <View style={[styles.screen, { backgroundColor: colors.bg }]}>
       <View style={styles.brand}>
-        <BrandLogo />
+        <BrandLogo size={140} />
         <Text style={[styles.title, { color: colors.text }]}>MONEA</Text>
         <Text style={[styles.subtitle, { color: colors.muted }]}>Tus finanzas, en orden</Text>
       </View>

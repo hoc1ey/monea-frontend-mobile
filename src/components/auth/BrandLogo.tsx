@@ -32,7 +32,7 @@ export function BrandLogo({ size = 76, pulse = false }: BrandLogoProps) {
   return (
     <Animated.View>
       <Image
-        source={require('../../../assets/images/splash-icon.png')}
+        source={require('../../../assets/images/logo.png')}
         style={{ width: size, height: size }}
         contentFit="contain"
       />
