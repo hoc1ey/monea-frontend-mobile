@@ -59,6 +59,11 @@ const config: ExpoConfig = {
     ],
     '@react-native-community/datetimepicker',
   ],
+  extra: {
+    eas: {
+      projectId: '5587977e-c43b-4042-9b9b-65a7d755d120',
+    },
+  },
   experiments: {
     typedRoutes: true,
     reactCompiler: true,
