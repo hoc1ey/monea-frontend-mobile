@@ -9,30 +9,18 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
-      },
-      "env": {
-        "EXPO_PUBLIC_API_URL": "https://unhomologic-annis-unministerially.ngrok-free.dev/api/v1",
-        "EXPO_PUBLIC_APP_ENV": "development"
       }
     },
     "preview": {
       "distribution": "internal",
       "android": {
         "buildType": "apk"
-      },
-      "env": {
-        "EXPO_PUBLIC_API_URL": "https://unhomologic-annis-unministerially.ngrok-free.dev/api/v1",
-        "EXPO_PUBLIC_APP_ENV": "staging"
       }
     },
     "production": {
       "autoIncrement": true,
       "android": {
         "buildType": "app-bundle"
-      },
-      "env": {
-        "EXPO_PUBLIC_API_URL": "https://unhomologic-annis-unministerially.ngrok-free.dev/api/v1",
-        "EXPO_PUBLIC_APP_ENV": "production"
       }
     }
   },
