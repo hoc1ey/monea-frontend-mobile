@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "889754862762",
+    "project_id": "monea-6e268",
+    "storage_bucket": "monea-6e268.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:889754862762:android:7fce605185108dcda1fcd3",
+        "android_client_info": {
+          "package_name": "com.monea.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBeGRy2ztgqbEj2oEovvO57f77IN0szqUc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
