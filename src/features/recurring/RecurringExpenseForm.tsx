@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { zodResolver } from '@hookform/resolvers/zod';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { format, parseISO } from 'date-fns';
 import { useController, useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -16,7 +16,6 @@ import type {
 } from '@/api/recurringExpenses';
 import {
   AmountInput,
-  Button,
   Field,
   Group,
   ScreenContainer,
@@ -26,7 +25,8 @@ import {
   Switch,
   TextButton,
   TopBar,
-  type SelectOption,
+  WheelSelect,
+  type SelectOption
 } from '@/components/ui';
 import { DateField } from '@/features/movements/DateField';
 import { KIND_OPTIONS, type ExpenseKind } from '@/features/movements/ExpenseForm';
@@ -179,12 +179,11 @@ function OptionalDateFieldBase({ label, value, onChange, showSeparator }: Option
         <DateTimePicker
           value={value ?? new Date()}
           mode="date"
-          onChange={(event, date) => {
+          onValueChange={(_, date) => {
             setShow(false);
-            if (event.type === 'set' && date) {
-              onChange(date);
-            }
+            onChange(date);
           }}
+          onDismiss={() => setShow(false)}
         />
       ) : null}
     </>
@@ -344,7 +343,7 @@ export function RecurringExpenseForm({
           ) : null}
 
           {frequency.field.value === 'MONTHLY' ? (
-            <Select
+            <WheelSelect
               label="Día"
               value={dayOfMonth.field.value || undefined}
               options={DAY_OF_MONTH_OPTIONS}
@@ -354,13 +353,13 @@ export function RecurringExpenseForm({
 
           {frequency.field.value === 'YEARLY' ? (
             <>
-              <Select
+              <WheelSelect
                 label="Mes"
                 value={monthOfYear.field.value || undefined}
                 options={MONTH_OPTIONS}
                 onChange={monthOfYear.field.onChange}
               />
-              <Select
+              <WheelSelect
                 label="Día del mes"
                 value={yearDayOfMonth.field.value || undefined}
                 options={OPTIONAL_DAY_OF_MONTH_OPTIONS}
@@ -413,20 +412,14 @@ export function RecurringExpenseForm({
             options={REMINDER_OFFSET_OPTIONS}
             onChange={reminderOffset.field.onChange}
           />
-          <Select
+          <WheelSelect
             label="Hora"
             value={reminderHour.field.value || undefined}
             options={REMINDER_HOUR_OPTIONS}
             onChange={reminderHour.field.onChange}
           />
         </Group>
-
-        <Button
-          title="Guardar recurrencia"
-          loading={formState.isSubmitting}
-          onPress={submit}
-          style={styles.button}
-        />
+        
       </ScreenContainer>
     </View>
   );
@@ -448,8 +441,10 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   dateRight: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'flex-end',
     gap: 14,
   },
   dateValue: {

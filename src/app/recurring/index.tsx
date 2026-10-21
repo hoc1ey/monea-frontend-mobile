@@ -1,7 +1,7 @@
 import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 
-import { router } from 'expo-router';
 import { toZonedTime } from 'date-fns-tz';
+import { router } from 'expo-router';
 import { Repeat, WifiOff } from 'lucide-react-native';
 
 import type { RecurringExpenseConfig } from '@/api/recurringExpenses';
@@ -14,9 +14,8 @@ import {
   Row,
   ScreenContainer,
   Skeleton,
-  Switch,
   Tag,
-  TopBar,
+  TopBar
 } from '@/components/ui';
 import { recurringFrequencyLabel } from '@/features/recurring/recurring';
 import { useRecurringExpenses } from '@/features/recurring/useRecurringExpenses';
@@ -68,11 +67,6 @@ function RecurringRow({ config }: { config: RecurringExpenseConfig }) {
               {formatMoney(config.amount ?? 0)}
             </Text>
           )}
-          <Switch
-            value={config.isActive}
-            onValueChange={toggle}
-            accessibilityLabel={`${config.name}: activo`}
-          />
         </View>
       }
     />
@@ -126,12 +120,15 @@ export default function RecurringListScreen() {
             <RecurringRow key={config.id} config={config} />
           ))}
         </Group>
-        <Button
-          title="Nuevo recurrente"
-          variant="ghost"
-          onPress={openNew}
-          style={styles.newButton}
-        />
+        <View style={styles.newButton}>
+
+          <Button
+            title="Nuevo recurrente"
+            variant="ghost"
+            onPress={openNew}
+
+          />
+        </View>
       </>
     );
   };

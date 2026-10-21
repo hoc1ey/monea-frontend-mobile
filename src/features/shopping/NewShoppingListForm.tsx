@@ -5,14 +5,13 @@ import { useController, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  Button,
   Field,
   Group,
   LargeHeader,
   ScreenContainer,
   SectionHeader,
   TextButton,
-  TopBar,
+  TopBar
 } from '@/components/ui';
 import { typography, useThemeColors } from '@/theme';
 
@@ -96,12 +95,6 @@ export function NewShoppingListForm({ onBack, onSubmit }: NewShoppingListFormPro
           />
         </Group>
 
-        <Button
-          title="Crear lista"
-          loading={formState.isSubmitting}
-          onPress={submit}
-          style={styles.button}
-        />
       </ScreenContainer>
     </View>
   );

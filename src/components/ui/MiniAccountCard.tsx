@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { elevation, radii, typography, useThemeColors } from '@/theme';
@@ -22,6 +23,7 @@ export function MiniAccountCard({
   style,
 }: MiniAccountCardProps) {
   const colors = useThemeColors();
+  const [pressed, setPressed] = useState(false);
 
   const content = (
     <>
@@ -37,32 +39,47 @@ export function MiniAccountCard({
   );
 
   if (!onPress) {
-    return <View style={[styles.card, { backgroundColor: colors.surface }, style]}>{content}</View>;
+    return (
+      <View style={[styles.card, { backgroundColor: colors.surface }, style]}>
+        <View style={styles.inner}>{content}</View>
+      </View>
+    );
   }
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={name}
-      onPress={onPress}
-      style={({ pressed }) => [
+    <View
+      style={[
         styles.card,
         { backgroundColor: colors.surface },
-        pressed && { opacity: 0.9 },
+        pressed && styles.pressed,
         style,
       ]}
     >
-      {content}
-    </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={name}
+        onPress={onPress}
+        onPressIn={() => setPressed(true)}
+        onPressOut={() => setPressed(false)}
+        style={styles.inner}
+      >
+        {content}
+      </Pressable>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
     width: 200,
-    padding: 14,
     borderRadius: radii.miniCard,
     elevation: elevation.miniCard,
+  },
+  inner: {
+    padding: 14,
+  },
+  pressed: {
+    opacity: 0.9,
   },
   bar: {
     height: 6,

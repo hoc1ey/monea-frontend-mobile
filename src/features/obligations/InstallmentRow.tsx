@@ -31,7 +31,9 @@ export interface InstallmentRowProps {
  * paid or a small "Marcar pagada" button that opens the pay sheet.
  */
 export function InstallmentRow({ installment, timezone, paying, onPay }: InstallmentRowProps) {
-  const due = formatDate(toZonedTime(installment.dueDate, timezone), 'd MMM yyyy');
+  const due = installment.dueDate
+    ? formatDate(toZonedTime(installment.dueDate, timezone), 'd MMM yyyy')
+    : 'Sin fecha';
 
   return (
     <Row

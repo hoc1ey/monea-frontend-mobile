@@ -1,6 +1,6 @@
 import { useQueries } from '@tanstack/react-query';
-import { differenceInCalendarDays, startOfDay } from 'date-fns';
-import { toZonedTime } from 'date-fns-tz';
+import { differenceInCalendarDays, endOfWeek, startOfDay, startOfWeek } from 'date-fns';
+import { fromZonedTime, toZonedTime } from 'date-fns-tz';
 
 import { getAccounts, type Account } from '@/api/accounts';
 import {
@@ -9,10 +9,17 @@ import {
   getCreditCards,
   type CreditCard,
 } from '@/api/creditCards';
-import { getPendingExpenses, type Expense } from '@/api/expenses';
+import { getExpenses, getPendingExpenses, type Expense } from '@/api/expenses';
+import { getIncomes, type Income } from '@/api/incomes';
 import { getReminders, type Reminder } from '@/api/notifications';
-import { getCollections, getDebts, getLoans } from '@/api/obligations';
+import { getCollections } from '@/api/obligations';
 import { getMe, type UserProfile } from '@/api/users';
+import {
+  expenseToMovement,
+  incomeToMovement,
+  sortMovements,
+  type Movement,
+} from '@/features/movements/movements';
 import { formatDate, sumMoney } from '@/lib/format';
 import { currentPeriod } from '@/lib/notifications';
 import { detectTimezone } from '@/lib/timezone';
@@ -48,16 +55,13 @@ export interface HomeAttentionExpense {
 
 export type HomeAttention = HomeAttentionCard | HomeAttentionExpense;
 
-export type ObligationKind = 'cobros' | 'prestamos' | 'deudas';
-
-export interface HomeWeekInstallment {
-  key: string;
-  kind: ObligationKind;
-  parentId: string;
-  title: string;
-  subtitle: string;
-  amount: number;
-  tone: 'positive' | 'negative';
+interface WeekBounds {
+  /** Monday 00:00 of the current week in the user timezone. */
+  start: Date;
+  /** Sunday 23:59:59.999 of the current week in the user timezone. */
+  end: Date;
+  from: string;
+  to: string;
 }
 
 export interface HomeDashboard {
@@ -70,7 +74,8 @@ export interface HomeDashboard {
   accounts: Account[];
   cards: HomeCard[];
   attention: HomeAttention[];
-  week: HomeWeekInstallment[];
+  /** Incomes and expenses made this week (Monday–Sunday, all accounts). */
+  week: Movement[];
   totals: {
     balance: number;
     cardDebt: number;
@@ -128,92 +133,89 @@ function attentionFromExpenses(expenses: Expense[]): HomeAttentionExpense[] {
   }));
 }
 
-const KIND_LABEL: Record<ObligationKind, string> = {
-  cobros: 'Cobro',
-  prestamos: 'Préstamo',
-  deudas: 'Deuda',
-};
+/** Monday–Sunday bounds of the current week (user timezone) as UTC ISO strings. */
+function weekBounds(now: Date, timezone: string): WeekBounds {
+  const start = startOfWeek(now, { weekStartsOn: 1 });
+  const end = endOfWeek(now, { weekStartsOn: 1 });
 
-interface ObligationSource {
-  kind: ObligationKind;
-  parentId: string;
-  personName: string;
-  installmentsCount: number;
-  installments: { id: string; number: number; amount: number; dueDate: string; isPaid: boolean }[];
+  return {
+    start,
+    end,
+    from: fromZonedTime(start, timezone).toISOString(),
+    to: fromZonedTime(end, timezone).toISOString(),
+  };
 }
 
-function collectWeekInstallments(
-  sources: ObligationSource[],
-  now: Date,
+/** Incomes and expenses made this week (all accounts), newest first. */
+function collectWeekMovements(
+  incomes: Income[],
+  expenses: Expense[],
+  bounds: WeekBounds,
   timezone: string,
-): HomeWeekInstallment[] {
-  const items: { days: number; item: HomeWeekInstallment }[] = [];
+): Movement[] {
+  const inWeek = (date: string) => {
+    const zoned = toZonedTime(date, timezone);
+    return zoned >= bounds.start && zoned <= bounds.end;
+  };
 
-  for (const source of sources) {
-    for (const installment of source.installments) {
-      if (installment.isPaid) {
-        continue;
-      }
-
-      const due = toZonedTime(installment.dueDate, timezone);
-      const days = differenceInCalendarDays(startOfDay(due), startOfDay(now));
-
-      if (days < 0 || days > 7) {
-        continue;
-      }
-
-      items.push({
-        days,
-        item: {
-          key: `${source.parentId}:${installment.id}`,
-          kind: source.kind,
-          parentId: source.parentId,
-          title: `${source.personName} · cuota ${installment.number} de ${source.installmentsCount}`,
-          subtitle: `${KIND_LABEL[source.kind]} · vence ${formatDate(due, 'd MMM')}`,
-          amount: installment.amount,
-          tone: source.kind === 'cobros' ? 'positive' : 'negative',
-        },
-      });
-    }
-  }
-
-  return items.sort((a, b) => a.days - b.days).map(({ item }) => item);
+  return sortMovements([
+    ...incomes.filter((income) => inWeek(income.date)).map(incomeToMovement),
+    ...expenses.filter((expense) => inWeek(expense.date)).map(expenseToMovement),
+  ]);
 }
 
 /**
  * Aggregates the F05 dashboard with `useQueries`: profile, accounts, cards
- * (debt + current statement), obligations, pending expense amounts and
- * upcoming reminders. Every query shares a 60 s `staleTime`.
+ * (debt + current statement), obligations, pending expense amounts, upcoming
+ * reminders and this week's movements (incomes/expenses). Every query shares
+ * a 60 s `staleTime`.
  */
 export function useHomeDashboard(): HomeDashboard {
   const authUser = useAuthStore((state) => state.user);
   const timezone = authUser?.timezone ?? detectTimezone();
-
-  const [meQuery, accountsQuery, cardsQuery, collectionsQuery, loansQuery, debtsQuery, expensesQuery, remindersQuery] =
-    useQueries({
-      queries: [
-        { queryKey: ['users', 'me'], queryFn: getMe, staleTime: STALE_TIME },
-        { queryKey: ['accounts'], queryFn: getAccounts, staleTime: STALE_TIME },
-        { queryKey: ['credit-cards'], queryFn: getCreditCards, staleTime: STALE_TIME },
-        { queryKey: ['collections'], queryFn: () => getCollections(), staleTime: STALE_TIME },
-        { queryKey: ['loans'], queryFn: () => getLoans(), staleTime: STALE_TIME },
-        { queryKey: ['debts'], queryFn: () => getDebts(), staleTime: STALE_TIME },
-        {
-          queryKey: ['expenses', { amountPending: true }],
-          queryFn: getPendingExpenses,
-          staleTime: STALE_TIME,
-        },
-        {
-          queryKey: ['notifications', 'reminders'],
-          queryFn: getReminders,
-          staleTime: STALE_TIME,
-        },
-      ],
-    });
-
-  const cards: CreditCard[] = cardsQuery.data ?? [];
   const now = toZonedTime(new Date(), timezone);
   const period = currentPeriod(now);
+  const week = weekBounds(now, timezone);
+
+  const [
+    meQuery,
+    accountsQuery,
+    cardsQuery,
+    collectionsQuery,
+    pendingExpensesQuery,
+    remindersQuery,
+    weekIncomesQuery,
+    weekExpensesQuery,
+  ] = useQueries({
+    queries: [
+      { queryKey: ['users', 'me'], queryFn: getMe, staleTime: STALE_TIME },
+      { queryKey: ['accounts'], queryFn: getAccounts, staleTime: STALE_TIME },
+      { queryKey: ['credit-cards'], queryFn: getCreditCards, staleTime: STALE_TIME },
+      { queryKey: ['collections'], queryFn: () => getCollections(), staleTime: STALE_TIME },
+      {
+        queryKey: ['expenses', { amountPending: true }],
+        queryFn: getPendingExpenses,
+        staleTime: STALE_TIME,
+      },
+      {
+        queryKey: ['notifications', 'reminders'],
+        queryFn: getReminders,
+        staleTime: STALE_TIME,
+      },
+      {
+        queryKey: ['incomes', { from: week.from, to: week.to }],
+        queryFn: () => getIncomes({ from: week.from, to: week.to, limit: 100 }),
+        staleTime: STALE_TIME,
+      },
+      {
+        queryKey: ['expenses', { from: week.from, to: week.to }],
+        queryFn: () => getExpenses({ from: week.from, to: week.to, limit: 100 }),
+        staleTime: STALE_TIME,
+      },
+    ],
+  });
+
+  const cards: CreditCard[] = cardsQuery.data ?? [];
 
   const debtQueries = useQueries({
     queries: cards.map((card) => ({
@@ -233,9 +235,7 @@ export function useHomeDashboard(): HomeDashboard {
 
   const accounts = accountsQuery.data ?? [];
   const collections = collectionsQuery.data ?? [];
-  const loans = loansQuery.data ?? [];
-  const debts = debtsQuery.data ?? [];
-  const pendingExpenses = expensesQuery.data ?? [];
+  const pendingExpenses = pendingExpensesQuery.data ?? [];
   const reminders = remindersQuery.data ?? [];
 
   const cardDeptTotals = cards.map((_, index) => debtQueries[index]?.data?.currentDebt ?? 0);
@@ -249,39 +249,22 @@ export function useHomeDashboard(): HomeDashboard {
     periodDebt: reportQueries[index]?.data?.total ?? debtQueries[index]?.data?.currentDebt ?? 0,
   }));
 
-  const weekSources: ObligationSource[] = [
-    ...collections.map((collection) => ({
-      kind: 'cobros' as const,
-      parentId: collection.id,
-      personName: collection.personName,
-      installmentsCount: collection.installmentsCount,
-      installments: collection.installments ?? [],
-    })),
-    ...loans.map((loan) => ({
-      kind: 'prestamos' as const,
-      parentId: loan.id,
-      personName: loan.personName,
-      installmentsCount: loan.installmentsCount,
-      installments: loan.installments ?? [],
-    })),
-    ...debts.map((debt) => ({
-      kind: 'deudas' as const,
-      parentId: debt.id,
-      personName: debt.personName,
-      installmentsCount: debt.installmentsCount,
-      installments: debt.installments ?? [],
-    })),
-  ];
+  const weekMovements = collectWeekMovements(
+    weekIncomesQuery.data?.items ?? [],
+    weekExpensesQuery.data?.items ?? [],
+    week,
+    timezone,
+  );
 
   const allQueries = [
     meQuery,
     accountsQuery,
     cardsQuery,
     collectionsQuery,
-    loansQuery,
-    debtsQuery,
-    expensesQuery,
+    pendingExpensesQuery,
     remindersQuery,
+    weekIncomesQuery,
+    weekExpensesQuery,
     ...debtQueries,
     ...reportQueries,
   ];
@@ -306,7 +289,7 @@ export function useHomeDashboard(): HomeDashboard {
       ),
       ...attentionFromExpenses(pendingExpenses),
     ],
-    week: collectWeekInstallments(weekSources, now, timezone),
+    week: weekMovements,
     totals: {
       balance: sumMoney(accounts.map((account) => account.currentBalance)),
       cardDebt: sumMoney(cardDeptTotals),

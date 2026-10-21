@@ -9,8 +9,8 @@ export interface ObligationInstallment {
   id: string;
   number: number;
   amount: number;
-  /** ISO UTC instant the installment is due. */
-  dueDate: string;
+  /** ISO UTC instant the installment is due; `null` when the reminder is off. */
+  dueDate: string | null;
   isPaid: boolean;
   paidAt: string | null;
   /** Income generated when a collection/loan installment is paid. */

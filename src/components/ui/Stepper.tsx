@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { typography, useThemeColors } from '@/theme';
@@ -10,6 +11,38 @@ export interface StepperProps {
   step?: number;
 }
 
+interface StepperButtonProps {
+  symbol: string;
+  label: string;
+  onPress: () => void;
+}
+
+function StepperButton({ symbol, label, onPress }: StepperButtonProps) {
+  const colors = useThemeColors();
+  const [pressed, setPressed] = useState(false);
+
+  return (
+    <View
+      style={[
+        styles.button,
+        { backgroundColor: colors.fill },
+        pressed && styles.pressed,
+      ]}
+    >
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        onPress={onPress}
+        onPressIn={() => setPressed(true)}
+        onPressOut={() => setPressed(false)}
+        style={styles.hit}
+      >
+        <Text style={[styles.symbol, { color: colors.text }]}>{symbol}</Text>
+      </Pressable>
+    </View>
+  );
+}
+
 export function Stepper({ value, onChange, min = 0, max, step = 1 }: StepperProps) {
   const colors = useThemeColors();
 
@@ -20,22 +53,11 @@ export function Stepper({ value, onChange, min = 0, max, step = 1 }: StepperProp
     onChange(next);
   };
 
-  const renderButton = (symbol: string, direction: number, label: string) => (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      onPress={() => change(direction)}
-      style={({ pressed }) => [styles.button, { backgroundColor: colors.fill }, pressed && styles.pressed]}
-    >
-      <Text style={[styles.symbol, { color: colors.text }]}>{symbol}</Text>
-    </Pressable>
-  );
-
   return (
     <View style={styles.container}>
-      {renderButton('\u2212', -1, 'Disminuir')}
+      <StepperButton symbol={'\u2212'} label="Disminuir" onPress={() => change(-1)} />
       <Text style={[styles.value, { color: colors.text }]}>{value}</Text>
-      {renderButton('+', 1, 'Aumentar')}
+      <StepperButton symbol="+" label="Aumentar" onPress={() => change(1)} />
     </View>
   );
 }
@@ -50,6 +72,11 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
+    overflow: 'hidden',
+  },
+  hit: {
+    width: 30,
+    height: 30,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -17,6 +17,7 @@
 **Detalle de compra diferida** (`movements/deferred/[id]`)
 - `TopBar` "Compra diferida" con atrás.
 - Bloque centrado: nombre 16 `muted`, monto 34/700 (`text`), pie "{tarjeta} · {n} cuotas" (14 `muted`).
+- Bloque "Descripción" (tarjeta `surface`, etiqueta en mayúsculas) debajo del encabezado, solo si `description` existe.
 - `Card` con fila "Cuotas pagadas" a la izquierda y "{pagadas} de {total}" en negrita a la derecha; `ProgressBar` debajo con el porcentaje de cuotas pagadas.
 - SectionHeader "Plan de cuotas" y Group. Cada fila:
   - Icono tile neutro con el número de cuota (14/700).

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { router, type Href } from 'expo-router';
@@ -36,6 +37,40 @@ const ACTIONS: QuickAction[] = [
   { label: 'Lista', icon: ShoppingCart, href: '/shopping/new' },
 ];
 
+interface ActionButtonProps {
+  action: QuickAction;
+  onPress: () => void;
+}
+
+function ActionButton({ action, onPress }: ActionButtonProps) {
+  const colors = useThemeColors();
+  const [pressed, setPressed] = useState(false);
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={action.label}
+      onPress={onPress}
+      onPressIn={() => setPressed(true)}
+      onPressOut={() => setPressed(false)}
+      style={styles.cell}
+    >
+      <View
+        style={[
+          styles.option,
+          { backgroundColor: colors.surface2 },
+          pressed && styles.pressed,
+        ]}
+      >
+        <IconTile icon={action.icon} size={36} />
+        <Text numberOfLines={1} style={[styles.label, { color: colors.text }]}>
+          {action.label}
+        </Text>
+      </View>
+    </Pressable>
+  );
+}
+
 /**
  * Global "Nuevo" quick-actions sheet (F02). Lists the eight registration entry
  * points in the prototype order; selecting one closes the sheet and navigates.
@@ -43,29 +78,19 @@ const ACTIONS: QuickAction[] = [
 export function QuickActionsSheet() {
   const visible = useUiStore((state) => state.quickActionsOpen);
   const close = useUiStore((state) => state.closeQuickActions);
-  const colors = useThemeColors();
 
   return (
     <Sheet visible={visible} onClose={close} title="Nuevo" subtitle="¿Qué quieres registrar?">
       <View style={styles.grid}>
         {ACTIONS.map((action) => (
-          <Pressable
+          <ActionButton
             key={action.label}
-            accessibilityRole="button"
-            accessibilityLabel={action.label}
+            action={action}
             onPress={() => {
               close();
               router.push(action.href);
             }}
-            style={({ pressed }) => [
-              styles.option,
-              { backgroundColor: colors.surface2 },
-              pressed && styles.pressed,
-            ]}
-          >
-            <IconTile icon={action.icon} size={36} />
-            <Text style={[styles.label, { color: colors.text }]}>{action.label}</Text>
-          </Pressable>
+          />
         ))}
       </View>
     </Sheet>
@@ -76,22 +101,25 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    justifyContent: 'space-between',
+    rowGap: 10,
+  },
+  cell: {
+    width: '48.5%',
   },
   option: {
-    width: '48%',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
     padding: 14,
     borderRadius: radii.banner,
   },
   label: {
     ...typography.subhead,
     fontWeight: '500',
-    flexShrink: 1,
+    flex: 1,
+    marginLeft: 10,
   },
   pressed: {
-    opacity: 0.9,
+    opacity: 0.85,
   },
 });

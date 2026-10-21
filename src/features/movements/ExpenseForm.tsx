@@ -8,7 +8,6 @@ import type { Account } from '@/api/accounts';
 import type { Expense } from '@/api/expenses';
 import {
   AmountInput,
-  Button,
   Field,
   Group,
   Note,
@@ -19,7 +18,7 @@ import {
   TextButton,
   TopBar,
   type SegmentedOption,
-  type SelectOption,
+  type SelectOption
 } from '@/components/ui';
 import { typography, useThemeColors } from '@/theme';
 
@@ -193,12 +192,6 @@ export function ExpenseForm({
           />
         </Group>
 
-        <Button
-          title="Guardar egreso"
-          loading={formState.isSubmitting}
-          onPress={submit}
-          style={styles.button}
-        />
       </ScreenContainer>
     </View>
   );

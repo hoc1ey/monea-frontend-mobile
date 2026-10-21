@@ -5,6 +5,15 @@ export { Banner, type BannerProps } from './Banner';
 export { Button, type ButtonProps, type ButtonVariant } from './Button';
 export { Checkbox, type CheckboxProps } from './Checkbox';
 export { Chips, type ChipsProps, type ChipOption } from './Chips';
+export {
+  ConfirmDialog,
+  ConfirmProvider,
+  useAlert,
+  useConfirm,
+  type ConfirmDialogOptions,
+  type ConfirmDialogProps,
+  type ConfirmProviderProps,
+} from './ConfirmDialog';
 export { CreditCardVisual, type CreditCardVisualProps } from './CreditCardVisual';
 export { EmptyState, type EmptyStateProps } from './EmptyState';
 export { Field, type FieldProps } from './Field';
@@ -29,4 +38,5 @@ export { Tag, type TagProps } from './Tag';
 export { TextButton, type TextButtonProps } from './TextButton';
 export { ToastProvider, useToast, type ToastProviderProps } from './Toast';
 export { TopBar, type TopBarProps } from './TopBar';
+export { WheelSelect, type WheelSelectProps } from './WheelSelect';
 export type { IconComponent, TagVariant } from './types';

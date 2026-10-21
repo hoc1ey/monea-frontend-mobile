@@ -1,6 +1,6 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text, type StyleProp, type ViewStyle } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { ICON_STROKE, elevation, radii, typography, useThemeColors } from '@/theme';
+import { ICON_STROKE, radii, useThemeColors } from '@/theme';
 
 import type { IconComponent } from './types';
 
@@ -10,7 +10,7 @@ export interface ButtonProps {
   title: string;
   onPress?: () => void;
   variant?: ButtonVariant;
-  /** Compact button (prototype `.btn.sm`). */
+  /** Equivale a `.btn.sm` del prototipo: auto ancho, padding 9 14, radio 12. */
   small?: boolean;
   disabled?: boolean;
   loading?: boolean;
@@ -32,75 +32,97 @@ export function Button({
 }: ButtonProps) {
   const colors = useThemeColors();
 
-  const backgroundColor =
-    variant === 'primary' ? colors.accent : variant === 'ghost' ? colors.fill : 'transparent';
-  const textColor =
-    variant === 'primary' ? colors.onAccent : variant === 'danger' ? colors.negative : colors.accentInk;
-  const shadow =
-    variant === 'primary' && !small
-      ? {
-          shadowColor: colors.accent,
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.3,
-          shadowRadius: 10,
-          elevation: elevation.button,
-        }
-      : null;
+  const isPrimary = variant === 'primary';
+  const backgroundColor = isPrimary ? colors.accent : variant === 'ghost' ? colors.fill : 'transparent';
+  const foregroundColor = isPrimary
+    ? colors.onAccent
+    : variant === 'danger'
+      ? colors.negative
+      : colors.accentInk;
+
+  const inactive = disabled || loading;
+  const radius = small ? 12 : radii.button;
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? title}
-      disabled={disabled || loading}
+      accessibilityState={{ disabled: inactive, busy: loading }}
+      disabled={inactive}
       onPress={onPress}
       style={({ pressed }) => [
-        small ? styles.small : styles.base,
-        { backgroundColor },
-        shadow,
-        (disabled || loading) && styles.disabled,
-        pressed && styles.pressed,
+        small ? styles.small : styles.block,
+        pressed && !inactive ? styles.pressed : null,
+        disabled && !loading ? styles.disabled : null,
         style,
       ]}
     >
-      {loading ? (
-        <ActivityIndicator color={textColor} />
-      ) : (
-        <>
-          {LeftIcon ? <LeftIcon size={small ? 16 : 20} color={textColor} strokeWidth={ICON_STROKE} /> : null}
-          <Text style={[small ? styles.smallText : styles.text, { color: textColor }]}>{title}</Text>
-        </>
-      )}
+      {/* Fondo: capa absoluta para que el color se pinte siempre */}
+      <View
+        pointerEvents="none"
+        style={[StyleSheet.absoluteFill, { backgroundColor, borderRadius: radius }]}
+      />
+
+      {/* Contenido: el padding y la altura viven aquí, no en el Pressable */}
+      <View style={[styles.inner, small ? styles.innerSmall : styles.innerBlock]}>
+        {loading ? (
+          <ActivityIndicator color={foregroundColor} />
+        ) : (
+          <>
+            {LeftIcon ? (
+              <LeftIcon size={small ? 16 : 20} color={foregroundColor} strokeWidth={ICON_STROKE} />
+            ) : null}
+            <Text style={[small ? styles.smallText : styles.text, { color: foregroundColor }]}>{title}</Text>
+          </>
+        )}
+      </View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  base: {
-    alignSelf: 'stretch',
+  // .btn: ancho 100 %, radio 16, mínimo 52
+  block: {
+    width: '100%',
+    minHeight: 52,
+    borderRadius: radii.button,
+    overflow: 'hidden',
+  },
+  // .btn.sm: auto ancho, radio 12
+  small: {
+    alignSelf: 'flex-start',
+    minHeight: 36,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  inner: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
+  },
+  // padding 16 vertical y horizontal
+  innerBlock: {
     minHeight: 52,
     paddingVertical: 16,
-    borderRadius: radii.button,
+    paddingHorizontal: 16,
   },
-  small: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    alignSelf: 'flex-start',
+  // padding 9 14
+  innerSmall: {
     paddingVertical: 9,
     paddingHorizontal: 14,
-    borderRadius: 12,
   },
   text: {
-    ...typography.barTitle,
+    fontSize: 17,
+    lineHeight: 22,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   smallText: {
-    ...typography.kicker,
+    fontSize: 14,
+    lineHeight: 18,
     fontWeight: '600',
+    textAlign: 'center',
   },
   pressed: {
     transform: [{ scale: 0.98 }],

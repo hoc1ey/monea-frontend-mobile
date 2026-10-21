@@ -42,8 +42,8 @@
   - "Persona" (máx. 80) — placeholder "Nombre".
   - "Monto" (decimal > 0).
   - "Cuotas" (stepper, mínimo 1, valor 1).
-  - "Descripción" (máx. 255, opcional) — **solo en cobros y préstamos**.
   - Préstamos: "Cuenta" (select) — la cuenta de la que sale el dinero (F12).
+- SectionHeader "Descripción opcional": Group con `textarea` (máx. 255, placeholder "Notas") — **solo en cobros y préstamos**.
 - SectionHeader "Recordatorio": Group con "Activar recordatorio" (switch, default on) y los campos según cuotas (regla abajo).
 - Botón primario "Guardar".
 

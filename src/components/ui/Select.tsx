@@ -1,12 +1,9 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Modal, Pressable, Text, View } from 'react-native';
 
-import { Check } from 'lucide-react-native';
+import { typography, useThemeColors } from '@/theme';
 
-import { ICON_STROKE, typography, useThemeColors } from '@/theme';
-
-import { Separator } from './Separator';
-import { Sheet } from './Sheet';
+import { SelectTrigger } from './SelectTrigger';
 
 export interface SelectOption<T extends string> {
   value: T;
@@ -22,10 +19,6 @@ export interface SelectProps<T extends string> {
   showSeparator?: boolean;
 }
 
-/**
- * Field that opens a bottom sheet with the options (prototype `.field select`).
- * The selected value is shown in `accent-ink` with no arrow icon.
- */
 function SelectBase<T extends string>({
   label,
   value,
@@ -36,82 +29,61 @@ function SelectBase<T extends string>({
 }: SelectProps<T>) {
   const colors = useThemeColors();
   const [open, setOpen] = useState(false);
-
-  const selected = options.find((option) => option.value === value);
+  const selected = options.find((o) => o.value === value);
 
   return (
-    <>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={label}
+    <View>
+      <SelectTrigger
+        label={label}
+        selected={selected?.label}
+        placeholder={placeholder}
+        showSeparator={showSeparator}
         onPress={() => setOpen(true)}
-        style={({ pressed }) => [styles.field, pressed && { backgroundColor: colors.fill }]}
-      >
-        {showSeparator ? <Separator /> : null}
-        <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
-        <Text
-          numberOfLines={1}
-          style={[styles.value, { color: selected ? colors.accentInk : colors.muted }]}
-        >
-          {selected ? selected.label : placeholder}
-        </Text>
-      </Pressable>
-      <Sheet visible={open} onClose={() => setOpen(false)} title={label}>
-        {options.map((option, index) => {
-          const active = option.value === value;
+      />
 
-          return (
+      <Modal
+        visible={open}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setOpen(false)}
+      >
+        <Pressable
+          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' }}
+          onPress={() => setOpen(false)}
+        />
+        <View style={{ backgroundColor: colors.surface, padding: 16, paddingBottom: 32 }}>
+          <Text
+            style={[typography.body, { fontWeight: '700', marginBottom: 8, color: colors.text }]}
+          >
+            {label}
+          </Text>
+          {options.map((option, index) => (
             <Pressable
               key={option.value}
-              accessibilityRole="button"
-              accessibilityState={{ selected: active }}
               onPress={() => {
                 onChange(option.value);
                 setOpen(false);
               }}
-              style={[styles.option, index > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.separator }]}
+              style={[
+                { minHeight: 48, justifyContent: 'center' },
+                index > 0 && {
+                  borderTopWidth: 0.5,
+                  borderTopColor: colors.separator,
+                },
+              ]}
             >
-              <Text style={[styles.optionLabel, { color: colors.text }]}>{option.label}</Text>
-              {active ? <Check size={18} color={colors.accentInk} strokeWidth={ICON_STROKE} /> : null}
+              <Text style={[typography.body, { color: colors.text }]}>
+                {option.label}
+                {option.value === value ? (
+                  <Text style={{ color: colors.accentInk }}>{'  ✓'}</Text>
+                ) : null}
+              </Text>
             </Pressable>
-          );
-        })}
-      </Sheet>
-    </>
+          ))}
+        </View>
+      </Modal>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  field: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    minHeight: 52,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-  },
-  label: {
-    ...typography.body,
-  },
-  value: {
-    ...typography.body,
-    fontWeight: '500',
-    flex: 1,
-    minWidth: 0,
-    textAlign: 'right',
-  },
-  option: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    minHeight: 56,
-    paddingVertical: 12,
-  },
-  optionLabel: {
-    ...typography.body,
-    flex: 1,
-  },
-});
 
 export const Select = Object.assign(SelectBase, { isGroupItem: true as const });

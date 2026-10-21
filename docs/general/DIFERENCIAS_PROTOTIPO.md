@@ -21,6 +21,10 @@ Estas decisiones adaptan el prototipo a lo que realmente soporta el backend. La 
 | 15 | Registro: contraseña sin confirmación | Campo "Repetir contraseña" con validación de coincidencia | Así lo pediste |
 | 16 | Zona horaria: identificador IANA y sufijo "(dispositivo)" | Etiquetas amigables (ciudad y GMT); la del dispositivo se preselecciona sin texto extra | Así lo pediste |
 | 17 | Botón "Ver egresos recurrentes" siempre al final de la lista | Visible solo con el filtro "Egresos" activo | Ajuste solicitado en la revisión |
+| 18 | Movimientos sin accesos de registro por filtro; "Ver egresos recurrentes" al final de la lista | Botones ghost arriba del listado según el filtro activo ("Nuevo ingreso", "Nuevo egreso", "Nuevo diferido", "Nuevo recurrente") y "Ver egresos recurrentes" también arriba | Ajuste solicitado en la revisión |
+| 19 | Detalle de movimiento sin la descripción | Bloque "Descripción" visible cuando el movimiento tiene `description` | Ajuste solicitado en la revisión |
+| 20 | Descripción como campo dentro del grupo en cobros y préstamos | Apartado "Descripción opcional" con `textarea` (como en cuentas); deudas sigue sin descripción | Ajuste solicitado en la revisión |
+| 21 | Cuentas con 8 tonos rosas (tarjetas con 6) | 6 colores: `#fe36c1`, `#ac086b`, `#e0068c`, `#2563eb` (azul), `#7c3aed` (violeta) y `#059669` (esmeralda) | Ajuste solicitado en la revisión: los tonos se veían casi iguales |
 
 ---
 

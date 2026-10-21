@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { router } from 'expo-router';
 import { ArrowDown, ArrowUp, Landmark, WifiOff } from 'lucide-react-native';
@@ -18,6 +18,7 @@ import {
   Skeleton,
   TextButton,
   TopBar,
+  useConfirm,
   useToast,
   type IconComponent,
 } from '@/components/ui';
@@ -103,6 +104,7 @@ export interface ObligationDetailProps {
 export function ObligationDetail({ kind, id }: ObligationDetailProps) {
   const colors = useThemeColors();
   const toast = useToast();
+  const confirm = useConfirm();
   const config = OBLIGATION_KIND_CONFIG[kind];
   const timezone = useAuthStore((state) => state.user?.timezone) ?? detectTimezone();
 
@@ -161,15 +163,16 @@ export function ObligationDetail({ kind, id }: ObligationDetailProps) {
     }
   };
 
-  const confirmDelete = () => {
-    Alert.alert(
-      'Eliminar registro',
-      'Se eliminará el registro. Los movimientos ya generados se conservan.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Eliminar', style: 'destructive', onPress: () => void handleDelete() },
-      ],
-    );
+  const confirmDelete = async () => {
+    const confirmed = await confirm({
+      title: 'Eliminar registro',
+      message: 'Se eliminará el registro. Los movimientos ya generados se conservan.',
+      confirmLabel: 'Eliminar',
+      destructive: true,
+    });
+    if (confirmed) {
+      await handleDelete();
+    }
   };
 
   const renderContent = () => {
@@ -238,7 +241,7 @@ export function ObligationDetail({ kind, id }: ObligationDetailProps) {
           title="Eliminar registro"
           variant="danger"
           loading={deleteObligation.isPending}
-          onPress={confirmDelete}
+          onPress={() => void confirmDelete()}
           style={styles.deleteButton}
         />
       </>

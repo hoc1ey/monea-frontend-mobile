@@ -8,7 +8,8 @@ import { z } from 'zod';
 
 import { getErrorMessage } from '@/api/client';
 import { signUp } from '@/auth/session';
-import { Button, Field, Group, Note, ScreenContainer, Select, TopBar } from '@/components/ui';
+import { Button, Field, Group, ScreenContainer, TopBar } from '@/components/ui';
+import { Select } from '@/components/ui/Select';
 import { shouldShowNotificationOnboarding } from '@/lib/notifications';
 import { buildTimezoneOptions, detectTimezone, TIMEZONE_OPTIONS } from '@/lib/timezone';
 import { typography, useThemeColors } from '@/theme';
@@ -82,7 +83,7 @@ export default function RegisterScreen() {
           <Group>
             <Field
               label="Nombre"
-              placeholder="Ej. Juan"
+              placeholder="Jhon"
               value={name.field.value}
               onChangeText={name.field.onChange}
               onBlur={name.field.onBlur}
@@ -90,7 +91,7 @@ export default function RegisterScreen() {
             />
             <Field
               label="Correo"
-              placeholder="Ej. juan@correo.com"
+              placeholder="jhon@example.com"
               autoCapitalize="none"
               autoComplete="email"
               keyboardType="email-address"
@@ -101,7 +102,7 @@ export default function RegisterScreen() {
             />
             <Field
               label="Contraseña"
-              placeholder="Ej. Monea123*"
+              placeholder="**********"
               autoCapitalize="none"
               secureTextEntry
               value={password.field.value}
@@ -111,7 +112,7 @@ export default function RegisterScreen() {
             />
             <Field
               label="Repetir contraseña"
-              placeholder="Ej. Monea123*"
+              placeholder="**********"
               autoCapitalize="none"
               secureTextEntry
               value={confirmPassword.field.value}
@@ -119,24 +120,25 @@ export default function RegisterScreen() {
               onBlur={confirmPassword.field.onBlur}
               error={confirmPassword.fieldState.error?.message}
             />
+
             <Select
-              label="Zona horaria"
+              label="Zona horariaaa"
               options={timezoneOptions}
               value={timezone.field.value}
               onChange={timezone.field.onChange}
             />
           </Group>
 
-          <Note>Mínimo 8 caracteres, con mayúscula, minúscula y número.</Note>
 
           {formError ? <Text style={[styles.formError, { color: colors.negative }]}>{formError}</Text> : null}
 
-          <Button
-            title="Crear cuenta"
-            loading={formState.isSubmitting}
-            onPress={onSubmit}
-            style={styles.button}
-          />
+          <View style={styles.buttonMargin}>
+            <Button
+              title="Crear cuenta"
+              loading={formState.isSubmitting}
+              onPress={onSubmit}
+            />
+          </View>
         </View>
       </ScreenContainer>
     </View>
@@ -154,7 +156,7 @@ const styles = StyleSheet.create({
     ...typography.footnote,
     marginTop: 12,
   },
-  button: {
+  buttonMargin: {
     marginTop: 16,
   },
 });
