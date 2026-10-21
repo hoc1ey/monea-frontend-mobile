@@ -8,7 +8,6 @@ import type { Account } from '@/api/accounts';
 import type { CreditCard } from '@/api/creditCards';
 import {
   AmountInput,
-  Button,
   Field,
   Group,
   ScreenContainer,
@@ -18,7 +17,7 @@ import {
   Stepper,
   TextButton,
   TopBar,
-  type SelectOption,
+  type SelectOption
 } from '@/components/ui';
 import { DateField } from '@/features/movements/DateField';
 import { KIND_OPTIONS, type ExpenseKind } from '@/features/movements/ExpenseForm';
@@ -178,9 +177,6 @@ export function DeferredExpenseForm({
           />
           <DateField label="Fecha de compra" value={date.field.value} onChange={date.field.onChange} />
         </Group>
-        <Text style={[styles.help, { color: colors.muted }]}>
-          El saldo cambia cuando pagues el periodo de la tarjeta.
-        </Text>
         {selectionError ? (
           <Text style={[styles.error, { color: colors.negative }]}>{selectionError}</Text>
         ) : null}
@@ -197,13 +193,6 @@ export function DeferredExpenseForm({
             style={[styles.textarea, { color: colors.text }]}
           />
         </Group>
-
-        <Button
-          title="Guardar egreso"
-          loading={formState.isSubmitting}
-          onPress={submit}
-          style={styles.button}
-        />
       </ScreenContainer>
     </View>
   );

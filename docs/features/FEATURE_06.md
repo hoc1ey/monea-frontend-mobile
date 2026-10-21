@@ -27,7 +27,7 @@
   - "Alias" (máx. 60) — placeholder "Ej. Ahorros".
   - "Entidad" (máx. 80) — placeholder "Ej. Banco".
   - "Balance inicial" (decimal, máx. 2 decimales) — placeholder "$0.00".
-- SectionHeader "Color": Group con fila de 8 colores circulares de 30 dp, separación 12, padding 12 14. Paleta: `#fe36c1 · #ff9fe6 · #ac086b · #ef13a1 · #ff64d4 · #8f0c5b · #e0068c · #580034`. Seleccionado: anillo 2 `surface` + 4 `text`.
+- SectionHeader "Color": Group con fila de 6 colores circulares de 30 dp, separación 12, padding 12 14. Paleta: `#fe36c1 · #ac086b · #e0068c · #2563eb · #7c3aed · #059669`. Seleccionado: anillo 2 `surface` + 4 `text`.
 - SectionHeader "Descripción opcional": Group con `textarea` (min 90 de alto, padding 14, 16). Placeholder "Ej. Cuenta para gastos del mes".
 - Botón primario "Guardar cuenta" (margen superior 16).
 

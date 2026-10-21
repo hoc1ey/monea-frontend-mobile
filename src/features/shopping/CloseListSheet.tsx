@@ -3,7 +3,7 @@ import { StyleSheet, Text } from 'react-native';
 
 import type { Account } from '@/api/accounts';
 import type { CloseShoppingListInput, ShoppingListItem } from '@/api/shoppingLists';
-import { AmountInput, Button, Group, Note, Select, Sheet, type SelectOption } from '@/components/ui';
+import { AmountInput, Button, Group, Select, Sheet, type SelectOption } from '@/components/ui';
 import { formatMoney, roundMoney } from '@/lib/format';
 import { typography, useThemeColors } from '@/theme';
 
@@ -87,7 +87,7 @@ export function CloseListSheet({
       title="Cerrar lista"
       subtitle="Se registrará un egreso por el total de la compra"
     >
-      <AmountInput value={effectiveTotal.toFixed(2)} onChangeText={() => {}} editable={false} />
+      <AmountInput value={effectiveTotal.toFixed(2)} onChangeText={() => { }} editable={false} />
       <Group>
         <Select
           label="Cuenta de pago"
@@ -97,8 +97,10 @@ export function CloseListSheet({
           onChange={setAccountId}
         />
       </Group>
-      <Note>Los productos no comprados pasan a una nueva lista abierta.</Note>
+
       {error ? <Text style={[styles.error, { color: colors.negative }]}>{error}</Text> : null}
+
+
       <Button
         title="Cerrar y registrar egreso"
         loading={isClosing}
@@ -106,6 +108,7 @@ export function CloseListSheet({
         onPress={confirm}
         style={styles.button}
       />
+
     </Sheet>
   );
 }

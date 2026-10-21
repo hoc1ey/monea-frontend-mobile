@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Alert, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowDown, CreditCard, Repeat, ShoppingCart, Wallet, WifiOff } from 'lucide-react-native';
@@ -19,6 +19,7 @@ import {
   Tag,
   TextButton,
   TopBar,
+  useConfirm,
   useToast,
   type IconComponent,
 } from '@/components/ui';
@@ -90,6 +91,7 @@ function DetailSkeleton() {
 export default function AccountDetailScreen() {
   const colors = useThemeColors();
   const toast = useToast();
+  const confirm = useConfirm();
   const { id } = useLocalSearchParams<{ id: string }>();
   const detail = useAccountDetail(id);
   const deleteAccount = useDeleteAccount(id);
@@ -124,11 +126,16 @@ export default function AccountDetailScreen() {
     }
   };
 
-  const confirmDelete = () => {
-    Alert.alert('Eliminar cuenta', 'Se eliminará la cuenta. Tus movimientos se conservan.', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Eliminar', style: 'destructive', onPress: () => void handleDelete() },
-    ]);
+  const confirmDelete = async () => {
+    const confirmed = await confirm({
+      title: 'Eliminar cuenta',
+      message: 'Se eliminará la cuenta. Tus movimientos se conservan.',
+      confirmLabel: 'Eliminar',
+      destructive: true,
+    });
+    if (confirmed) {
+      await handleDelete();
+    }
   };
 
   const account = detail.account;
@@ -178,7 +185,7 @@ export default function AccountDetailScreen() {
             <HeroSm
               label={account.financialInstitution}
               value={formatMoney(account.currentBalance)}
-              gradient={[account.color, colors.heroB]}
+              gradient={[account.color, `${account.color}A6`]}
               style={styles.hero}
             />
 
@@ -207,7 +214,7 @@ export default function AccountDetailScreen() {
               title="Eliminar cuenta"
               variant="danger"
               loading={deleteAccount.isPending}
-              onPress={confirmDelete}
+              onPress={() => void confirmDelete()}
               style={styles.deleteButton}
             />
           </>

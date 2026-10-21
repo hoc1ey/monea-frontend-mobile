@@ -12,7 +12,7 @@ const googleServicesFile = './google-services.json';
 const hasGoogleServicesFile = existsSync(googleServicesFile);
 
 const config: ExpoConfig = {
-  name: 'MONEA',
+  name: 'Monea',
   slug: 'monea',
   scheme: 'monea',
   version: '1.0.0',

@@ -1,16 +1,8 @@
+import { useMemo } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { router } from 'expo-router';
-import {
-  ArrowDown,
-  ArrowUp,
-  Bell,
-  CreditCard,
-  Landmark,
-  Repeat,
-  Wallet,
-  WifiOff,
-} from 'lucide-react-native';
+import { Bell, CreditCard, Repeat, Wallet, WifiOff } from 'lucide-react-native';
 
 import { Fab } from '@/components/navigation/Fab';
 import {
@@ -25,15 +17,14 @@ import {
   ScreenContainer,
   SectionHeader,
   Skeleton,
-  type IconComponent,
+  Tag,
 } from '@/components/ui';
 import {
   useHomeDashboard,
   type HomeAttention,
   type HomeCard,
-  type HomeWeekInstallment,
-  type ObligationKind,
 } from '@/features/home/useHomeDashboard';
+import { movementIcon, type Movement } from '@/features/movements/movements';
 import { formatDate, formatMoney } from '@/lib/format';
 import { useUiStore } from '@/stores/ui';
 import { ICON_STROKE, radii, typography, useThemeColors } from '@/theme';
@@ -42,12 +33,6 @@ function todayLabel(): string {
   const label = formatDate(new Date(), "EEEE, d 'de' MMMM");
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
-
-const WEEK_ICON: Record<ObligationKind, IconComponent> = {
-  cobros: ArrowDown,
-  prestamos: Landmark,
-  deudas: ArrowUp,
-};
 
 /** 36 dp circular `fill` icon-button (prototype `.ib`), used for the bell. */
 function BellButton({ onPress }: { onPress: () => void }) {
@@ -152,36 +137,60 @@ function CardsGroup({ cards }: { cards: HomeCard[] }) {
   );
 }
 
-function WeekRows({ items }: { items: HomeWeekInstallment[] }) {
+function WeekRows({
+  items,
+  accountNames,
+}: {
+  items: Movement[];
+  accountNames: Map<string, string>;
+}) {
   const colors = useThemeColors();
 
   return (
     <Group>
-      {items.map((item) => (
-        <Row
-          key={item.key}
-          icon={WEEK_ICON[item.kind]}
-          title={item.title}
-          subtitle={item.subtitle}
-          onPress={() =>
-            router.push({
-              pathname: '/obligations/[tab]/[id]',
-              params: { tab: item.kind, id: item.parentId },
-            })
+      {items.map((movement) => {
+        const income = movement.kind === 'income';
+
+        const open = () => {
+          if (movement.pending) {
+            router.push('/recurring/define-amount');
+            return;
           }
-          right={
-            <Text
-              style={[
-                styles.weekAmount,
-                { color: item.tone === 'positive' ? colors.positive : colors.negative },
-              ]}
-            >
-              {item.tone === 'positive' ? '+' : '−'}
-              {formatMoney(item.amount)}
-            </Text>
+          if (movement.deferred) {
+            router.push({ pathname: '/movements/deferred/[id]', params: { id: movement.id } });
+            return;
           }
-        />
-      ))}
+          router.push({
+            pathname: '/movements/[id]',
+            params: { id: movement.id, kind: movement.kind },
+          });
+        };
+
+        return (
+          <Row
+            key={movement.id}
+            icon={movementIcon(movement)}
+            title={movement.name}
+            subtitle={`${accountNames.get(movement.accountId) ?? '—'} · ${movement.origin}`}
+            onPress={open}
+            right={
+              movement.pending ? (
+                <Tag label="Definir monto" variant="acc" />
+              ) : (
+                <Text
+                  style={[
+                    styles.weekAmount,
+                    { color: income ? colors.positive : colors.negative },
+                  ]}
+                >
+                  {income ? '+' : '−'}
+                  {formatMoney(movement.amount)}
+                </Text>
+              )
+            }
+          />
+        );
+      })}
     </Group>
   );
 }
@@ -190,6 +199,11 @@ export default function HomeScreen() {
   const colors = useThemeColors();
   const openQuickActions = useUiStore((state) => state.openQuickActions);
   const dashboard = useHomeDashboard();
+
+  const accountNames = useMemo(
+    () => new Map(dashboard.accounts.map((account) => [account.id, account.name])),
+    [dashboard.accounts],
+  );
 
   const hasAccounts = dashboard.accounts.length > 0;
   const showEmpty = !dashboard.isError && !hasAccounts;
@@ -295,7 +309,7 @@ export default function HomeScreen() {
                 {dashboard.week.length > 0 ? (
                   <>
                     <SectionHeader title="Esta semana" />
-                    <WeekRows items={dashboard.week} />
+                    <WeekRows items={dashboard.week} accountNames={accountNames} />
                   </>
                 ) : null}
               </>

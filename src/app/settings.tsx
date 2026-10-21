@@ -109,7 +109,7 @@ export default function SettingsScreen() {
           </>
         ) : null}
 
-        <Text style={[styles.hint, { color: colors.muted }]}>MONEA · v{APP_VERSION}</Text>
+        <Text style={[styles.hint, { color: colors.muted }]}>Monea · v{APP_VERSION}</Text>
       </ScreenContainer>
 
       <Sheet

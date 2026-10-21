@@ -129,12 +129,13 @@ export default function AccountsScreen() {
         ) : (
           <>
             <AccountRows accounts={list} />
-            <Button
-              title="Nueva cuenta"
-              variant="ghost"
-              onPress={() => router.push('/accounts/new')}
-              style={styles.newButton}
-            />
+            <View style={styles.newButton}>
+              <Button
+                title="Nueva cuenta"
+                variant="ghost"
+                onPress={() => router.push('/accounts/new')}
+              />
+            </View>
           </>
         )}
       </ScreenContainer>

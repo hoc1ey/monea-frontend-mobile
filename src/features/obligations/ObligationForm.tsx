@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useController, useForm } from 'react-hook-form';
@@ -7,7 +7,6 @@ import { z } from 'zod';
 
 import type { Account } from '@/api/accounts';
 import {
-  Button,
   Field,
   Group,
   LargeHeader,
@@ -21,7 +20,7 @@ import {
   TextButton,
   TopBar,
   type SegmentedOption,
-  type SelectOption,
+  type SelectOption
 } from '@/components/ui';
 import { DateField } from '@/features/movements/DateField';
 import { formatMoney } from '@/lib/format';
@@ -229,15 +228,6 @@ export function ObligationForm({
               )
             }
           />
-          {config.hasDescription ? (
-            <Field
-              label="Descripción"
-              placeholder="Opcional"
-              maxLength={255}
-              value={description.field.value}
-              onChangeText={description.field.onChange}
-            />
-          ) : null}
         </Group>
 
         {locked ? <Note>Bloqueado porque ya hay cuotas pagadas.</Note> : null}
@@ -268,6 +258,29 @@ export function ObligationForm({
             {!accountLocked && accountError ? (
               <Text style={[styles.error, { color: colors.negative }]}>{accountError}</Text>
             ) : null}
+          </>
+        ) : null}
+
+        {config.hasDescription ? (
+          <>
+            <SectionHeader title="Descripción opcional" />
+            <Group>
+              <TextInput
+                multiline
+                maxLength={255}
+                placeholder="Notas"
+                placeholderTextColor={colors.muted}
+                value={description.field.value}
+                onChangeText={description.field.onChange}
+                onBlur={description.field.onBlur}
+                style={[styles.textarea, { color: colors.text }]}
+              />
+              {description.fieldState.error ? (
+                <Text style={[styles.error, { color: colors.negative }]}>
+                  {description.fieldState.error.message}
+                </Text>
+              ) : null}
+            </Group>
           </>
         ) : null}
 
@@ -364,13 +377,6 @@ export function ObligationForm({
             </>
           ) : null}
         </Group>
-
-        <Button
-          title="Guardar"
-          loading={formState.isSubmitting}
-          onPress={submit}
-          style={styles.button}
-        />
       </ScreenContainer>
     </View>
   );
@@ -400,6 +406,12 @@ const styles = StyleSheet.create({
     minWidth: 0,
     textAlign: 'right',
     fontVariant: ['tabular-nums'],
+  },
+  textarea: {
+    ...typography.body,
+    minHeight: 90,
+    padding: 14,
+    textAlignVertical: 'top',
   },
   button: {
     marginTop: 16,

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Alert, RefreshControl, StyleSheet, Text, TextInput, View } from 'react-native';
+import { RefreshControl, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { router } from 'expo-router';
 import { ShoppingCart, WifiOff } from 'lucide-react-native';
@@ -21,22 +21,23 @@ import {
   Switch,
   TextButton,
   TopBar,
+  useConfirm,
   useToast,
 } from '@/components/ui';
 import { useAccounts } from '@/features/accounts/useAccounts';
 import { formatDate, formatMoney } from '@/lib/format';
 import { radii, typography, useThemeColors } from '@/theme';
 
-import { ItemCard } from './ItemCard';
 import { CloseListSheet } from './CloseListSheet';
+import { ItemCard } from './ItemCard';
 import { RenameListSheet } from './RenameListSheet';
 import { itemsOf, purchasedCount, sumPurchasedPrices } from './shopping';
 import {
   useAddShoppingListItem,
   useCheckShoppingListItem,
   useCloseShoppingList,
-  useDeleteShoppingListItem,
   useDeleteShoppingList,
+  useDeleteShoppingListItem,
   useRenameShoppingList,
   useUpdateShoppingListItem,
 } from './useShoppingListMutations';
@@ -95,6 +96,7 @@ export interface ShoppingListDetailProps {
 export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
   const colors = useThemeColors();
   const toast = useToast();
+  const confirm = useConfirm();
   const query = useShoppingList(id);
   const accounts = useAccounts();
   const addItem = useAddShoppingListItem(id);
@@ -120,6 +122,15 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
   const accountName =
     (list?.accountId && accounts.data?.find((account) => account.id === list.accountId)?.name) ||
     '—';
+
+  /** Leaves the detail reusing the lists screen on the stack (no duplicate). */
+  const leaveDetail = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace({ pathname: '/shopping/[tab]', params: { tab: 'open' } });
+    }
+  };
 
   const handleAdd = async () => {
     const name = newName.trim();
@@ -162,21 +173,22 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
     }
   };
 
-  const handleDelete = (item: ShoppingListItem) => {
-    Alert.alert('Eliminar producto', `Se quitará «${item.name}» de la lista.`, [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Eliminar',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await deleteItem.mutateAsync(item.id);
-          } catch (error) {
-            toast.show(getErrorMessage(error, 'No se pudo quitar el producto'));
-          }
-        },
-      },
-    ]);
+  const handleDelete = async (item: ShoppingListItem) => {
+    const confirmed = await confirm({
+      title: 'Eliminar producto',
+      message: `Se quitará «${item.name}» de la lista.`,
+      confirmLabel: 'Eliminar',
+      destructive: true,
+    });
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await deleteItem.mutateAsync(item.id);
+    } catch (error) {
+      toast.show(getErrorMessage(error, 'No se pudo quitar el producto'));
+    }
   };
 
   const handleCloseConfirm = async (input: CloseShoppingListInput) => {
@@ -188,7 +200,7 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
         const pending = itemsOf(result.newList).length;
         setTimeout(() => toast.show(`Se creó una lista con ${pending} pendientes`), 2200);
       }
-      router.replace({ pathname: '/shopping/[tab]', params: { tab: 'open' } });
+      leaveDetail();
     } catch (error) {
       toast.show(getErrorMessage(error, 'No se pudo cerrar la lista'));
     }
@@ -204,26 +216,28 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
     }
   };
 
-  const handleDeleteList = () => {
+  const handleDeleteList = async () => {
     if (!list) {
       return;
     }
-    Alert.alert('Eliminar lista', `Se eliminará «${list.name}» y sus productos.`, [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Eliminar',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await deleteList.mutateAsync();
-            toast.show('Lista eliminada');
-            router.replace({ pathname: '/shopping/[tab]', params: { tab: 'open' } });
-          } catch (error) {
-            toast.show(getErrorMessage(error, 'No se pudo eliminar la lista'));
-          }
-        },
-      },
-    ]);
+
+    const confirmed = await confirm({
+      title: 'Eliminar lista',
+      message: `Se eliminará «${list.name}» y sus productos.`,
+      confirmLabel: 'Eliminar',
+      destructive: true,
+    });
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await deleteList.mutateAsync();
+      toast.show('Lista eliminada');
+      leaveDetail();
+    } catch (error) {
+      toast.show(getErrorMessage(error, 'No se pudo eliminar la lista'));
+    }
   };
 
   const renderContent = () => {
@@ -320,7 +334,7 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
               onToggle={() => handleToggle(item.id, !item.isPurchased)}
               onSaveName={(name) => handleSaveName(item.id, name)}
               onSavePrice={(price) => handleSavePrice(item.id, price)}
-              onDelete={() => handleDelete(item)}
+              onDelete={() => void handleDelete(item)}
             />
           ))
         )}
@@ -354,16 +368,21 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
             : 'Escribe el total de la compra. Activa precios individuales para calcularlo.'}
         </Note>
 
-        <Button title="Cerrar lista" onPress={() => setClosing(true)} style={styles.close} />
+        <View style={styles.close}>
+          <Button title="Cerrar lista" onPress={() => setClosing(true)} />
+        </View>
 
-        <Group>
-          <Button
-            title="Eliminar lista"
-            variant="danger"
-            loading={deleteList.isPending}
-            onPress={handleDeleteList}
-          />
-        </Group>
+        <View style={styles.close}>
+          <Group>
+            <Button
+              title="Eliminar lista"
+              variant="danger"
+              loading={deleteList.isPending}
+              onPress={() => void handleDeleteList()}
+            />
+          </Group>
+        </View>
+
       </>
     );
   };

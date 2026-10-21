@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { Children, type ReactNode } from 'react';
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { typography, useThemeColors } from '@/theme';
@@ -11,10 +11,13 @@ export interface NoteProps {
 /** Informational block on `fill` background (prototype `.note`). */
 export function Note({ children, style }: NoteProps) {
   const colors = useThemeColors();
+  const isPlainText = Children.toArray(children).every(
+    (child) => typeof child === 'string' || typeof child === 'number',
+  );
 
   return (
     <View style={[styles.note, { backgroundColor: colors.fill }, style]}>
-      {typeof children === 'string' || typeof children === 'number' ? (
+      {isPlainText ? (
         <Text style={[styles.text, { color: colors.muted }]}>{children}</Text>
       ) : (
         children

@@ -1,8 +1,8 @@
 import { useCallback, useRef } from 'react';
-import { Alert, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { toZonedTime } from 'date-fns-tz';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Repeat, ShoppingCart, WifiOff } from 'lucide-react-native';
 
 import { getErrorMessage, isApiError } from '@/api/client';
@@ -23,6 +23,7 @@ import {
   Tag,
   TextButton,
   TopBar,
+  useConfirm,
   useToast,
 } from '@/components/ui';
 import { useAccounts } from '@/features/accounts/useAccounts';
@@ -65,6 +66,7 @@ function amountLabel(config: RecurringExpenseConfig): string {
 export default function RecurringDetailScreen() {
   const colors = useThemeColors();
   const toast = useToast();
+  const confirm = useConfirm();
   const timezone = useAuthStore((state) => state.user?.timezone) ?? detectTimezone();
   const { id } = useLocalSearchParams<{ id: string }>();
 
@@ -115,11 +117,16 @@ export default function RecurringDetailScreen() {
     }
   };
 
-  const confirmRemove = () => {
-    Alert.alert('Eliminar configuración', 'Los egresos ya generados se conservarán.', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Eliminar', style: 'destructive', onPress: () => void remove() },
-    ]);
+  const confirmRemove = async () => {
+    const confirmed = await confirm({
+      title: 'Eliminar configuración',
+      message: 'Los egresos ya generados se conservarán.',
+      confirmLabel: 'Eliminar',
+      destructive: true,
+    });
+    if (confirmed) {
+      await remove();
+    }
   };
 
   const openExpense = (expense: Expense) => {
@@ -243,15 +250,18 @@ export default function RecurringDetailScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Eliminar configuración"
                 disabled={deleteConfig.isPending}
-                onPress={confirmRemove}
-                style={({ pressed }) => [
-                  styles.deleteRow,
-                  (pressed || deleteConfig.isPending) && { backgroundColor: colors.fill },
-                ]}
+                onPress={() => void confirmRemove()}
               >
-                <Text style={[styles.deleteText, { color: colors.negative }]}>
-                  {deleteConfig.isPending ? 'Eliminando…' : 'Eliminar configuración'}
-                </Text>
+                <View
+                  style={[
+                    styles.deleteRow,
+                    deleteConfig.isPending && { backgroundColor: colors.fill },
+                  ]}
+                >
+                  <Text style={[styles.deleteText, { color: colors.negative }]}>
+                    {deleteConfig.isPending ? 'Eliminando…' : 'Eliminar configuración'}
+                  </Text>
+                </View>
               </Pressable>
             </Group>
 
@@ -290,9 +300,10 @@ const styles = StyleSheet.create({
     marginTop: 18,
   },
   deleteRow: {
-    minHeight: 56,
+    minHeight: 50,
     justifyContent: 'center',
-    paddingHorizontal: 14,
+    paddingHorizontal: 20,
+    paddingVertical: 6,
   },
   deleteText: {
     ...typography.body,

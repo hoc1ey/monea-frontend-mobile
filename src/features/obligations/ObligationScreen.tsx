@@ -20,6 +20,7 @@ import {
 import { formatMoney } from '@/lib/format';
 import { radii, useThemeColors } from '@/theme';
 
+import { ObligationRow } from './ObligationRow';
 import {
   OBLIGATION_KIND_CONFIG,
   OBLIGATION_TABS,
@@ -27,7 +28,6 @@ import {
   toObligationView,
   type ObligationKind,
 } from './obligations';
-import { ObligationRow } from './ObligationRow';
 import { useObligations } from './useObligations';
 
 const KIND_ICON: Record<ObligationKind, IconComponent> = {
@@ -50,21 +50,19 @@ function ListSkeleton() {
 
 export interface ObligationScreenProps {
   tab: ObligationKind;
+  onChangeTab: (tab: ObligationKind) => void;
 }
 
 /**
  * Obligations hub: a 3-way segment (collections / loans / debts) with the
  * pending total hero, the active rows and the "Nuevo registro" action.
  */
-export function ObligationScreen({ tab }: ObligationScreenProps) {
+export function ObligationScreen({ tab, onChangeTab }: ObligationScreenProps) {
   const colors = useThemeColors();
   const config = OBLIGATION_KIND_CONFIG[tab];
   const query = useObligations(tab);
 
   const items = (query.data ?? []).map(toObligationView);
-
-  const changeTab = (next: ObligationKind) =>
-    router.replace({ pathname: '/obligations/[tab]', params: { tab: next } });
 
   const openNew = () =>
     router.push({ pathname: '/obligations/[tab]/new', params: { tab } });
@@ -115,12 +113,13 @@ export function ObligationScreen({ tab }: ObligationScreenProps) {
             />
           ))}
         </Group>
-        <Button
-          title="Nuevo registro"
-          variant="ghost"
-          onPress={openNew}
-          style={styles.newButton}
-        />
+        <View style={styles.newButton}>
+          <Button
+            title="Nuevo registro"
+            variant="ghost"
+            onPress={openNew}
+          />
+        </View>
       </>
     );
   };
@@ -139,7 +138,7 @@ export function ObligationScreen({ tab }: ObligationScreenProps) {
         }
       >
         <LargeHeader title={config.plural} subtitle="Cuotas y recordatorios" />
-        <Segmented options={OBLIGATION_TABS} value={tab} onChange={changeTab} />
+        <Segmented options={OBLIGATION_TABS} value={tab} onChange={onChangeTab} />
         <HeroSm label="Pendiente total" value={formatMoney(sumPending(items))} />
         {renderContent()}
       </ScreenContainer>

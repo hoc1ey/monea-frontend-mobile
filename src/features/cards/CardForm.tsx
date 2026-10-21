@@ -6,17 +6,16 @@ import { z } from 'zod';
 
 import type { CreditCard, CreditCardInput } from '@/api/creditCards';
 import {
-  Button,
   Field,
   Group,
   LargeHeader,
   ScreenContainer,
   SectionHeader,
-  Select,
   Switch,
   TextButton,
   TopBar,
-  type SelectOption,
+  WheelSelect,
+  type SelectOption
 } from '@/components/ui';
 import { ACCOUNT_COLORS } from '@/features/accounts/AccountForm';
 import { typography, useThemeColors } from '@/theme';
@@ -183,16 +182,16 @@ export function CardForm({ title, card, onBack, onSubmit }: CardFormProps) {
 
         <SectionHeader title="Fechas" />
         <Group>
-          <Select
+          <WheelSelect
             label="Día de corte"
-            value={cutoffDay.field.value}
+            value={cutoffDay.field.value || undefined}
             options={DAY_OPTIONS}
             placeholder="Sin definir"
             onChange={cutoffDay.field.onChange}
           />
-          <Select
+          <WheelSelect
             label="Día de pago"
-            value={paymentDay.field.value}
+            value={paymentDay.field.value || undefined}
             options={DAY_OPTIONS}
             placeholder="Sin definir"
             onChange={paymentDay.field.onChange}
@@ -216,13 +215,13 @@ export function CardForm({ title, card, onBack, onSubmit }: CardFormProps) {
               />
             }
           />
-          <Select
+          <WheelSelect
             label="Antelación"
             value={reminderDaysBefore.field.value}
             options={REMINDER_DAY_OPTIONS}
             onChange={reminderDaysBefore.field.onChange}
           />
-          <Select
+          <WheelSelect
             label="Hora del aviso"
             value={reminderHour.field.value}
             options={REMINDER_HOUR_OPTIONS}
@@ -256,12 +255,6 @@ export function CardForm({ title, card, onBack, onSubmit }: CardFormProps) {
           </View>
         </Group>
 
-        <Button
-          title="Guardar tarjeta"
-          loading={formState.isSubmitting}
-          onPress={submit}
-          style={styles.button}
-        />
       </ScreenContainer>
     </View>
   );

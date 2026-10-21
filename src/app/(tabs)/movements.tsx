@@ -249,6 +249,14 @@ export default function MovementsScreen() {
           onPress={() => router.push('/recurring/define-amount')}
         />
       ) : null}
+
+      {filter === 'recurring' ? (
+        <Button
+          title="Ver egresos recurrentes"
+          variant="ghost"
+          onPress={() => router.push('/recurring')}
+        />
+      ) : null}
     </View>
   );
 
@@ -278,18 +286,11 @@ export default function MovementsScreen() {
     );
   };
 
-  const footer = (
+  const footer = movements.isFetchingNextPage ? (
     <View style={styles.footer}>
-      {movements.isFetchingNextPage ? <Skeleton height={44} radius={radii.button} /> : null}
-      {filter === 'expense' ? (
-        <Button
-          title="Ver egresos recurrentes"
-          variant="ghost"
-          onPress={() => router.push('/recurring')}
-        />
-      ) : null}
+      <Skeleton height={44} radius={radii.button} />
     </View>
-  );
+  ) : null;
 
   return (
     <View style={styles.flex}>

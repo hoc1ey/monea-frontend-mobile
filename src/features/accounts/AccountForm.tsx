@@ -6,27 +6,24 @@ import { z } from 'zod';
 
 import type { Account } from '@/api/accounts';
 import {
-  Button,
   Field,
   Group,
   LargeHeader,
   ScreenContainer,
   SectionHeader,
   TextButton,
-  TopBar,
+  TopBar
 } from '@/components/ui';
 import { typography, useThemeColors } from '@/theme';
 
-/** Account color palette from the prototype; F07 reuses it for credit cards. */
+/** Account color palette; F07 reuses it for credit cards. */
 export const ACCOUNT_COLORS = [
   '#fe36c1',
-  '#ff9fe6',
   '#ac086b',
-  '#ef13a1',
-  '#ff64d4',
-  '#8f0c5b',
   '#e0068c',
-  '#580034',
+  '#2563eb',
+  '#7c3aed',
+  '#059669',
 ] as const;
 
 const schema = z.object({
@@ -171,13 +168,6 @@ export function AccountForm({ title, account, onBack, onSubmit }: AccountFormPro
             </Text>
           ) : null}
         </Group>
-
-        <Button
-          title="Guardar cuenta"
-          loading={formState.isSubmitting}
-          onPress={submit}
-          style={styles.button}
-        />
       </ScreenContainer>
     </View>
   );

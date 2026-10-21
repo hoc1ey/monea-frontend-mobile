@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { router, useLocalSearchParams } from 'expo-router';
 import { CreditCard, ShoppingCart, WifiOff } from 'lucide-react-native';
@@ -19,6 +19,7 @@ import {
   Tag,
   TextButton,
   TopBar,
+  useConfirm,
   useToast,
   type ChipOption,
   type TagVariant,
@@ -70,6 +71,7 @@ function periodTag(total: number, paid: boolean): { label: string; variant: TagV
 export default function CardDetailScreen() {
   const colors = useThemeColors();
   const toast = useToast();
+  const confirm = useConfirm();
   const params = useLocalSearchParams<{ id: string; period?: string }>();
   const id = params.id;
   const timezone = useAuthStore((state) => state.user?.timezone) ?? detectTimezone();
@@ -118,11 +120,16 @@ export default function CardDetailScreen() {
     }
   };
 
-  const confirmDelete = () => {
-    Alert.alert('Eliminar tarjeta', 'Se eliminará la tarjeta. Los egresos diferidos se conservan.', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Eliminar', style: 'destructive', onPress: () => void handleDelete() },
-    ]);
+  const confirmDelete = async () => {
+    const confirmed = await confirm({
+      title: 'Eliminar tarjeta',
+      message: 'Se eliminará la tarjeta. Los egresos diferidos se conservan.',
+      confirmLabel: 'Eliminar',
+      destructive: true,
+    });
+    if (confirmed) {
+      await handleDelete();
+    }
   };
 
   const handleConfirmPay = async (accountId: string) => {
@@ -239,12 +246,14 @@ export default function CardDetailScreen() {
                   Corte {report.cutoffDate} · Pago {report.paymentDate}
                 </Text>
                 {report.total > 0 && !report.paid ? (
-                  <Button
-                    title="Pagar periodo"
-                    small
-                    onPress={() => setPayVisible(true)}
-                    style={styles.payButton}
-                  />
+                  <View style={styles.payButton}>
+                    <Button
+                      title="Pagar periodo"
+                      small
+                      onPress={() => setPayVisible(true)}
+
+                    />
+                  </View>
                 ) : null}
               </View>
             )}
@@ -274,7 +283,7 @@ export default function CardDetailScreen() {
               title="Eliminar tarjeta"
               variant="danger"
               loading={deleteCard.isPending}
-              onPress={confirmDelete}
+              onPress={() => void confirmDelete()}
               style={styles.deleteButton}
             />
 
@@ -298,6 +307,7 @@ export default function CardDetailScreen() {
 const styles = StyleSheet.create({
   visual: {
     marginTop: 12,
+    marginBottom: 20,
   },
   periodCard: {
     borderRadius: radii.card,

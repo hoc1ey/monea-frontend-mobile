@@ -96,7 +96,7 @@ export const radii = {
   segmentedInner: 8,
   checkbox: 12,
   pill: 999,
-  fab: 18,
+  fab: 100,
   listItem: 16,
   switchTrack: 31,
 } as const;
@@ -149,6 +149,9 @@ export interface ThemeColors {
   overlayHero: string;
   overlayCardStrong: string;
   overlayCardSoft: string;
+  /** Manage summary proportional bar: 22% track and 55% pay segment. */
+  overlayTrack: string;
+  overlayMuted: string;
   /** Absolute white used by checkbox/switch controls. */
   white: string;
   /** Neutral shadow color for iOS elevation fallbacks. */
@@ -181,6 +184,8 @@ export const appColors: Record<'light' | 'dark', ThemeColors> = {
     overlayHero: 'rgba(255, 255, 255, 0.12)',
     overlayCardStrong: 'rgba(255, 255, 255, 0.14)',
     overlayCardSoft: 'rgba(255, 255, 255, 0.08)',
+    overlayTrack: 'rgba(255, 255, 255, 0.22)',
+    overlayMuted: 'rgba(255, 255, 255, 0.55)',
     white: '#FFFFFF',
     shadow: 'rgba(0, 0, 0, 0.25)',
   },
@@ -209,6 +214,8 @@ export const appColors: Record<'light' | 'dark', ThemeColors> = {
     overlayHero: 'rgba(255, 255, 255, 0.12)',
     overlayCardStrong: 'rgba(255, 255, 255, 0.14)',
     overlayCardSoft: 'rgba(255, 255, 255, 0.08)',
+    overlayTrack: 'rgba(255, 255, 255, 0.22)',
+    overlayMuted: 'rgba(255, 255, 255, 0.55)',
     white: '#FFFFFF',
     shadow: 'rgba(0, 0, 0, 0.25)',
   },

@@ -8,7 +8,6 @@ import type { Account } from '@/api/accounts';
 import type { Income } from '@/api/incomes';
 import {
   AmountInput,
-  Button,
   Field,
   Group,
   Note,
@@ -17,7 +16,7 @@ import {
   Select,
   TextButton,
   TopBar,
-  type SelectOption,
+  type SelectOption
 } from '@/components/ui';
 import { typography, useThemeColors } from '@/theme';
 
@@ -165,8 +164,6 @@ export function IncomeForm({ title, income, accounts, onBack, onSubmit }: Income
             style={[styles.textarea, { color: colors.text }]}
           />
         </Group>
-
-        <Button title="Guardar" loading={formState.isSubmitting} onPress={submit} style={styles.button} />
       </ScreenContainer>
     </View>
   );

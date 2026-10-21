@@ -5,20 +5,15 @@ import { ChevronRight } from 'lucide-react-native';
 
 import { ICON_STROKE, typography, useThemeColors } from '@/theme';
 
-import { IconTile } from './IconTile';
 import { Separator } from './Separator';
 import type { IconComponent } from './types';
 
 export interface RowProps {
-  /** Icon rendered inside a 34 dp tile. */
   icon?: IconComponent;
-  /** Custom leading node (e.g. colored tile or initials avatar). Takes precedence over `icon`. */
   leading?: ReactNode;
   title: string;
   subtitle?: string;
-  /** Right-aligned value (usually an amount). */
   value?: string | number;
-  /** Custom right node (Tag, Switch, Button…). Takes precedence over `value`. */
   right?: ReactNode;
   onPress?: () => void;
   showChevron?: boolean;
@@ -29,7 +24,7 @@ export interface RowProps {
 }
 
 function RowBase({
-  icon,
+  icon: Icon,
   leading,
   title,
   subtitle,
@@ -43,53 +38,81 @@ function RowBase({
   accessibilityLabel,
 }: RowProps) {
   const colors = useThemeColors();
-  const hasLeading = Boolean(leading || icon);
+  const hasLeading = Boolean(leading || Icon);
   const showChevronIcon = Boolean(onPress) && showChevron !== false;
 
-  const content = (
-    <>
+  return (
+    <View style={styles.wrapper}>
       {showSeparator ? <Separator inset={hasLeading ? 60 : 14} /> : null}
-      {leading ?? (icon ? <IconTile icon={icon} /> : null)}
-      <View style={styles.text}>
-        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
-          {title}
-        </Text>
-        {subtitle ? (
-          <Text style={[styles.subtitle, { color: colors.muted }]} numberOfLines={1}>
-            {subtitle}
+
+      {/* Fila: siempre un View con flexDirection row, igual a la prueba que funciona */}
+      <View style={[styles.row, style]}>
+        {leading ? (
+          <View style={styles.lead}>{leading}</View>
+        ) : Icon ? (
+          <View style={[styles.tile, { backgroundColor: colors.accentSoft }]}>
+            <Icon size={18} color={colors.accentInk} strokeWidth={ICON_STROKE} />
+          </View>
+        ) : null}
+
+        <View style={styles.text}>
+          <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
+            {title}
           </Text>
+          {subtitle ? (
+            <Text style={[styles.subtitle, { color: colors.muted }]} numberOfLines={1}>
+              {subtitle}
+            </Text>
+          ) : null}
+        </View>
+
+        {right ?? (value != null ? <Text style={[styles.value, { color: colors.text }]}>{value}</Text> : null)}
+
+        {showChevronIcon ? (
+          <View style={styles.lead}>
+            <ChevronRight size={14} color={colors.muted} strokeWidth={ICON_STROKE} />
+          </View>
         ) : null}
       </View>
-      {right ?? (value != null ? <Text style={[styles.value, { color: colors.text }]}>{value}</Text> : null)}
-      {showChevronIcon ? <ChevronRight size={14} color={colors.muted} strokeWidth={ICON_STROKE} /> : null}
-    </>
-  );
 
-  if (!onPress) {
-    return <View style={[styles.row, style]}>{content}</View>;
-  }
-
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel ?? title}
-      disabled={disabled}
-      onPress={onPress}
-      style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.fill }, style]}
-    >
-      {content}
-    </Pressable>
+      {/* Capa táctil encima de la fila: no altera el layout */}
+      {onPress ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={accessibilityLabel ?? title}
+          disabled={disabled}
+          onPress={onPress}
+          android_ripple={{ color: colors.fill }}
+          style={StyleSheet.absoluteFill}
+        />
+      ) : null}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    width: '100%',
+  },
   row: {
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     minHeight: 56,
     paddingVertical: 12,
     paddingHorizontal: 14,
+  },
+  tile: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  lead: {
+    flexShrink: 0,
   },
   text: {
     flex: 1,
@@ -106,6 +129,7 @@ const styles = StyleSheet.create({
     ...typography.body,
     textAlign: 'right',
     fontVariant: ['tabular-nums'],
+    flexShrink: 0,
   },
 });
 

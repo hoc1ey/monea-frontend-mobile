@@ -2,9 +2,12 @@ import '@/global.css';
 
 import { useEffect, useMemo } from 'react';
 
+import * as SystemUI from 'expo-system-ui';
+
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
+import { Stack } from 'expo-router/js-stack';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme, vars } from 'nativewind';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -14,7 +17,7 @@ import { queryClient } from '@/api/queryClient';
 import { ConfigError } from '@/components/ConfigError';
 import { QuickActionsSheet } from '@/components/navigation/QuickActionsSheet';
 import { NotificationObserver } from '@/components/notifications/NotificationObserver';
-import { ToastProvider } from '@/components/ui';
+import { ConfirmProvider, ToastProvider } from '@/components/ui';
 import { envError } from '@/config/env';
 import {
   addDeviceTokenRotationListener,
@@ -44,6 +47,10 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
+    void SystemUI.setBackgroundColorAsync(backgroundColor);
+  }, [backgroundColor]);
+
+  useEffect(() => {
     void hydrateTheme();
   }, [hydrateTheme]);
 
@@ -66,25 +73,27 @@ export default function RootLayout() {
           ) : (
             <QueryClientProvider client={queryClient}>
               <BottomSheetModalProvider>
-                <ToastProvider>
-                  <StatusBar style="auto" />
-                  <Stack
-                    screenOptions={{
-                      headerShown: false,
-                      animation: 'slide_from_right',
-                      contentStyle: { backgroundColor },
-                    }}
-                  >
-                    <Stack.Protected guard={status !== 'authenticated'}>
-                      <Stack.Screen name="(auth)" />
-                    </Stack.Protected>
-                    <Stack.Protected guard={status === 'authenticated'}>
-                      <Stack.Screen name="(tabs)" />
-                    </Stack.Protected>
-                  </Stack>
-                  <QuickActionsSheet />
-                  <NotificationObserver />
-                </ToastProvider>
+                <ConfirmProvider>
+                  <ToastProvider>
+                    <StatusBar style="auto" />
+                    <Stack
+                      screenOptions={{
+                        headerShown: false,
+                        animation: 'slide_from_right',
+                        cardStyle: { backgroundColor },
+                      }}
+                    >
+                      <Stack.Protected guard={status !== 'authenticated'}>
+                        <Stack.Screen name="(auth)" />
+                      </Stack.Protected>
+                      <Stack.Protected guard={status === 'authenticated'}>
+                        <Stack.Screen name="(tabs)" options={{ animation: 'fade', freezeOnBlur: false }} />
+                      </Stack.Protected>
+                    </Stack>
+                    <QuickActionsSheet />
+                    <NotificationObserver />
+                  </ToastProvider>
+                </ConfirmProvider>
               </BottomSheetModalProvider>
             </QueryClientProvider>
           )}

@@ -40,7 +40,9 @@ function FieldBase({
       <View style={styles.field}>
         {showSeparator ? <Separator /> : null}
         <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
-        {right ?? (
+        {right ? (
+          <View style={styles.right}>{right}</View>
+        ) : (
           <TextInput
             placeholderTextColor={colors.muted}
             {...inputProps}
@@ -75,6 +77,11 @@ const styles = StyleSheet.create({
     ...typography.footnote,
     paddingHorizontal: 14,
     paddingBottom: 8,
+  },
+  right: {
+    flex: 1,
+    minWidth: 0,
+    alignItems: 'flex-end',
   },
 });
 

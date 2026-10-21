@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { router } from 'expo-router';
@@ -9,11 +10,9 @@ import {
   Button,
   EmptyState,
   Group,
-  LargeHeader,
   ProgressBar,
   Row,
   ScreenContainer,
-  SectionHeader,
   Segmented,
   Skeleton,
   TopBar,
@@ -39,31 +38,37 @@ function ListSkeleton() {
 /** Open list card with its live progress (prototype `.card` inside `S.shopping`). */
 function OpenListCard({ list, onPress }: { list: ShoppingList; onPress: () => void }) {
   const colors = useThemeColors();
+  const [pressed, setPressed] = useState(false);
   const items = itemsOf(list);
   const done = purchasedCount(items);
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={list.name}
-      onPress={onPress}
-      style={({ pressed }) => [
+    <View
+      style={[
         styles.card,
         { backgroundColor: colors.surface },
-        pressed && { opacity: 0.8 },
+        pressed && styles.cardPressed,
       ]}
     >
-      <View style={styles.cardHeader}>
-        <Text style={[styles.cardTitle, { color: colors.text }]} numberOfLines={1}>
-          {list.name}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={list.name}
+        onPress={onPress}
+        onPressIn={() => setPressed(true)}
+        onPressOut={() => setPressed(false)}
+      >
+        <View style={styles.cardHeader}>
+          <Text style={[styles.cardTitle, { color: colors.text }]} numberOfLines={1}>
+            {list.name}
+          </Text>
+          <ChevronRight size={14} color={colors.muted} strokeWidth={ICON_STROKE} />
+        </View>
+        <Text style={[styles.cardSubtitle, { color: colors.muted }]}>
+          {done} de {items.length} comprados
         </Text>
-        <ChevronRight size={14} color={colors.muted} strokeWidth={ICON_STROKE} />
-      </View>
-      <Text style={[styles.cardSubtitle, { color: colors.muted }]}>
-        {done} de {items.length} comprados
-      </Text>
-      <ProgressBar progress={listProgress(items)} style={styles.cardProgress} />
-    </Pressable>
+        <ProgressBar progress={listProgress(items)} style={styles.cardProgress} />
+      </Pressable>
+    </View>
   );
 }
 
@@ -96,8 +101,9 @@ export interface ShoppingScreenProps {
 }
 
 /**
- * Shopping lists hub (F14): a segment between open and closed lists, cards with
- * progress for the open ones and rows with the closing summary for the closed.
+ * Shopping lists hub (F14): "Abiertas" and "Cerradas" tabs swap the content in
+ * place (only the container changes), with cards with progress for the open
+ * ones and rows with the closing summary for the closed.
  */
 export function ShoppingScreen({ tab }: ShoppingScreenProps) {
   const colors = useThemeColors();
@@ -107,8 +113,7 @@ export function ShoppingScreen({ tab }: ShoppingScreenProps) {
   const lists = query.data ?? [];
   const accountNames = new Map((accounts.data ?? []).map((account) => [account.id, account.name]));
 
-  const changeTab = (next: ShoppingTab) =>
-    router.replace({ pathname: '/shopping/[tab]', params: { tab: next } });
+  const changeTab = (next: ShoppingTab) => router.setParams({ tab: next });
 
   const openNew = () => router.push('/shopping/new');
 
@@ -158,34 +163,30 @@ export function ShoppingScreen({ tab }: ShoppingScreenProps) {
           {lists.map((list) => (
             <OpenListCard key={list.id} list={list} onPress={() => openDetail(list.id)} />
           ))}
-          <Button title="Nueva lista" variant="ghost" onPress={openNew} style={styles.newButton} />
+          <View style={styles.newButton}>
+            <Button title="Nueva lista" variant="ghost" onPress={openNew} />
+          </View>
         </>
       );
     }
 
     return (
-      <>
-        <SectionHeader title="Cerradas" />
-        <Group>
-          {lists.map((list) => (
-            <ClosedListRow
-              key={list.id}
-              list={list}
-              accountName={(list.accountId && accountNames.get(list.accountId)) || '—'}
-              onPress={() => openDetail(list.id)}
-            />
-          ))}
-        </Group>
-      </>
+      <Group>
+        {lists.map((list) => (
+          <ClosedListRow
+            key={list.id}
+            list={list}
+            accountName={(list.accountId && accountNames.get(list.accountId)) || '—'}
+            onPress={() => openDetail(list.id)}
+          />
+        ))}
+      </Group>
     );
   };
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.bg }]}>
-      <TopBar
-        title={tab === 'closed' ? 'Listas cerradas' : undefined}
-        onBack={() => router.back()}
-      />
+      <TopBar title="Compras" onBack={() => router.back()} />
       <ScreenContainer
         refreshControl={
           <RefreshControl
@@ -196,8 +197,9 @@ export function ShoppingScreen({ tab }: ShoppingScreenProps) {
           />
         }
       >
-        {tab === 'open' ? <LargeHeader title="Compras" subtitle="Listas y cierres" /> : null}
-        <Segmented options={SHOPPING_TABS} value={tab} onChange={changeTab} />
+        <View style={styles.segmentWrap}>
+          <Segmented options={SHOPPING_TABS} value={tab} onChange={changeTab} />
+        </View>
         {renderContent()}
       </ScreenContainer>
     </View>
@@ -208,10 +210,16 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
   },
+  segmentWrap: {
+    paddingTop: 12,
+  },
   card: {
     borderRadius: radii.card,
     padding: 16,
     marginBottom: 12,
+  },
+  cardPressed: {
+    opacity: 0.8,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -235,7 +243,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   newButton: {
-    marginTop: 6,
+    marginTop: 21,
   },
   skeletonGroup: {
     gap: 12,

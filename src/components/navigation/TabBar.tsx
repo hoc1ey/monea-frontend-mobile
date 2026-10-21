@@ -96,16 +96,22 @@ function TabPill({ focused, children }: { focused: boolean; children: ReactNode 
     Animated.timing(progress, {
       toValue: focused ? 1 : 0,
       duration: 200,
-      useNativeDriver: false,
+      useNativeDriver: true,
     }).start();
   }, [focused, progress]);
 
-  const backgroundColor = progress.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['rgba(0, 0, 0, 0)', colors.accentSoft],
-  });
-
-  return <Animated.View style={[styles.pill, { backgroundColor }]}>{children}</Animated.View>;
+  return (
+    <View style={styles.pill}>
+      <Animated.View
+        style={[
+          StyleSheet.absoluteFill,
+          styles.pillFill,
+          { backgroundColor: colors.accentSoft, opacity: progress },
+        ]}
+      />
+      {children}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -137,6 +143,9 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  pillFill: {
+    borderRadius: 15,
   },
   label: {
     fontSize: 11,

@@ -10,7 +10,7 @@
 - **Banner** (solo si hay egresos con `amountPending`, y el filtro no es "Ingresos"): fondo `accent-soft`, icono `repeat` en tile, título "{n} egreso necesita monto", subtítulo "{nombre} · {fecha}", chevron → `recurring/define-amount` (F10).
 - Lista agrupada por fecha: SectionHeader con "Hoy", "Ayer" o `d MMM`; Group de filas.
 - Fila de movimiento: icono tile (`cart` para egresos instantáneos, `down` para ingresos, `card` para diferidos, `repeat` para recurrentes, `card` para pagos de tarjeta), título `name`, subtítulo "{cuenta} · {origen}" (origen: Manual, Recurrente, Cobro, Tarjeta, Préstamo, Deuda, Lista), valor: `+$monto` en `positive` si es ingreso, `−$monto` en `text` si es egreso, `Tag acc` "Definir monto" si está pendiente.
-- Botón ghost "Ver egresos recurrentes" al final → `recurring` (F10).
+- Botones ghost arriba del listado, según el filtro activo: "Nuevo ingreso" → `movements/income/new`, "Nuevo egreso" → `movements/expense/new`, "Nuevo diferido" → `movements/expense/new?kind=diferido`, "Nuevo recurrente" → `movements/expense/new?kind=recurrente`. Con el filtro "Egresos" se agrega "Ver egresos recurrentes" → `recurring` (F10).
 
 **Mapeo de filtros a la API**
 | Chip | Consulta |
@@ -27,6 +27,7 @@
 - `TopBar` "Detalle" con atrás. "Editar" a la derecha solo si es editable (ver reglas). Sin botón si no.
 - Bloque centrado: icono tile 56 (radio 18), nombre 17/600, monto 34/700 (`pos` si ingreso), fecha y hora (`d MMM · HH:mm`).
 - Note si es automático: "Generado automáticamente desde **{origen}**. El monto se gestiona desde su módulo de origen." (margen inferior 14).
+- Bloque "Descripción" (tarjeta `surface`, etiqueta en mayúsculas) entre el encabezado y el Note/Group, solo si `description` existe.
 - Group: "Cuenta", "Forma de pago", "Origen", "Fecha".
 - Botón danger "Eliminar movimiento" dentro de un Group (margen superior 18) — **solo si la API lo permite**.
 

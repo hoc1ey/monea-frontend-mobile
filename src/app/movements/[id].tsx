@@ -1,7 +1,7 @@
-import { Alert, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
-import { router, useLocalSearchParams } from 'expo-router';
 import { toZonedTime } from 'date-fns-tz';
+import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowUpDown, WifiOff } from 'lucide-react-native';
 
 import { getErrorMessage, isApiError } from '@/api/client';
@@ -19,6 +19,7 @@ import {
   Skeleton,
   TextButton,
   TopBar,
+  useConfirm,
   useToast,
 } from '@/components/ui';
 import { useAccounts } from '@/features/accounts/useAccounts';
@@ -64,6 +65,7 @@ function DetailSkeleton() {
 export default function MovementDetailScreen() {
   const colors = useThemeColors();
   const toast = useToast();
+  const confirm = useConfirm();
   const timezone = useAuthStore((state) => state.user?.timezone) ?? detectTimezone();
   const params = useLocalSearchParams<{ id: string; kind?: string }>();
   const id = params.id;
@@ -101,11 +103,17 @@ export default function MovementDetailScreen() {
     }
   };
 
-  const confirmDelete = () => {
-    Alert.alert('Eliminar movimiento', 'El movimiento se eliminará de tus registros.', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Eliminar', style: 'destructive', onPress: () => void handleDelete() },
-    ]);
+  const confirmDelete = async () => {
+    const confirmed = await confirm({
+      title: 'Eliminar movimiento',
+      message: 'El movimiento se eliminará de tus registros.',
+      confirmLabel: 'Eliminar',
+      cancelLabel: 'Cancelar',
+      destructive: true,
+    });
+    if (confirmed) {
+      await handleDelete();
+    }
   };
 
   const edit = () => {
@@ -181,6 +189,15 @@ export default function MovementDetailScreen() {
               </Text>
             </View>
 
+            {movement.description ? (
+              <View style={[styles.descriptionCard, { backgroundColor: colors.surface }]}>
+                <Text style={[styles.descriptionLabel, { color: colors.muted }]}>Descripción</Text>
+                <Text style={[styles.descriptionText, { color: colors.text }]}>
+                  {movement.description}
+                </Text>
+              </View>
+            ) : null}
+
             {movement.automatic ? (
               <Note style={styles.note}>
                 <Text style={[styles.noteText, { color: colors.muted }]}>
@@ -204,15 +221,18 @@ export default function MovementDetailScreen() {
                   accessibilityRole="button"
                   accessibilityLabel="Eliminar movimiento"
                   disabled={isDeleting}
-                  onPress={confirmDelete}
-                  style={({ pressed }) => [
-                    styles.deleteRow,
-                    (pressed || isDeleting) && { backgroundColor: colors.fill },
-                  ]}
+                  onPress={() => void confirmDelete()}
                 >
-                  <Text style={[styles.deleteText, { color: colors.negative }]}>
-                    {isDeleting ? 'Eliminando…' : 'Eliminar movimiento'}
-                  </Text>
+                  <View
+                    style={[
+                      styles.deleteRow,
+                      isDeleting && { backgroundColor: colors.fill },
+                    ]}
+                  >
+                    <Text style={[styles.deleteText, { color: colors.negative }]}>
+                      {isDeleting ? 'Eliminando…' : 'Eliminar movimiento'}
+                    </Text>
+                  </View>
                 </Pressable>
               </Group>
             ) : null}
@@ -246,6 +266,20 @@ const styles = StyleSheet.create({
     ...typography.subhead,
     marginTop: 6,
   },
+  descriptionCard: {
+    borderRadius: radii.card,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    gap: 4,
+    marginBottom: 14,
+  },
+  descriptionLabel: {
+    ...typography.caption,
+    textTransform: 'uppercase',
+  },
+  descriptionText: {
+    ...typography.body,
+  },
   note: {
     marginTop: 0,
     marginBottom: 14,
@@ -261,9 +295,10 @@ const styles = StyleSheet.create({
     marginTop: 18,
   },
   deleteRow: {
-    minHeight: 56,
+    minHeight: 45,
     justifyContent: 'center',
-    paddingHorizontal: 14,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
   },
   deleteText: {
     ...typography.body,

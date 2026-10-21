@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import DateTimePicker from '@react-native-community/datetimepicker';
 
@@ -16,7 +16,8 @@ export interface DateFieldProps {
 
 /**
  * Form row that opens the native date picker (F08). On Android the picker is a
- * dialog; `onChange` fires with `type: 'set'` when the user confirms.
+ * dialog; `onValueChange` fires when the user confirms and `onDismiss` when it
+ * is cancelled.
  */
 function DateFieldBase({ label, value, onChange, showSeparator }: DateFieldProps) {
   const colors = useThemeColors();
@@ -29,26 +30,27 @@ function DateFieldBase({ label, value, onChange, showSeparator }: DateFieldProps
         label={label}
         showSeparator={showSeparator}
         right={
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`${label}: ${display}`}
-            onPress={() => setShow(true)}
-            style={({ pressed }) => [pressed && styles.pressed]}
-          >
-            <Text style={[styles.value, { color: colors.accentInk }]}>{display}</Text>
-          </Pressable>
+          <View style={styles.right}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`${label}: ${display}`}
+              onPress={() => setShow(true)}
+              style={({ pressed }) => [styles.valueWrap, pressed && styles.pressed]}
+            >
+              <Text style={[styles.value, { color: colors.accentInk }]}>{display}</Text>
+            </Pressable>
+          </View>
         }
       />
       {show ? (
         <DateTimePicker
           value={value}
           mode="date"
-          onChange={(event, date) => {
+          onValueChange={(_, date) => {
             setShow(false);
-            if (event.type === 'set' && date) {
-              onChange(date);
-            }
+            onChange(date);
           }}
+          onDismiss={() => setShow(false)}
         />
       ) : null}
     </>
@@ -56,6 +58,14 @@ function DateFieldBase({ label, value, onChange, showSeparator }: DateFieldProps
 }
 
 const styles = StyleSheet.create({
+  right: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  valueWrap: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
   value: {
     ...typography.body,
     fontWeight: '500',

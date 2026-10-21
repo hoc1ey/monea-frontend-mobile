@@ -26,7 +26,7 @@ export default function LoginScreen() {
 
   const { control, handleSubmit, formState } = useForm<LoginForm>({
     resolver: zodResolver(schema),
-    defaultValues: { email: 'jose@test.com', password: 'Monea123*' },
+    defaultValues: { email: 'jhon@example.com', password: '********' },
   });
 
   const email = useController({ control, name: 'email' });
@@ -71,7 +71,7 @@ export default function LoginScreen() {
           autoCapitalize="none"
           autoComplete="email"
           keyboardType="email-address"
-          value={email.field.value}
+          placeholder={email.field.value}
           onChangeText={email.field.onChange}
           onBlur={email.field.onBlur}
           error={email.fieldState.error?.message}
@@ -80,7 +80,7 @@ export default function LoginScreen() {
           label="Contraseña"
           autoCapitalize="none"
           secureTextEntry
-          value={password.field.value}
+          placeholder={password.field.value}
           onChangeText={password.field.onChange}
           onBlur={password.field.onBlur}
           error={password.fieldState.error?.message}
@@ -89,12 +89,13 @@ export default function LoginScreen() {
 
       {formError ? <Text style={[styles.formError, { color: colors.negative }]}>{formError}</Text> : null}
 
-      <Button
-        title="Iniciar sesión"
-        loading={formState.isSubmitting}
-        onPress={onSubmit}
-        style={styles.button}
-      />
+      <View style={styles.buttonwrap}>
+        <Button
+          title="Iniciar sesión"
+          loading={formState.isSubmitting}
+          onPress={onSubmit}
+        />
+      </View>
 
       <View style={styles.links}>
         <Pressable accessibilityRole="button" onPress={() => router.push('/register')}>
@@ -131,8 +132,9 @@ const styles = StyleSheet.create({
     ...typography.footnote,
     marginTop: 8,
   },
-  button: {
-    marginTop: 16,
+  buttonwrap: {
+    marginTop: 28,
+    marginBottom: 4,
   },
   links: {
     flexDirection: 'row',

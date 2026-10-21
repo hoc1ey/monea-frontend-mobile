@@ -94,8 +94,9 @@ export function CardsTab({ overview }: { overview: CardsOverview }) {
         <Row title="Deuda total de tarjetas" value={formatMoney(overview.totalDebt)} />
         <Row title="Cupo disponible total" value={formatMoney(overview.availableTotal)} />
       </Group>
-
-      <Button title="Nueva tarjeta" variant="ghost" onPress={openNew} style={styles.newButton} />
+      <View style={styles.newButton}>
+        <Button title="Nueva tarjeta" variant="ghost" onPress={openNew} />
+      </View>
     </View>
   );
 }

@@ -81,6 +81,7 @@
       "^lucide-react-native$": "<rootDir>/jest/lucideMock.js",
       "^@gorhom/bottom-sheet$": "<rootDir>/jest/gorhomMock.js"
     },
+    "resolver": "react-native-worklets/jest/resolver",
     "transformIgnorePatterns": [
       "node_modules/(?!(.pnpm|(jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@sentry/react-native|native-base|react-native-svg|lucide-react-native))"
     ]

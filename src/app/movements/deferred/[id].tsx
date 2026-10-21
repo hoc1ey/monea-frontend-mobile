@@ -135,6 +135,15 @@ export default function DeferredDetailScreen() {
               </Text>
             </View>
 
+            {expense.description ? (
+              <View style={[styles.descriptionCard, { backgroundColor: colors.surface }]}>
+                <Text style={[styles.descriptionLabel, { color: colors.muted }]}>Descripción</Text>
+                <Text style={[styles.descriptionText, { color: colors.text }]}>
+                  {expense.description}
+                </Text>
+              </View>
+            ) : null}
+
             <View style={[styles.progressCard, { backgroundColor: colors.surface }]}>
               <View style={styles.progressTop}>
                 <Text style={[styles.progressLabel, { color: colors.text }]}>Cuotas pagadas</Text>
@@ -197,6 +206,20 @@ const styles = StyleSheet.create({
   footer: {
     ...typography.kicker,
     marginTop: 6,
+  },
+  descriptionCard: {
+    borderRadius: radii.card,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    gap: 4,
+    marginBottom: 14,
+  },
+  descriptionLabel: {
+    ...typography.caption,
+    textTransform: 'uppercase',
+  },
+  descriptionText: {
+    ...typography.body,
   },
   progressCard: {
     borderRadius: radii.card,
