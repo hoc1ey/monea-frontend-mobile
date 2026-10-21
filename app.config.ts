@@ -23,7 +23,7 @@ const config: ExpoConfig = {
     icon: './assets/expo.icon',
   },
   android: {
-    package: 'com.tuempresa.monea',
+    package: 'com.monea.app',
     versionCode: 1,
     ...(hasGoogleServicesFile ? { googleServicesFile } : {}),
     adaptiveIcon: {
