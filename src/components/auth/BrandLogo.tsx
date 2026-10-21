@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Animated, StyleSheet, Text } from 'react-native';
+import { Animated } from 'react-native';
 
-import { LinearGradient } from 'expo-linear-gradient';
-
-import { palette } from '@/theme';
+import { Image } from 'expo-image';
 
 export interface BrandLogoProps {
   size?: number;
@@ -11,7 +9,7 @@ export interface BrandLogoProps {
   pulse?: boolean;
 }
 
-/** Gradient "M" badge shared by the auth screens (prototype `.logo`). */
+/** MONEA mascot logo shared by the auth screens (prototype `.logo`). */
 export function BrandLogo({ size = 76, pulse = false }: BrandLogoProps) {
   const [scale] = useState(() => new Animated.Value(1));
 
@@ -32,26 +30,12 @@ export function BrandLogo({ size = 76, pulse = false }: BrandLogoProps) {
   }, [pulse, scale]);
 
   return (
-    <Animated.View style={{ transform: [{ scale }] }}>
-      <LinearGradient
-        colors={[palette.cerise[500], palette.cerise[900]]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.logo, { width: size, height: size, borderRadius: size * 0.316 }]}
-      >
-        <Text style={[styles.letter, { fontSize: size * 0.474 }]}>M</Text>
-      </LinearGradient>
+    <Animated.View>
+      <Image
+        source={require('../../../assets/images/splash-icon.png')}
+        style={{ width: size, height: size }}
+        contentFit="contain"
+      />
     </Animated.View>
   );
 }
-
-const styles = StyleSheet.create({
-  logo: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  letter: {
-    color: '#FFFFFF',
-    fontWeight: '800',
-  },
-});
