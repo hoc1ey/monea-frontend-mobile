@@ -108,14 +108,14 @@ function ProfileForm({ profile }: { profile: UserProfile }) {
         />
         <Field label="Moneda" value="USD" editable={false} />
       </Group>
-
-      <Button
-        title="Editar perfil"
-        variant="ghost"
-        loading={update.isPending}
-        onPress={handleSave}
-        style={styles.button}
-      />
+      <View style={styles.button}>
+        <Button
+          title="Editar perfil"
+          variant="ghost"
+          loading={update.isPending}
+          onPress={handleSave}
+        />
+      </View>
     </>
   );
 }

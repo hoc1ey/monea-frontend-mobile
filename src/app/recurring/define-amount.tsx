@@ -18,8 +18,8 @@ import {
   useToast,
 } from '@/components/ui';
 import { useAccounts } from '@/features/accounts/useAccounts';
-import { usePendingExpenses } from '@/features/movements/useMovements';
 import { useSetExpenseAmount } from '@/features/movements/useMovementMutations';
+import { usePendingExpenses } from '@/features/movements/useMovements';
 import { formatDate } from '@/lib/format';
 import { radii, useThemeColors } from '@/theme';
 
@@ -174,12 +174,14 @@ export default function DefineAmountScreen() {
             />
           ))}
         </Group>
-        <Button
-          title="Guardar montos"
-          loading={saving}
-          onPress={() => void save()}
-          style={styles.button}
-        />
+        <View style={styles.button}>
+          <Button
+            title="Guardar monto"
+            loading={saving}
+            onPress={() => void save()}
+
+          />
+        </View>
       </>
     );
   };

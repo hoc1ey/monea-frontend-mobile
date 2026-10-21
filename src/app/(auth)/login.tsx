@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
@@ -58,59 +66,72 @@ export default function LoginScreen() {
   });
 
   return (
-    <View style={[styles.screen, { backgroundColor: colors.bg }]}>
-      <View style={styles.brand}>
-        <BrandLogo size={140} />
-        <Text style={[styles.title, { color: colors.text }]}>MONEA</Text>
-        <Text style={[styles.subtitle, { color: colors.muted }]}>Tus finanzas, en orden</Text>
-      </View>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={[styles.screen, { backgroundColor: colors.bg }]}
+    >
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.brand}>
+          <BrandLogo size={140} />
+          <Text style={[styles.title, { color: colors.text }]}>MONEA</Text>
+          <Text style={[styles.subtitle, { color: colors.muted }]}>Tus finanzas, en orden</Text>
+        </View>
 
-      <Group>
-        <Field
-          label="Correo"
-          autoCapitalize="none"
-          autoComplete="email"
-          keyboardType="email-address"
-          placeholder={email.field.value}
-          onChangeText={email.field.onChange}
-          onBlur={email.field.onBlur}
-          error={email.fieldState.error?.message}
-        />
-        <Field
-          label="Contraseña"
-          autoCapitalize="none"
-          secureTextEntry
-          placeholder={password.field.value}
-          onChangeText={password.field.onChange}
-          onBlur={password.field.onBlur}
-          error={password.fieldState.error?.message}
-        />
-      </Group>
+        <Group>
+          <Field
+            label="Correo"
+            autoCapitalize="none"
+            autoComplete="email"
+            keyboardType="email-address"
+            placeholder={email.field.value}
+            onChangeText={email.field.onChange}
+            onBlur={email.field.onBlur}
+            error={email.fieldState.error?.message}
+          />
+          <Field
+            label="Contraseña"
+            autoCapitalize="none"
+            secureTextEntry
+            placeholder={password.field.value}
+            onChangeText={password.field.onChange}
+            onBlur={password.field.onBlur}
+            error={password.fieldState.error?.message}
+          />
+        </Group>
 
-      {formError ? <Text style={[styles.formError, { color: colors.negative }]}>{formError}</Text> : null}
+        {formError ? <Text style={[styles.formError, { color: colors.negative }]}>{formError}</Text> : null}
 
-      <View style={styles.buttonwrap}>
-        <Button
-          title="Iniciar sesión"
-          loading={formState.isSubmitting}
-          onPress={onSubmit}
-        />
-      </View>
+        <View style={styles.buttonwrap}>
+          <Button
+            title="Iniciar sesión"
+            loading={formState.isSubmitting}
+            onPress={onSubmit}
+          />
+        </View>
 
-      <View style={styles.links}>
-        <Pressable accessibilityRole="button" onPress={() => router.push('/register')}>
-          <Text style={[styles.link, { color: colors.accentInk }]}>Crear cuenta</Text>
-        </Pressable>
-      </View>
-    </View>
+        <View style={styles.links}>
+          <Pressable accessibilityRole="button" onPress={() => router.push('/register')}>
+            <Text style={[styles.link, { color: colors.accentInk }]}>Crear cuenta</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
+  },
+  content: {
+    flexGrow: 1,
     justifyContent: 'center',
     paddingHorizontal: 16,
+    paddingVertical: 24,
   },
   brand: {
     alignItems: 'center',
