@@ -108,6 +108,7 @@ export function IncomeForm({ title, income, accounts, onBack, onSubmit }: Income
       <TopBar
         title={title}
         onBack={onBack}
+        loading={formState.isSubmitting}
         right={<TextButton title="Guardar" disabled={formState.isSubmitting} onPress={submit} />}
       />
       <ScreenContainer>

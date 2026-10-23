@@ -141,6 +141,7 @@ export function CardForm({ title, card, onBack, onSubmit }: CardFormProps) {
       <TopBar
         title={title}
         onBack={onBack}
+        loading={formState.isSubmitting}
         right={<TextButton title="Guardar" disabled={formState.isSubmitting} onPress={submit} />}
       />
       <ScreenContainer>

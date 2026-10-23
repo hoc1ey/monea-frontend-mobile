@@ -7,19 +7,27 @@ import { ICON_STROKE, useThemeColors } from '@/theme';
 export interface BackButtonProps {
   onPress: () => void;
   accessibilityLabel?: string;
+  disabled?: boolean;
 }
 
-export function BackButton({ onPress, accessibilityLabel = 'Atrás' }: BackButtonProps) {
+export function BackButton({
+  onPress,
+  accessibilityLabel = 'Atrás',
+  disabled = false,
+}: BackButtonProps) {
   const colors = useThemeColors();
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
         { backgroundColor: colors.fill },
+        disabled && styles.disabled,
         pressed && { opacity: 0.8 },
       ]}
     >
@@ -35,5 +43,8 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  disabled: {
+    opacity: 0.4,
   },
 });

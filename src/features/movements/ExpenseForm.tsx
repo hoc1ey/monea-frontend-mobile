@@ -136,6 +136,7 @@ export function ExpenseForm({
       <TopBar
         title={title}
         onBack={onBack}
+        loading={formState.isSubmitting}
         right={<TextButton title="Guardar" disabled={formState.isSubmitting} onPress={submit} />}
       />
       <ScreenContainer>

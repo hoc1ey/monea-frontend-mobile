@@ -295,6 +295,7 @@ export function RecurringExpenseForm({
       <TopBar
         title={title}
         onBack={onBack}
+        loading={formState.isSubmitting}
         right={<TextButton title="Guardar" disabled={formState.isSubmitting} onPress={submit} />}
       />
       <ScreenContainer>

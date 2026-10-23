@@ -66,6 +66,7 @@ export function NewShoppingListForm({ onBack, onSubmit }: NewShoppingListFormPro
       <TopBar
         title="Nueva lista"
         onBack={onBack}
+        loading={formState.isSubmitting}
         right={<TextButton title="Crear" disabled={formState.isSubmitting} onPress={submit} />}
       />
       <ScreenContainer>
