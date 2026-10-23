@@ -132,13 +132,16 @@ function Wheel<T extends string>({ options, value, onChange, visible }: WheelPro
   );
 
   const scrollToValue = useCallback(() => {
-    const index = options.findIndex((option) => option.value === value);
-
-    if (index < 0) {
+    if (options.length === 0) {
       return;
     }
 
-    scrollRef.current?.scrollTo({ y: (middleStart + index) * ITEM_HEIGHT, animated: false });
+    const index = options.findIndex((option) => option.value === value);
+
+    scrollRef.current?.scrollTo({
+      y: (middleStart + Math.max(index, 0)) * ITEM_HEIGHT,
+      animated: false,
+    });
   }, [middleStart, options, value]);
 
   const latestWheel = useRef({ value, options, middleStart });
@@ -156,14 +159,15 @@ function Wheel<T extends string>({ options, value, onChange, visible }: WheelPro
     // teleport the wheel while it is still animating towards the snapped row.
     const frame = requestAnimationFrame(() => {
       const current = latestWheel.current;
-      const index = current.options.findIndex((option) => option.value === current.value);
 
-      if (index < 0) {
+      if (current.options.length === 0) {
         return;
       }
 
+      const index = current.options.findIndex((option) => option.value === current.value);
+
       scrollRef.current?.scrollTo({
-        y: (current.middleStart + index) * ITEM_HEIGHT,
+        y: (current.middleStart + Math.max(index, 0)) * ITEM_HEIGHT,
         animated: false,
       });
     });
@@ -227,6 +231,8 @@ export interface WheelSelectProps<T extends string> {
   value?: T;
   options: SelectOption<T>[];
   onChange: (value: T) => void;
+  /** Renders a red "Quitar" action once there is a selected value. */
+  onClear?: () => void;
   placeholder?: string;
   showSeparator?: boolean;
 }
@@ -241,11 +247,21 @@ function WheelSelectBase<T extends string>({
   value,
   options,
   onChange,
+  onClear,
   placeholder = 'Seleccionar',
   showSeparator,
 }: WheelSelectProps<T>) {
   const [open, setOpen] = useState(false);
   const selected = options.find((option) => option.value === value);
+
+  const confirm = () => {
+    // Opening the wheel without a value centers it on the first option, so
+    // "Listo" must commit that option instead of leaving the field unset.
+    if (value === undefined && options[0]) {
+      onChange(options[0].value);
+    }
+    setOpen(false);
+  };
 
   return (
     <>
@@ -255,6 +271,7 @@ function WheelSelectBase<T extends string>({
         placeholder={placeholder}
         showSeparator={showSeparator}
         onPress={() => setOpen(true)}
+        onClear={onClear}
       />
       <Sheet
         visible={open}
@@ -263,7 +280,7 @@ function WheelSelectBase<T extends string>({
         enableContentPanningGesture={false}
       >
         <Wheel options={options} value={value} onChange={onChange} visible={open} />
-        <Button title="Listo" onPress={() => setOpen(false)} style={styles.done} />
+        <Button title="Listo" onPress={confirm} style={styles.done} />
       </Sheet>
     </>
   );

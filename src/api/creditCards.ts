@@ -51,8 +51,9 @@ export interface CreditCardInput {
   issuer: string;
   lastFourDigits: string;
   creditLimit?: number;
-  cutoffDay?: number;
-  paymentDay?: number;
+  /** `null` clears the day when editing; on creation it is simply omitted. */
+  cutoffDay?: number | null;
+  paymentDay?: number | null;
   reminderEnabled?: boolean;
   reminderDaysBefore?: number;
   reminderHour?: number;

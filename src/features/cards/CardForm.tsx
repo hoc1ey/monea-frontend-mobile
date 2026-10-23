@@ -120,9 +120,13 @@ export function CardForm({ title, card, onBack, onSubmit }: CardFormProps) {
     }
     if (values.cutoffDay !== '') {
       input.cutoffDay = Number(values.cutoffDay);
+    } else if (card?.cutoffDay != null) {
+      input.cutoffDay = null;
     }
     if (values.paymentDay !== '') {
       input.paymentDay = Number(values.paymentDay);
+    } else if (card?.paymentDay != null) {
+      input.paymentDay = null;
     }
     if (values.reminderEnabled) {
       input.reminderDaysBefore = Number(values.reminderDaysBefore);
@@ -188,6 +192,7 @@ export function CardForm({ title, card, onBack, onSubmit }: CardFormProps) {
             options={DAY_OPTIONS}
             placeholder="Sin definir"
             onChange={cutoffDay.field.onChange}
+            onClear={() => cutoffDay.field.onChange('')}
           />
           <WheelSelect
             label="Día de pago"
@@ -195,6 +200,7 @@ export function CardForm({ title, card, onBack, onSubmit }: CardFormProps) {
             options={DAY_OPTIONS}
             placeholder="Sin definir"
             onChange={paymentDay.field.onChange}
+            onClear={() => paymentDay.field.onChange('')}
           />
         </Group>
         {paymentDay.fieldState.error ? (
