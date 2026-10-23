@@ -23,7 +23,11 @@ const VISIBLE_ITEMS = 5;
 const VIEWPORT_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
 const VERTICAL_PADDING = (VIEWPORT_HEIGHT - ITEM_HEIGHT) / 2;
 /** Identical copies of the options; the wheel teleports between them. */
-const LOOP_COPIES = 7;
+const LOOP_COPIES = 5;
+/** Wait for a possible momentum start before snapping a released drag by hand. */
+const SETTLE_DELAY = 100;
+/** Sub-pixel offsets are already aligned; do not snap them again. */
+const SNAP_THRESHOLD = 0.5;
 
 interface WheelItemProps {
   index: number;
@@ -115,6 +119,13 @@ function Wheel<T extends string>({ options, value, onChange, visible }: WheelPro
 
       if (absolute < count || absolute >= (LOOP_COPIES - 1) * count) {
         scrollRef.current?.scrollTo({ y: (middleStart + index) * ITEM_HEIGHT, animated: false });
+        return;
+      }
+
+      const targetY = absolute * ITEM_HEIGHT;
+
+      if (Math.abs(offsetY - targetY) > SNAP_THRESHOLD) {
+        scrollRef.current?.scrollTo({ y: targetY, animated: true });
       }
     },
     [count, middleStart, onChange, options, value],
@@ -130,25 +141,49 @@ function Wheel<T extends string>({ options, value, onChange, visible }: WheelPro
     scrollRef.current?.scrollTo({ y: (middleStart + index) * ITEM_HEIGHT, animated: false });
   }, [middleStart, options, value]);
 
+  const latestWheel = useRef({ value, options, middleStart });
+
+  useEffect(() => {
+    latestWheel.current = { value, options, middleStart };
+  }, [middleStart, options, value]);
+
   useEffect(() => {
     if (!visible) {
       return;
     }
 
-    const frame = requestAnimationFrame(scrollToValue);
+    // Only reposition when the sheet opens: reacting to `value` changes would
+    // teleport the wheel while it is still animating towards the snapped row.
+    const frame = requestAnimationFrame(() => {
+      const current = latestWheel.current;
+      const index = current.options.findIndex((option) => option.value === current.value);
+
+      if (index < 0) {
+        return;
+      }
+
+      scrollRef.current?.scrollTo({
+        y: (current.middleStart + index) * ITEM_HEIGHT,
+        animated: false,
+      });
+    });
+
     return () => cancelAnimationFrame(frame);
-  }, [visible, scrollToValue]);
+  }, [visible]);
 
   useEffect(() => cancelScheduledSettle, [cancelScheduledSettle]);
 
-  const scheduleSettle = useCallback(() => {
-    cancelScheduledSettle();
-    // A released drag without momentum still triggers a delayed settle.
-    settleTimer.current = setTimeout(() => {
-      settleTimer.current = null;
-      settle(scrollY.value);
-    }, 140);
-  }, [cancelScheduledSettle, scrollY, settle]);
+  const scheduleSettle = useCallback(
+    (offsetY: number) => {
+      cancelScheduledSettle();
+      // A released drag without momentum still triggers a delayed settle.
+      settleTimer.current = setTimeout(() => {
+        settleTimer.current = null;
+        settle(offsetY);
+      }, SETTLE_DELAY);
+    },
+    [cancelScheduledSettle, settle],
+  );
 
   return (
     <View style={styles.wheel}>
@@ -165,7 +200,7 @@ function Wheel<T extends string>({ options, value, onChange, visible }: WheelPro
         contentContainerStyle={styles.wheelContent}
         onContentSizeChange={scrollToValue}
         onScrollBeginDrag={cancelScheduledSettle}
-        onScrollEndDrag={scheduleSettle}
+        onScrollEndDrag={(event) => scheduleSettle(event.nativeEvent.contentOffset.y)}
         onMomentumScrollBegin={cancelScheduledSettle}
         onMomentumScrollEnd={(event) => {
           cancelScheduledSettle();

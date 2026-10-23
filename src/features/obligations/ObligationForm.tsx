@@ -19,6 +19,7 @@ import {
   Switch,
   TextButton,
   TopBar,
+  WheelSelect,
   type SegmentedOption,
   type SelectOption
 } from '@/components/ui';
@@ -338,7 +339,7 @@ export function ObligationForm({
               ) : null}
 
               {reminder.frequency === 'MONTHLY' ? (
-                <Select
+                <WheelSelect
                   label="Día"
                   value={reminder.dayOfMonth}
                   options={DAY_OF_MONTH_OPTIONS}
@@ -356,9 +357,9 @@ export function ObligationForm({
                     options={MONTH_OPTIONS}
                     onChange={(value) => setReminder((previous) => ({ ...previous, month: value }))}
                   />
-                  <Select
+                  <WheelSelect
                     label="Día del mes"
-                    value={reminder.yearDayOfMonth || undefined}
+                    value={reminder.yearDayOfMonth}
                     options={OPTIONAL_DAY_OF_MONTH_OPTIONS}
                     onChange={(value) =>
                       setReminder((previous) => ({ ...previous, yearDayOfMonth: value }))
