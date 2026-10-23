@@ -92,6 +92,7 @@ export function AccountForm({ title, account, onBack, onSubmit }: AccountFormPro
       <TopBar
         title={title}
         onBack={onBack}
+        loading={formState.isSubmitting}
         right={<TextButton title="Guardar" disabled={formState.isSubmitting} onPress={submit} />}
       />
       <ScreenContainer>

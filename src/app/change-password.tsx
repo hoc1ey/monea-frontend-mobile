@@ -80,7 +80,10 @@ export default function ChangePasswordScreen() {
       <TopBar
         title="Cambiar contraseña"
         onBack={() => router.back()}
-        right={<TextButton title="Guardar" onPress={onSubmit} />}
+        loading={formState.isSubmitting}
+        right={
+          <TextButton title="Guardar" disabled={formState.isSubmitting} onPress={onSubmit} />
+        }
       />
       <ScreenContainer>
         <LargeHeader

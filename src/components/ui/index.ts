@@ -21,6 +21,7 @@ export { Group, type GroupProps } from './Group';
 export { Hero, HeroSm, type HeroProps, type HeroFooterRow } from './Hero';
 export { IconTile, type IconTileProps } from './IconTile';
 export { LargeHeader, type LargeHeaderProps } from './LargeHeader';
+export { LoadingOverlay, type LoadingOverlayProps } from './LoadingOverlay';
 export { MiniAccountCard, type MiniAccountCardProps } from './MiniAccountCard';
 export { Note, type NoteProps } from './Note';
 export { ProgressBar, type ProgressBarProps } from './ProgressBar';
