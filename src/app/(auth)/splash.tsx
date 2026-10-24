@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 
 import { restoreSession } from '@/auth/session';
 import { BrandLogo } from '@/components/auth/BrandLogo';
+import { useAuthStore } from '@/stores/auth';
 import { typography, useThemeColors } from '@/theme';
 
 /** Minimum time the splash stays visible, even if the session resolves faster. */
@@ -24,8 +25,15 @@ export default function SplashScreen() {
 
       const delay = Math.max(0, MIN_DURATION - (Date.now() - startedAt));
       setTimeout(() => {
-        if (active) {
-          router.replace(authenticated ? '/' : '/login');
+        if (!active) {
+          return;
+        }
+
+        const mustChangePassword = useAuthStore.getState().mustChangePassword;
+        if (!authenticated) {
+          router.replace('/login');
+        } else {
+          router.replace(mustChangePassword ? '/force-change-password' : '/');
         }
       }, delay);
     });
