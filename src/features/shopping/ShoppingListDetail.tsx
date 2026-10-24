@@ -90,8 +90,9 @@ export interface ShoppingListDetailProps {
 }
 
 /**
- * Shopping list detail (F14). Closed lists render an immutable summary; open
- * lists get the product entry, the item cards and the totals section.
+ * Shopping list detail (F14). Closed lists render an immutable summary with
+ * their items read-only; open lists get the product entry, the item cards and
+ * the totals section.
  */
 export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
   const colors = useThemeColors();
@@ -261,12 +262,27 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
 
     if (list.status === 'CLOSED') {
       return (
-        <ClosedDetail
-          closedAt={list.closedAt}
-          total={list.total ?? 0}
-          count={items.length}
-          accountName={accountName}
-        />
+        <>
+          <ClosedDetail
+            closedAt={list.closedAt}
+            total={list.total ?? 0}
+            count={items.length}
+            accountName={accountName}
+          />
+
+          <SectionHeader title="Productos" />
+          {items.length === 0 ? (
+            <EmptyState
+              icon={ShoppingCart}
+              title="Sin productos"
+              message="Esta lista se cerró sin productos registrados."
+            />
+          ) : (
+            items.map((item) => (
+              <ItemCard key={item.id} item={item} readOnly />
+            ))
+          )}
+        </>
       );
     }
 
