@@ -12,14 +12,17 @@ export interface ItemCardProps {
   item: ShoppingListItem;
   /** Enables the price field and the formatted price under the name. */
   pricesOn?: boolean;
-  onToggle: () => void;
-  onSaveName: (name: string) => Promise<void> | void;
-  onSavePrice: (price: number) => Promise<void> | void;
-  onDelete: () => void;
+  /** Required unless `readOnly`, which never modifies the item. */
+  onToggle?: () => void;
+  onSaveName?: (name: string) => Promise<void> | void;
+  onSavePrice?: (price: number) => Promise<void> | void;
+  onDelete?: () => void;
   /** Dims the card while a request for it is in flight. */
   pending?: boolean;
   /** Highlights the card in `negative` (e.g. a purchased item without price). */
   highlight?: boolean;
+  /** Render for a closed list: no toggle, no editing and no delete actions. */
+  readOnly?: boolean;
 }
 
 const PRICE_DEBOUNCE = 600;
@@ -27,6 +30,8 @@ const PRICE_DEBOUNCE = 600;
 /**
  * Item card of an open shopping list (F14): checkbox and name in view mode, the
  * optional price field and the edit/delete actions; the name is edited in place.
+ * With `readOnly` it renders for a closed list: the state and price are shown
+ * but nothing can be modified.
  */
 export function ItemCard({
   item,
@@ -37,6 +42,7 @@ export function ItemCard({
   onDelete,
   pending,
   highlight,
+  readOnly = false,
 }: ItemCardProps) {
   const colors = useThemeColors();
   const [editing, setEditing] = useState(false);
@@ -71,7 +77,7 @@ export function ItemCard({
       setEditing(false);
       return;
     }
-    await onSaveName(name);
+    await onSaveName?.(name);
     setEditing(false);
   };
 
@@ -82,7 +88,7 @@ export function ItemCard({
     }
     const value = roundMoney(Number(raw.replace(',', '.')));
     if (value > 0 && value !== item.price) {
-      void onSavePrice(value);
+      void onSavePrice?.(value);
     }
   };
 
@@ -121,8 +127,8 @@ export function ItemCard({
     >
       <Checkbox
         checked={item.isPurchased}
-        onToggle={onToggle}
-        disabled={pending}
+        onToggle={onToggle ?? (() => undefined)}
+        disabled={pending || readOnly}
         accessibilityLabel={item.name}
       />
       <View style={styles.text}>
@@ -136,11 +142,11 @@ export function ItemCard({
         >
           {item.name}
         </Text>
-        {pricesOn && item.price != null ? (
+        {(pricesOn || readOnly) && item.price != null ? (
           <Text style={[styles.price, { color: colors.muted }]}>{formatMoney(item.price)}</Text>
         ) : null}
       </View>
-      {pricesOn ? (
+      {pricesOn && !readOnly ? (
         <TextInput
           value={priceDraft}
           onChangeText={setPriceDraft}
@@ -158,22 +164,26 @@ export function ItemCard({
           style={[styles.priceInput, { backgroundColor: colors.fill, color: colors.text }]}
         />
       ) : null}
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`Editar ${item.name}`}
-        onPress={startEditing}
-        style={styles.iconButton}
-      >
-        <Pencil size={18} color={colors.accentInk} strokeWidth={ICON_STROKE} />
-      </Pressable>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`Eliminar ${item.name}`}
-        onPress={onDelete}
-        style={styles.iconButton}
-      >
-        <Trash2 size={18} color={colors.negative} strokeWidth={ICON_STROKE} />
-      </Pressable>
+      {!readOnly ? (
+        <>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Editar ${item.name}`}
+            onPress={startEditing}
+            style={styles.iconButton}
+          >
+            <Pencil size={18} color={colors.accentInk} strokeWidth={ICON_STROKE} />
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Eliminar ${item.name}`}
+            onPress={onDelete}
+            style={styles.iconButton}
+          >
+            <Trash2 size={18} color={colors.negative} strokeWidth={ICON_STROKE} />
+          </Pressable>
+        </>
+      ) : null}
     </View>
   );
 }

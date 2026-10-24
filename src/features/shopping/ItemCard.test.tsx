@@ -88,3 +88,31 @@ describe('<ItemCard /> with individual prices on', () => {
     expect(getByDisplayValue('1.5')).toBeTruthy();
   });
 });
+
+describe('<ItemCard /> in read-only mode', () => {
+  it('renders the item without any modifying control', async () => {
+    const props = noopProps();
+    const { getByText, queryByPlaceholderText, queryByLabelText } = await render(
+      <ItemCard item={makeItem({ isPurchased: true, price: 2.25 })} readOnly {...props} />,
+    );
+
+    expect(getByText('Leche')).toBeTruthy();
+    expect(getByText('$2.25')).toBeTruthy();
+    expect(queryByPlaceholderText('$0.00')).toBeNull();
+    expect(queryByLabelText('Editar Leche')).toBeNull();
+    expect(queryByLabelText('Eliminar Leche')).toBeNull();
+  });
+
+  it('keeps the checkbox disabled, so it cannot toggle', async () => {
+    const props = noopProps();
+    const { getByLabelText } = await render(
+      <ItemCard item={makeItem({ isPurchased: true })} readOnly {...props} />,
+    );
+
+    expect(getByLabelText('Leche').props.accessibilityState).toMatchObject({
+      checked: true,
+      disabled: true,
+    });
+  });
+});
+
