@@ -7,18 +7,21 @@ import { useController, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { getErrorMessage, isApiError } from '@/api/client';
-import { clearSession } from '@/auth/session';
+import { clearSession, signOut } from '@/auth/session';
+import { forgetTempPassword, takeTempPassword } from '@/auth/passwordGate';
 import {
   Button,
   Field,
   Group,
   LargeHeader,
+  Note,
   ScreenContainer,
   TextButton,
   TopBar,
   useToast,
 } from '@/components/ui';
 import { useChangePassword } from '@/features/settings/useChangePassword';
+import { useAuthStore } from '@/stores/auth';
 import { typography, useThemeColors } from '@/theme';
 
 const schema = z
@@ -39,16 +42,28 @@ const schema = z
 
 type ChangePasswordForm = z.infer<typeof schema>;
 
-/** `/change-password` — changes the password and re-signs the user in (F15). */
+/**
+ * `/change-password` — changes the password and re-signs the user in (F15).
+ * When `user.mustChangePassword` is `true` it becomes a mandatory gate after a
+ * temporary password login (EMAILS 4.3): no back navigation and no tabs.
+ */
 export default function ChangePasswordScreen() {
   const colors = useThemeColors();
+  const forced = useAuthStore((state) => state.mustChangePassword);
   const { show } = useToast();
   const change = useChangePassword();
   const [formError, setFormError] = useState<string | null>(null);
+  // The temporary password typed at login was kept in memory (EMAIL-VERIFY 4.3);
+  // taking it consumes it, so it never reaches persistent storage.
+  const [savedTempPassword] = useState(() => takeTempPassword());
 
   const { control, handleSubmit, formState } = useForm<ChangePasswordForm>({
     resolver: zodResolver(schema),
-    defaultValues: { currentPassword: '', newPassword: '', confirmPassword: '' },
+    defaultValues: {
+      currentPassword: forced ? (savedTempPassword ?? '') : '',
+      newPassword: '',
+      confirmPassword: '',
+    },
   });
 
   const currentPassword = useController({ control, name: 'currentPassword' });
@@ -63,6 +78,7 @@ export default function ChangePasswordScreen() {
         currentPassword: values.currentPassword,
         newPassword: values.newPassword,
       });
+      forgetTempPassword();
       await clearSession();
       router.replace('/login');
       show('Contraseña actualizada. Vuelve a iniciar sesión.');
@@ -75,22 +91,39 @@ export default function ChangePasswordScreen() {
     }
   });
 
+  const handleSignOut = async () => {
+    forgetTempPassword();
+    await signOut();
+    router.replace('/login');
+  };
+
   return (
     <View style={[styles.screen, { backgroundColor: colors.bg }]}>
       <TopBar
-        title="Cambiar contraseña"
-        onBack={() => router.back()}
-        right={<TextButton title="Guardar" onPress={onSubmit} />}
+        title={forced ? 'Seguridad' : 'Cambiar contraseña'}
+        onBack={forced ? undefined : () => router.back()}
+        showBack={!forced}
+        right={
+          forced ? (
+            <TextButton title="Salir" onPress={handleSignOut} />
+          ) : (
+            <TextButton title="Guardar" onPress={onSubmit} />
+          )
+        }
       />
       <ScreenContainer>
         <LargeHeader
-          title="Contraseña"
-          subtitle="Al cambiarla se cerrarán tus sesiones activas."
+          title={forced ? 'Cambia tu contraseña' : 'Contraseña'}
+          subtitle={
+            forced
+              ? 'Por seguridad, reemplaza la contraseña temporal antes de continuar.'
+              : 'Al cambiarla se cerrarán tus sesiones activas.'
+          }
         />
 
         <Group>
           <Field
-            label="Actual"
+            label={forced ? 'Temporal' : 'Actual'}
             autoCapitalize="none"
             secureTextEntry
             value={currentPassword.field.value}
@@ -118,12 +151,14 @@ export default function ChangePasswordScreen() {
           />
         </Group>
 
+        <Note>Mínimo 8 caracteres, con mayúscula, minúscula y número.</Note>
+
         {formError ? (
           <Text style={[styles.formError, { color: colors.negative }]}>{formError}</Text>
         ) : null}
 
         <Button
-          title="Actualizar contraseña"
+          title={forced ? 'Guardar y continuar' : 'Actualizar contraseña'}
           loading={formState.isSubmitting}
           onPress={onSubmit}
           style={styles.button}

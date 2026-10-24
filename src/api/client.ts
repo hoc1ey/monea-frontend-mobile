@@ -38,7 +38,15 @@ const refreshClient = axios.create({
   },
 });
 
-const PUBLIC_PATHS = ['/auth/login', '/auth/register', '/auth/refresh', '/health'];
+const PUBLIC_PATHS = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/refresh',
+  '/auth/verify',
+  '/auth/resend-verification',
+  '/auth/forgot-password',
+  '/health',
+];
 
 function isPublicRequest(url?: string): boolean {
   return url ? PUBLIC_PATHS.some((path) => url.includes(path)) : false;

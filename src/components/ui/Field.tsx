@@ -18,6 +18,8 @@ export interface FieldProps extends Omit<TextInputProps, 'style'> {
   /** Text alignment; entries are right aligned by default (CONVENCIONES 1.3). */
   align?: 'left' | 'right';
   right?: ReactNode;
+  /** Accessory rendered after the input (e.g. a visibility toggle), keeping the input editable. */
+  rightAccessory?: ReactNode;
   /** Validation message rendered below the field in 13 `negative` (F03). */
   error?: string;
   showSeparator?: boolean;
@@ -28,6 +30,7 @@ function FieldBase({
   label,
   align = 'right',
   right,
+  rightAccessory,
   error,
   showSeparator,
   style,
@@ -43,11 +46,14 @@ function FieldBase({
         {right ? (
           <View style={styles.right}>{right}</View>
         ) : (
-          <TextInput
-            placeholderTextColor={colors.muted}
-            {...inputProps}
-            style={[styles.input, { color: colors.text, textAlign: align }]}
-          />
+          <>
+            <TextInput
+              placeholderTextColor={colors.muted}
+              {...inputProps}
+              style={[styles.input, { color: colors.text, textAlign: align }]}
+            />
+            {rightAccessory}
+          </>
         )}
       </View>
       {error ? <Text style={[styles.error, { color: colors.negative }]}>{error}</Text> : null}

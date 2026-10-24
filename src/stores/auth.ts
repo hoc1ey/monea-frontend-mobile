@@ -7,8 +7,11 @@ export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 interface AuthState {
   status: AuthStatus;
   user: AuthUser | null;
+  /** `user.mustChangePassword` mirror, persisted across cold starts. */
+  mustChangePassword: boolean;
   setUser: (user: AuthUser | null) => void;
   setStatus: (status: AuthStatus) => void;
+  setMustChangePassword: (value: boolean) => void;
 }
 
 /**
@@ -18,6 +21,8 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   status: 'loading',
   user: null,
+  mustChangePassword: false,
   setUser: (user) => set({ user }),
   setStatus: (status) => set({ status }),
+  setMustChangePassword: (mustChangePassword) => set({ mustChangePassword }),
 }));

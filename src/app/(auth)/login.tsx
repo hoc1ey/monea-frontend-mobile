@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
+import { Eye, EyeOff } from 'lucide-react-native';
 import { useController, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -19,7 +20,7 @@ import { signIn } from '@/auth/session';
 import { BrandLogo } from '@/components/auth/BrandLogo';
 import { Button, Field, Group } from '@/components/ui';
 import { shouldShowNotificationOnboarding } from '@/lib/notifications';
-import { typography, useThemeColors } from '@/theme';
+import { ICON_STROKE, typography, useThemeColors } from '@/theme';
 
 const schema = z.object({
   email: z.string().min(1, 'Ingresa tu correo').email('Correo inválido'),
@@ -30,11 +31,15 @@ type LoginForm = z.infer<typeof schema>;
 
 export default function LoginScreen() {
   const colors = useThemeColors();
+  const params = useLocalSearchParams<{ email?: string }>();
+  const initialEmail =
+    typeof params.email === 'string' && params.email ? params.email : 'jhon@example.com';
   const [formError, setFormError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const { control, handleSubmit, formState } = useForm<LoginForm>({
     resolver: zodResolver(schema),
-    defaultValues: { email: 'jhon@example.com', password: '********' },
+    defaultValues: { email: initialEmail, password: '********' },
   });
 
   const email = useController({ control, name: 'email' });
@@ -44,7 +49,21 @@ export default function LoginScreen() {
     setFormError(null);
 
     try {
-      await signIn(values);
+      const result = await signIn(values);
+
+      if (result.kind === 'unverified') {
+        router.replace({
+          pathname: '/verify-email',
+          params: { email: result.email },
+        });
+        return;
+      }
+
+      if (result.user.mustChangePassword) {
+        router.replace('/force-change-password');
+        return;
+      }
+
       const showOnboarding = await shouldShowNotificationOnboarding();
       router.replace(showOnboarding ? '/notifications-onboarding' : '/');
     } catch (error) {
@@ -95,11 +114,26 @@ export default function LoginScreen() {
           <Field
             label="Contraseña"
             autoCapitalize="none"
-            secureTextEntry
-            placeholder={password.field.value}
+            secureTextEntry={!showPassword}
+            placeholder="••••••••••"
             onChangeText={password.field.onChange}
             onBlur={password.field.onBlur}
             error={password.fieldState.error?.message}
+            rightAccessory={
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                hitSlop={10}
+                onPress={() => setShowPassword((visible) => !visible)}
+                style={({ pressed }) => [styles.eye, pressed && styles.eyePressed]}
+              >
+                {showPassword ? (
+                  <EyeOff size={20} color={colors.accentInk} strokeWidth={ICON_STROKE} />
+                ) : (
+                  <Eye size={20} color={colors.muted} strokeWidth={ICON_STROKE} />
+                )}
+              </Pressable>
+            }
           />
         </Group>
 
@@ -114,6 +148,9 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.links}>
+          <Pressable accessibilityRole="button" onPress={() => router.push('/forgot-password')}>
+            <Text style={[styles.link, { color: colors.accentInk }]}>¿Olvidaste tu contraseña?</Text>
+          </Pressable>
           <Pressable accessibilityRole="button" onPress={() => router.push('/register')}>
             <Text style={[styles.link, { color: colors.accentInk }]}>Crear cuenta</Text>
           </Pressable>
@@ -158,12 +195,19 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   links: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 12,
     marginTop: 18,
   },
   link: {
     ...typography.subhead,
     fontWeight: '500',
+  },
+  eye: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  eyePressed: {
+    opacity: 0.6,
   },
 });

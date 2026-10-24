@@ -8,9 +8,8 @@ import { z } from 'zod';
 
 import { getErrorMessage } from '@/api/client';
 import { signUp } from '@/auth/session';
-import { Button, Field, Group, ScreenContainer, TopBar } from '@/components/ui';
+import { Button, Field, Group, Note, ScreenContainer, TopBar } from '@/components/ui';
 import { Select } from '@/components/ui/Select';
-import { shouldShowNotificationOnboarding } from '@/lib/notifications';
 import { buildTimezoneOptions, detectTimezone, TIMEZONE_OPTIONS } from '@/lib/timezone';
 import { typography, useThemeColors } from '@/theme';
 
@@ -62,14 +61,16 @@ export default function RegisterScreen() {
     setFormError(null);
 
     try {
-      await signUp({
+      const result = await signUp({
         name: values.name,
         email: values.email,
         password: values.password,
         timezone: values.timezone,
       });
-      const showOnboarding = await shouldShowNotificationOnboarding();
-      router.replace(showOnboarding ? '/notifications-onboarding' : '/');
+      router.replace({
+        pathname: '/verify-email',
+        params: { email: result.email },
+      });
     } catch (error) {
       setFormError(getErrorMessage(error, 'No se pudo crear la cuenta'));
     }
@@ -122,15 +123,18 @@ export default function RegisterScreen() {
             />
 
             <Select
-              label="Zona horariaaa"
+              label="Zona horaria"
               options={timezoneOptions}
               value={timezone.field.value}
               onChange={timezone.field.onChange}
             />
           </Group>
 
+          <Note>Mínimo 8 caracteres, con mayúscula, minúscula y número.</Note>
 
-          {formError ? <Text style={[styles.formError, { color: colors.negative }]}>{formError}</Text> : null}
+          {formError ? (
+            <Text style={[styles.formError, { color: colors.negative }]}>{formError}</Text>
+          ) : null}
 
           <View style={styles.buttonMargin}>
             <Button

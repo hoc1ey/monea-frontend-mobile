@@ -36,9 +36,15 @@ export interface ChangePasswordInput {
 }
 
 /**
- * PATCH /users/me/password — changes the password. The backend then closes
- * every session, so the app must clear the tokens and return to login.
+ * PATCH /users/me/password — changes the password. Per the contract
+ * (EMAIL-VERIFY 5) `deleteAllSessions` must always be `true`, so it is sent
+ * explicitly here. The backend then closes every session, so the app must
+ * clear the tokens and return to login.
  */
 export async function changePassword(input: ChangePasswordInput): Promise<void> {
-  await api.patch<ApiEnvelope<null>>('/users/me/password', input);
+  await api.patch<ApiEnvelope<null>>('/users/me/password', {
+    currentPassword: input.currentPassword,
+    newPassword: input.newPassword,
+    deleteAllSessions: true,
+  });
 }

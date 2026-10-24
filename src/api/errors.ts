@@ -39,7 +39,10 @@ export function getErrorMessage(error: unknown, fallback: string): string {
   }
 
   if (error.status === 429) {
-    return 'Demasiadas solicitudes. Intenta en un momento.';
+    const minutes = getRetryAfterMinutes(error);
+    return minutes
+      ? `Demasiadas solicitudes. Intenta de nuevo en ${minutes} min.`
+      : 'Demasiadas solicitudes. Intenta en un momento.';
   }
 
   if (error.status === 0) {
