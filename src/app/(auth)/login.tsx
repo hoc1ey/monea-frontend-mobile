@@ -137,6 +137,16 @@ export default function LoginScreen() {
           />
         </Group>
 
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push('/forgot-password')}
+          style={styles.forgot}
+        >
+          <Text style={[styles.forgotText, { color: colors.muted }]}>
+            ¿Olvidaste tu contraseña?
+          </Text>
+        </Pressable>
+
         {formError ? <Text style={[styles.formError, { color: colors.negative }]}>{formError}</Text> : null}
 
         <View style={styles.buttonwrap}>
@@ -148,9 +158,6 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.links}>
-          <Pressable accessibilityRole="button" onPress={() => router.push('/forgot-password')}>
-            <Text style={[styles.link, { color: colors.accentInk }]}>¿Olvidaste tu contraseña?</Text>
-          </Pressable>
           <Pressable accessibilityRole="button" onPress={() => router.push('/register')}>
             <Text style={[styles.link, { color: colors.accentInk }]}>Crear cuenta</Text>
           </Pressable>
@@ -189,6 +196,14 @@ const styles = StyleSheet.create({
   formError: {
     ...typography.footnote,
     marginTop: 8,
+  },
+  forgot: {
+    alignSelf: 'flex-end',
+    marginTop: 6,
+  },
+  forgotText: {
+    ...typography.footnote,
+    fontWeight: '400',
   },
   buttonwrap: {
     marginTop: 28,
