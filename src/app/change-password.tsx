@@ -103,11 +103,12 @@ export default function ChangePasswordScreen() {
         title={forced ? 'Seguridad' : 'Cambiar contraseña'}
         onBack={forced ? undefined : () => router.back()}
         showBack={!forced}
+        loading={formState.isSubmitting}
         right={
           forced ? (
             <TextButton title="Salir" onPress={handleSignOut} />
           ) : (
-            <TextButton title="Guardar" onPress={onSubmit} />
+            <TextButton title="Guardar" disabled={formState.isSubmitting} onPress={onSubmit} />
           )
         }
       />
