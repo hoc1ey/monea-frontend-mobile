@@ -79,7 +79,7 @@ function ClosedDetail({
         </Text>
       </View>
       <Note>
-        Lista cerrada e inmutable. Se registró un egreso por el total desde {accountName}.
+        Se registró un egreso por el total desde {accountName}.
       </Note>
     </>
   );

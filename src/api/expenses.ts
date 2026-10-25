@@ -43,6 +43,8 @@ export interface Expense {
   recurringConfigId: string | null;
   occurrenceDate: string | null;
   sourceType: ExpenseSourceType;
+  /** Id of the originating record: config, list, loan, installment or payment. */
+  sourceId: string | null;
   /** Only present for deferred expenses in the detail endpoint. */
   installmentPlan?: ExpenseInstallment[];
 }
