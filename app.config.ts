@@ -15,7 +15,7 @@ const config: ExpoConfig = {
   name: 'Monea',
   slug: 'monea',
   scheme: 'monea',
-  version: '1.0.0',
+  version: '1.1.0',
   orientation: 'portrait',
   userInterfaceStyle: 'automatic',
   icon: './assets/images/icon.png',
