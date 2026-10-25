@@ -7,8 +7,8 @@ import { useController, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { getErrorMessage, isApiError } from '@/api/client';
-import { clearSession, signOut } from '@/auth/session';
 import { forgetTempPassword, takeTempPassword } from '@/auth/passwordGate';
+import { clearSession, signOut } from '@/auth/session';
 import {
   Button,
   Field,
@@ -158,12 +158,13 @@ export default function ChangePasswordScreen() {
           <Text style={[styles.formError, { color: colors.negative }]}>{formError}</Text>
         ) : null}
 
-        <Button
-          title={forced ? 'Guardar y continuar' : 'Actualizar contraseña'}
-          loading={formState.isSubmitting}
-          onPress={onSubmit}
-          style={styles.button}
-        />
+        <View style={styles.button}>
+          <Button
+            title={forced ? 'Guardar y continuar' : 'Actualizar contraseña'}
+            loading={formState.isSubmitting}
+            onPress={onSubmit}
+          />
+        </View>
       </ScreenContainer>
     </View>
   );

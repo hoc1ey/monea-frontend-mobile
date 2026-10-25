@@ -150,12 +150,13 @@ export default function VerifyEmailScreen() {
           <Text style={[styles.formError, { color: colors.negative }]}>{formError}</Text>
         ) : null}
 
-        <Button
-          title="Verificar código"
-          loading={formState.isSubmitting}
-          onPress={onSubmit}
-          style={styles.button}
-        />
+        <View style={styles.button}>
+          <Button
+            title="Verificar código"
+            loading={formState.isSubmitting}
+            onPress={onSubmit}
+          />
+        </View>
 
         <View style={styles.resend}>
           <TextButton
@@ -224,7 +225,7 @@ const styles = StyleSheet.create({
   },
   resend: {
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 21,
   },
   footer: {
     flexDirection: 'row',

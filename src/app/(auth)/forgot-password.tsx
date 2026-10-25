@@ -84,11 +84,12 @@ export default function ForgotPasswordScreen() {
               una nueva.
             </Note>
 
-            <Button
-              title="Volver a iniciar sesión"
-              onPress={() => router.replace('/login')}
-              style={styles.button}
-            />
+            <View style={styles.button}>
+              <Button
+                title="Volver a iniciar sesión"
+                onPress={() => router.replace('/login')}
+              />
+            </View>
 
             <View style={styles.retry}>
               <TextButton title="Usar otro correo" onPress={() => setSentMessage(null)} />
@@ -114,12 +115,13 @@ export default function ForgotPasswordScreen() {
               <Text style={[styles.formError, { color: colors.negative }]}>{formError}</Text>
             ) : null}
 
-            <Button
-              title="Enviar contraseña temporal"
-              loading={formState.isSubmitting}
-              onPress={onSubmit}
-              style={styles.button}
-            />
+            <View style={styles.button}>
+              <Button
+                title="Enviar contraseña temporal"
+                loading={formState.isSubmitting}
+                onPress={onSubmit}
+              />
+            </View>
 
             <View style={styles.footer}>
               <Text style={[styles.footerText, { color: colors.muted }]}>¿Ya la recordaste?</Text>
@@ -177,7 +179,7 @@ const styles = StyleSheet.create({
   },
   retry: {
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 21,
   },
   footer: {
     flexDirection: 'row',
