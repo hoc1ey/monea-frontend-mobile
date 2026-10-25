@@ -1,8 +1,9 @@
+import { useState } from 'react';
 import { Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { toZonedTime } from 'date-fns-tz';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ArrowUpDown, WifiOff } from 'lucide-react-native';
+import { ArrowUpDown, ExternalLink, WifiOff } from 'lucide-react-native';
 
 import { getErrorMessage, isApiError } from '@/api/client';
 import type { Expense } from '@/api/expenses';
@@ -30,6 +31,7 @@ import {
   type Movement,
   type MovementKind,
 } from '@/features/movements/movements';
+import { originLinkLabel, resolveOriginLink } from '@/features/movements/originLink';
 import { useMovementDetail } from '@/features/movements/useMovementDetail';
 import {
   useDeleteExpense,
@@ -84,6 +86,7 @@ export default function MovementDetailScreen() {
 
   const isDeleting = kind === 'income' ? deleteIncome.isPending : deleteExpense.isPending;
   const isNotFound = isApiError(detail.error) && detail.error.status === 404;
+  const [isResolvingOrigin, setResolvingOrigin] = useState(false);
 
   const handleDelete = async () => {
     try {
@@ -121,6 +124,27 @@ export default function MovementDetailScreen() {
       router.push({ pathname: '/movements/income/new', params: { id } });
     } else {
       router.push({ pathname: '/movements/expense/new', params: { id } });
+    }
+  };
+
+  /** Opens the module that generated the movement, on the exact record. */
+  const openOrigin = async () => {
+    if (!movement) {
+      return;
+    }
+
+    setResolvingOrigin(true);
+    try {
+      const link = await resolveOriginLink(movement);
+      if (link) {
+        router.push(link.route);
+      } else {
+        toast.show('No se pudo abrir el módulo de origen');
+      }
+    } catch {
+      toast.show('No se pudo abrir el módulo de origen');
+    } finally {
+      setResolvingOrigin(false);
     }
   };
 
@@ -199,13 +223,26 @@ export default function MovementDetailScreen() {
             ) : null}
 
             {movement.automatic ? (
-              <Note style={styles.note}>
-                <Text style={[styles.noteText, { color: colors.muted }]}>
-                  Generado automáticamente desde{' '}
-                  <Text style={[styles.noteStrong, { color: colors.text }]}>{movement.origin}</Text>. El
-                  monto se gestiona desde su módulo de origen.
-                </Text>
-              </Note>
+              <>
+                <Note style={styles.note}>
+                  <Text style={[styles.noteText, { color: colors.muted }]}>
+                    Generado automáticamente desde{' '}
+                    <Text style={[styles.noteStrong, { color: colors.text }]}>{movement.origin}</Text>. El
+                    monto se gestiona desde su módulo de origen.
+                  </Text>
+                </Note>
+                <View style={styles.originAction}>
+                  <Button
+                    title={originLinkLabel(movement) ?? 'Ver origen'}
+                    variant="ghost"
+                    small
+                    leftIcon={ExternalLink}
+                    loading={isResolvingOrigin}
+                    onPress={() => void openOrigin()}
+                    accessibilityLabel="Ir al módulo de origen"
+                  />
+                </View>
+              </>
             ) : null}
 
             <Group>
@@ -290,6 +327,11 @@ const styles = StyleSheet.create({
   },
   noteStrong: {
     fontWeight: '600',
+  },
+  originAction: {
+    alignItems: 'center',
+    marginTop: -6,
+    marginBottom: 14,
   },
   deleteGroup: {
     marginTop: 18,

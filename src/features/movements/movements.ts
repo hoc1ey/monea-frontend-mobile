@@ -30,6 +30,8 @@ export interface Movement {
   description: string | null;
   date: string;
   accountId: string;
+  /** Id of the record that generated the movement, inside its origin module. */
+  sourceId: string | null;
   /** Recurring variable expense whose amount still has to be set. */
   pending: boolean;
   /** Deferred expense charged to a credit card. */
@@ -78,6 +80,7 @@ export function incomeToMovement(income: Income): Movement {
     description: income.description,
     date: income.date,
     accountId: income.accountId,
+    sourceId: income.sourceId ?? null,
     pending: false,
     deferred: false,
     origin: INCOME_ORIGIN[income.sourceType],
@@ -105,6 +108,7 @@ export function expenseToMovement(expense: Expense): Movement {
     description: expense.description,
     date: expense.date,
     accountId: expense.accountId,
+    sourceId: expense.sourceId ?? null,
     pending: expense.amountPending,
     deferred,
     origin: EXPENSE_ORIGIN[expense.sourceType],
