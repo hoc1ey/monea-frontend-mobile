@@ -1,5 +1,7 @@
 import '@/global.css';
 
+import { LogBox } from 'react-native';
+
 import { useEffect, useMemo } from 'react';
 
 import * as SystemUI from 'expo-system-ui';
@@ -63,6 +65,11 @@ function PasswordGate() {
 
   return null;
 }
+
+// El Stack de expo-router (SDK 57) registra handles con `InteractionManager`,
+// deprecado en RN 0.86. React Navigation 8 lo elimina; mientras tanto se
+// silencia el aviso de deprecacion (react-navigation/react-navigation#12785).
+LogBox.ignoreLogs(['InteractionManager has been deprecated']);
 
 export default function RootLayout() {
   const { colorScheme } = useColorScheme();
