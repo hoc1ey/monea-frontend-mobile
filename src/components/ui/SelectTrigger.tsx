@@ -6,16 +6,13 @@ import { Separator } from './Separator';
 
 export interface SelectTriggerProps {
   label: string;
-  /** Label of the selected option; `undefined` falls back to the placeholder. */
   selected?: string;
   placeholder: string;
   onPress: () => void;
-  /** Renders a red "Quitar" action once there is a selected value. */
   onClear?: () => void;
   showSeparator?: boolean;
 }
 
-/** Tappable row shared by `Select` and `WheelSelect` (label + right value). */
 export function SelectTrigger({
   label,
   selected,
@@ -35,24 +32,29 @@ export function SelectTrigger({
           accessibilityRole="button"
           accessibilityLabel={label}
           onPress={onPress}
-          style={({ pressed }) => [styles.main, pressed && styles.pressed]}
+          style={styles.pressable}
         >
-          <Text style={[typography.body, { color: colors.text }]}>{label}</Text>
-          <Text
-            style={[
-              typography.body,
-              {
-                fontWeight: '500',
-                color: selected ? colors.accentInk : colors.muted,
-                flex: 1,
-                textAlign: 'right',
-              },
-            ]}
-            numberOfLines={1}
-          >
-            {selected ?? placeholder}
-          </Text>
+          {({ pressed }) => (
+            <View style={[styles.content, pressed && styles.pressed]}>
+              <Text style={[typography.body, { color: colors.text }]}>{label}</Text>
+              <Text
+                numberOfLines={1}
+                style={[
+                  typography.body,
+                  {
+                    fontWeight: '500',
+                    color: selected ? colors.accentInk : colors.muted,
+                    flex: 1,
+                    textAlign: 'right',
+                  },
+                ]}
+              >
+                {selected ?? placeholder}
+              </Text>
+            </View>
+          )}
         </Pressable>
+
         {clearable ? (
           <Pressable
             accessibilityRole="button"
@@ -77,9 +79,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
   },
-  main: {
+  // El Pressable solo ocupa el espacio; no lleva layout propio.
+  pressable: {
     flex: 1,
     minWidth: 0,
+  },
+  // El layout real vive en un View.
+  content: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
