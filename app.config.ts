@@ -16,6 +16,10 @@ const config: ExpoConfig = {
   slug: 'monea',
   scheme: 'monea',
   version: '1.1.0',
+  runtimeVersion: { policy: 'appVersion' },
+  updates: {
+    url: 'https://u.expo.dev/5587977e-c43b-4042-9b9b-65a7d755d120',
+  },
   orientation: 'portrait',
   userInterfaceStyle: 'automatic',
   icon: './assets/images/icon.png',
