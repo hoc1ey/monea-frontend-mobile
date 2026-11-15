@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { router, type Href } from 'expo-router';
-import { ArrowDown, ArrowUp, CreditCard, Landmark, ShoppingCart, Wallet } from 'lucide-react-native';
+import { ArrowDownCircle, ArrowLeftRight, ArrowUpCircle, CalendarArrowDown, CalendarArrowUp, Handshake, Landmark, ShoppingCart } from 'lucide-react-native';
 
 import { IconTile, Sheet, type IconComponent } from '@/components/ui';
 import { useUiStore } from '@/stores/ui';
@@ -15,26 +15,46 @@ interface QuickAction {
 }
 
 const ACTIONS: QuickAction[] = [
-  { label: 'Ingreso', icon: ArrowDown, href: '/movements/income/new' },
-  { label: 'Egreso', icon: ShoppingCart, href: '/movements/expense/new' },
-  { label: 'Cuenta', icon: Wallet, href: '/accounts/new' },
-  { label: 'Tarjeta', icon: CreditCard, href: '/cards/new' },
+  {
+    label: 'Ingreso',
+    icon: ArrowDownCircle,
+    href: '/movements/income/new',
+  },
+  {
+    label: 'Egreso',
+    icon: ArrowUpCircle,
+    href: '/movements/expense/new',
+  },
+  {
+    label: 'Transferencia',
+    icon: ArrowLeftRight,
+    href: '/transfers/new',
+  },
+  {
+    label: 'Cuenta',
+    icon: Landmark,
+    href: '/accounts/new',
+  },
   {
     label: 'Cobro',
-    icon: ArrowDown,
+    icon: CalendarArrowDown,
     href: { pathname: '/obligations/[tab]/new', params: { tab: 'cobros' } },
   },
   {
     label: 'Préstamo',
-    icon: Landmark,
+    icon: Handshake,
     href: { pathname: '/obligations/[tab]/new', params: { tab: 'prestamos' } },
   },
   {
     label: 'Deuda',
-    icon: ArrowUp,
+    icon: CalendarArrowUp,
     href: { pathname: '/obligations/[tab]/new', params: { tab: 'deudas' } },
   },
-  { label: 'Lista', icon: ShoppingCart, href: '/shopping/new' },
+  {
+    label: 'Lista',
+    icon: ShoppingCart,
+    href: '/shopping/new',
+  },
 ];
 
 interface ActionButtonProps {
@@ -72,8 +92,8 @@ function ActionButton({ action, onPress }: ActionButtonProps) {
 }
 
 /**
- * Global "Nuevo" quick-actions sheet (F02). Lists the eight registration entry
- * points in the prototype order; selecting one closes the sheet and navigates.
+ * Global "Nuevo" quick-actions sheet (F02 + F17). Lists the registration entry
+ * points; selecting one closes the sheet and navigates.
  */
 export function QuickActionsSheet() {
   const visible = useUiStore((state) => state.quickActionsOpen);

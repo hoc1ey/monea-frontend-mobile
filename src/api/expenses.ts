@@ -11,7 +11,8 @@ export type ExpenseSourceType =
   | 'CARD_PAYMENT'
   | 'LOAN_CREATION'
   | 'DEBT_PAYMENT'
-  | 'SHOPPING_LIST';
+  | 'SHOPPING_LIST'
+  | 'TRANSFER';
 
 /** Deferred expense installment returned inside `GET /expenses/:id`. */
 export interface ExpenseInstallment {

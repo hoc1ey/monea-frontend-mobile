@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { router, useLocalSearchParams } from 'expo-router';
-import { Wallet, WifiOff } from 'lucide-react-native';
+import { Landmark, WifiOff } from 'lucide-react-native';
 
 import { getErrorMessage, isApiError } from '@/api/client';
 import {
@@ -47,7 +47,7 @@ export default function EditAccountScreen() {
         <TopBar title="Editar cuenta" onBack={() => router.back()} />
         <ScreenContainer>
           {notFound ? (
-            <EmptyState icon={Wallet} title="Cuenta no encontrada" />
+            <EmptyState icon={Landmark} title="Cuenta no encontrada" />
           ) : (
             <>
               <Banner

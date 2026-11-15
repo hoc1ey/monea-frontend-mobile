@@ -103,8 +103,8 @@ export default function VerifyEmailScreen() {
       <TopBar title="Verificar correo" onBack={() => router.replace('/login')} />
       <ScreenContainer>
         <View style={styles.intro}>
-          <View style={[styles.icon, { backgroundColor: colors.accentSoft }]}>
-            <MailCheck size={38} color={colors.accentInk} strokeWidth={ICON_STROKE} />
+          <View style={styles.icon}>
+            <MailCheck size={38} color={colors.accent} strokeWidth={ICON_STROKE} />
           </View>
           <Text style={[styles.title, { color: colors.text }]}>Revisa tu correo</Text>
           <Text style={[styles.subtitle, { color: colors.muted }]}>
@@ -193,11 +193,6 @@ const styles = StyleSheet.create({
     paddingBottom: 22,
   },
   icon: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: 18,
   },
   title: {

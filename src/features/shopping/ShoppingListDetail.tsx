@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { RefreshControl, StyleSheet, Text, TextInput, View } from 'react-native';
+import { RefreshControl, StyleSheet, Text, TextInput, TextInputInstance, View } from 'react-native';
 
 import { router } from 'expo-router';
 import { ShoppingCart, WifiOff } from 'lucide-react-native';
@@ -115,7 +115,7 @@ export function ShoppingListDetail({ id }: ShoppingListDetailProps) {
   const [closing, setClosing] = useState(false);
   const [renaming, setRenaming] = useState(false);
   const [highlightItemId, setHighlightItemId] = useState<string | null>(null);
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<TextInputInstance>(null);
 
   const list = query.data;
   const items = itemsOf(list);

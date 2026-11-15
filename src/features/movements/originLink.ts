@@ -29,6 +29,7 @@ const ORIGIN_LABELS: Record<Exclude<MovementSourceType, 'MANUAL'>, string> = {
   SHOPPING_LIST: 'Ver lista',
   COLLECTION_INSTALLMENT: 'Ver cobro',
   LOAN_INSTALLMENT: 'Ver préstamo',
+  TRANSFER: 'Ver transferencia',
 };
 
 /** Label of the origin button, or `null` for manual movements. */
@@ -56,6 +57,8 @@ function directOriginLink(movement: Movement): OriginLink | null {
       return { label: ORIGIN_LABELS.SHOPPING_LIST, route: `/shopping/closed/${sourceId}` };
     case 'LOAN_CREATION':
       return { label: ORIGIN_LABELS.LOAN_CREATION, route: `/obligations/prestamos/${sourceId}` };
+    case 'TRANSFER':
+      return { label: ORIGIN_LABELS.TRANSFER, route: `/transfers/${sourceId}` };
     default:
       return null;
   }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollViewInstance, StyleSheet, Text, View } from 'react-native';
 
 import Animated, {
   Extrapolation,
@@ -74,7 +74,7 @@ interface WheelProps<T extends string> {
  */
 function Wheel<T extends string>({ options, value, onChange, visible }: WheelProps<T>) {
   const colors = useThemeColors();
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ScrollViewInstance>(null);
   const scrollY = useSharedValue(0);
   const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 

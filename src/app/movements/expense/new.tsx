@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { router, useLocalSearchParams } from 'expo-router';
-import { ShoppingCart, WifiOff } from 'lucide-react-native';
+import { ArrowUpCircle, WifiOff } from 'lucide-react-native';
 
 import { getErrorMessage, isApiError } from '@/api/client';
 import type { RecurringExpenseInput } from '@/api/recurringExpenses';
@@ -29,11 +29,11 @@ import {
   useUpdateExpense,
 } from '@/features/movements/useMovementMutations';
 import { RecurringExpenseForm } from '@/features/recurring/RecurringExpenseForm';
+import { useRecurringExpense } from '@/features/recurring/useRecurringExpenses';
 import {
   useCreateRecurringExpense,
   useUpdateRecurringExpense,
 } from '@/features/recurring/useRecurringMutations';
-import { useRecurringExpense } from '@/features/recurring/useRecurringExpenses';
 import { radii, useThemeColors } from '@/theme';
 
 const EXPENSE_KINDS: ExpenseKind[] = ['instant', 'diferido', 'recurrente'];
@@ -87,7 +87,7 @@ export default function NewExpenseScreen() {
         <TopBar title="Editar egreso" onBack={() => router.back()} />
         <ScreenContainer>
           {notFound ? (
-            <EmptyState icon={ShoppingCart} title="Egreso no encontrado" />
+            <EmptyState icon={ArrowUpCircle} title="Egreso no encontrado" />
           ) : (
             <>
               <Banner
@@ -130,7 +130,7 @@ export default function NewExpenseScreen() {
         <TopBar title="Editar recurrente" onBack={() => router.back()} />
         <ScreenContainer>
           {notFound ? (
-            <EmptyState icon={ShoppingCart} title="Recurrente no encontrado" />
+            <EmptyState icon={ArrowUpCircle} title="Recurrente no encontrado" />
           ) : (
             <>
               <Banner

@@ -3,7 +3,7 @@ import { Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native'
 
 import { toZonedTime } from 'date-fns-tz';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { Repeat, ShoppingCart, WifiOff } from 'lucide-react-native';
+import { ArrowUpCircle, Repeat, WifiOff } from 'lucide-react-native';
 
 import { getErrorMessage, isApiError } from '@/api/client';
 import type { Expense } from '@/api/expenses';
@@ -231,7 +231,7 @@ export default function RecurringDetailScreen() {
                   <Row
                     key={expense.id}
                     leading={
-                      <IconTile icon={ShoppingCart} size={34} style={styles.expenseIcon} />
+                      <IconTile icon={ArrowUpCircle} size={34} style={styles.expenseIcon} />
                     }
                     title="Egreso generado"
                     subtitle={

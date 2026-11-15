@@ -43,15 +43,15 @@ function RowBase({
 
   return (
     <View style={styles.wrapper}>
-      {showSeparator ? <Separator inset={hasLeading ? 60 : 14} /> : null}
+      {showSeparator ? <Separator inset={hasLeading ? 46 : 14} /> : null}
 
       {/* Fila: siempre un View con flexDirection row, igual a la prueba que funciona */}
       <View style={[styles.row, style]}>
         {leading ? (
           <View style={styles.lead}>{leading}</View>
         ) : Icon ? (
-          <View style={[styles.tile, { backgroundColor: colors.accentSoft }]}>
-            <Icon size={18} color={colors.accentInk} strokeWidth={ICON_STROKE} />
+          <View style={styles.lead}>
+            <Icon size={20} color={colors.accent} strokeWidth={ICON_STROKE} />
           </View>
         ) : null}
 
@@ -102,14 +102,6 @@ const styles = StyleSheet.create({
     minHeight: 56,
     paddingVertical: 12,
     paddingHorizontal: 14,
-  },
-  tile: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
   },
   lead: {
     flexShrink: 0,

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { router } from 'expo-router';
-import { ArrowDown, ArrowUp, Landmark, WifiOff } from 'lucide-react-native';
+import { ArrowDown, CalendarArrowUp, Handshake, WifiOff } from 'lucide-react-native';
 
 import { getErrorMessage, isApiError } from '@/api/client';
 import type { ObligationInstallment } from '@/api/obligations';
@@ -37,13 +37,13 @@ import {
   type ObligationView,
 } from './obligations';
 import { PayInstallmentSheet } from './PayInstallmentSheet';
-import { useObligation } from './useObligations';
 import { useDeleteObligation, usePayInstallment } from './useObligationMutations';
+import { useObligation } from './useObligations';
 
 const KIND_ICON: Record<ObligationKind, IconComponent> = {
   cobros: ArrowDown,
-  prestamos: Landmark,
-  deudas: ArrowUp,
+  prestamos: Handshake,
+  deudas: CalendarArrowUp,
 };
 
 function SummaryRow({ label, value, tone }: { label: string; value: string; tone?: 'positive' }) {

@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
-import { Landmark, WifiOff } from 'lucide-react-native';
+import { Handshake, WifiOff } from 'lucide-react-native';
 
 import { getErrorMessage, isApiError } from '@/api/client';
 import {
@@ -72,7 +72,7 @@ export default function NewObligationScreen() {
         <TopBar title="Editar registro" onBack={() => router.back()} />
         <ScreenContainer>
           {notFound ? (
-            <EmptyState icon={Landmark} title="Registro no encontrado" />
+            <EmptyState icon={Handshake} title="Registro no encontrado" />
           ) : (
             <>
               <Banner

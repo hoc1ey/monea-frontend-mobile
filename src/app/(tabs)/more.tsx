@@ -1,7 +1,7 @@
 import { RefreshControl, StyleSheet, View } from 'react-native';
 
 import { router } from 'expo-router';
-import { Bell, CreditCard, Settings, User, Wallet, WifiOff } from 'lucide-react-native';
+import { Bell, CreditCard, Landmark, Settings, User, WifiOff } from 'lucide-react-native';
 
 import {
   Banner,
@@ -63,7 +63,7 @@ export default function MoreScreen() {
       ) : (
         <Group>
           <Row
-            icon={Wallet}
+            icon={Landmark}
             title="Cuentas"
             subtitle={`${accounts.count} cuentas · ${formatMoney(accounts.balance)}`}
             onPress={() => router.push('/accounts')}

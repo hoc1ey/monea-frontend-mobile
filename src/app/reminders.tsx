@@ -6,13 +6,13 @@ import { differenceInCalendarDays, format, startOfDay } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { router } from 'expo-router';
 import {
-  ArrowDown,
-  ArrowUp,
   Bell,
+  CalendarArrowDown,
+  CalendarArrowUp,
   CreditCard,
-  Landmark,
+  Handshake,
   Repeat,
-  WifiOff,
+  WifiOff
 } from 'lucide-react-native';
 
 import { getReminders, type Reminder, type ReminderType } from '@/api/notifications';
@@ -37,9 +37,9 @@ import { useThemeColors } from '@/theme';
 const TYPE_META: Record<ReminderType, { label: string; icon: IconComponent }> = {
   CREDIT_CARD_PAYMENT: { label: 'Tarjeta', icon: CreditCard },
   RECURRING_EXPENSE: { label: 'Recurrente', icon: Repeat },
-  COLLECTION: { label: 'Cobro', icon: ArrowDown },
-  LOAN: { label: 'Préstamo', icon: Landmark },
-  DEBT: { label: 'Deuda', icon: ArrowUp },
+  COLLECTION: { label: 'Cobro', icon: CalendarArrowDown },
+  LOAN: { label: 'Préstamo', icon: Handshake },
+  DEBT: { label: 'Deuda', icon: CalendarArrowUp },
 };
 
 type Bucket = 'today' | 'week' | 'later';

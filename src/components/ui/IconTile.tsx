@@ -1,6 +1,6 @@
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { ICON_STROKE, radii, useThemeColors } from '@/theme';
+import { ICON_STROKE, useThemeColors } from '@/theme';
 
 import type { IconComponent } from './types';
 
@@ -23,14 +23,13 @@ export function IconTile({ icon: Icon, size = 34, iconSize = 18, tone = 'accent'
         {
           width: size,
           height: size,
-          backgroundColor: tone === 'accent' ? colors.accentSoft : colors.fill,
         },
         style,
       ]}
     >
       <Icon
         size={iconSize}
-        color={tone === 'accent' ? colors.accentInk : colors.text}
+        color={tone === 'accent' ? colors.accent : colors.text}
         strokeWidth={ICON_STROKE}
       />
     </View>
@@ -39,7 +38,6 @@ export function IconTile({ icon: Icon, size = 34, iconSize = 18, tone = 'accent'
 
 const styles = StyleSheet.create({
   tile: {
-    borderRadius: radii.icon,
     alignItems: 'center',
     justifyContent: 'center',
   },

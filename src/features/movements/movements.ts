@@ -1,10 +1,11 @@
 import { differenceInCalendarDays, startOfDay } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
-import { ArrowDown, CreditCard, Repeat, ShoppingCart } from 'lucide-react-native';
+import { Repeat } from 'lucide-react-native';
 
 import type { Expense, ExpensePaymentMethod, ExpenseSourceType } from '@/api/expenses';
 import type { Income, IncomeSourceType } from '@/api/incomes';
 import type { IconComponent } from '@/components/ui';
+import { CONCEPT_ICONS } from '@/lib/icons';
 import { formatDate } from '@/lib/format';
 
 /** Chips on the movements screen. */
@@ -49,6 +50,7 @@ export const INCOME_ORIGIN: Record<IncomeSourceType, string> = {
   MANUAL: 'Manual',
   COLLECTION_INSTALLMENT: 'Cobro',
   LOAN_INSTALLMENT: 'Préstamo',
+  TRANSFER: 'Transferencia',
 };
 
 export const EXPENSE_ORIGIN: Record<ExpenseSourceType, string> = {
@@ -58,6 +60,7 @@ export const EXPENSE_ORIGIN: Record<ExpenseSourceType, string> = {
   LOAN_CREATION: 'Préstamo',
   DEBT_PAYMENT: 'Deuda',
   SHOPPING_LIST: 'Lista',
+  TRANSFER: 'Transferencia',
 };
 
 function expensePaymentLabel(paymentMethod: ExpensePaymentMethod, installments: number | null): string {
@@ -86,7 +89,8 @@ export function incomeToMovement(income: Income): Movement {
     origin: INCOME_ORIGIN[income.sourceType],
     paymentMethodLabel: '—',
     automatic: !manual,
-    editability: manual ? 'full' : 'limited',
+    // Transfer incomes are read-only and link to their transfer via `sourceId`.
+    editability: manual ? 'full' : income.sourceType === 'TRANSFER' ? 'none' : 'limited',
     deletable: manual,
   };
 }
@@ -121,16 +125,34 @@ export function expenseToMovement(expense: Expense): Movement {
 
 /** Tile icon per movement (prototype `mvRow`). */
 export function movementIcon(movement: Movement): IconComponent {
+  if (movement.sourceType === 'TRANSFER') {
+    return CONCEPT_ICONS.transferencia;
+  }
   if (movement.kind === 'income') {
-    return ArrowDown;
+    if (movement.sourceType === 'COLLECTION_INSTALLMENT') {
+      return CONCEPT_ICONS.cobro;
+    }
+    if (movement.sourceType === 'LOAN_INSTALLMENT') {
+      return CONCEPT_ICONS.prestamo;
+    }
+    return CONCEPT_ICONS.ingreso;
+  }
+  if (movement.deferred || movement.sourceType === 'CARD_PAYMENT') {
+    return CONCEPT_ICONS.tarjeta;
   }
   if (movement.sourceType === 'RECURRING') {
     return Repeat;
   }
-  if (movement.deferred || movement.sourceType === 'CARD_PAYMENT') {
-    return CreditCard;
+  if (movement.sourceType === 'LOAN_CREATION') {
+    return CONCEPT_ICONS.prestamo;
   }
-  return ShoppingCart;
+  if (movement.sourceType === 'DEBT_PAYMENT') {
+    return CONCEPT_ICONS.deuda;
+  }
+  if (movement.sourceType === 'SHOPPING_LIST') {
+    return CONCEPT_ICONS.lista;
+  }
+  return CONCEPT_ICONS.egreso;
 }
 
 /** A day group on the movements list. */

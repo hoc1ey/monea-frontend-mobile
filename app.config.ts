@@ -1,6 +1,14 @@
 import type { ExpoConfig } from 'expo/config';
 
 const { existsSync } = require('fs') as { existsSync: (path: string) => boolean };
+const { config: loadEnv } = require('dotenv') as { config: (options?: unknown) => void };
+
+/**
+ * Loads `.env` explicitly so the values below are available even when this
+ * config is evaluated outside the Expo CLI (e.g. `eas update` publish steps
+ * or CI shells that do not preload dotenv).
+ */
+loadEnv();
 
 /**
  * `google-services.json` is required by FCM (F04) but is gitignored and only
@@ -10,6 +18,20 @@ const { existsSync } = require('fs') as { existsSync: (path: string) => boolean 
  */
 const googleServicesFile = './google-services.json';
 const hasGoogleServicesFile = existsSync(googleServicesFile);
+
+/**
+ * Runtime environment values. They are published inside `extra`, and the app
+ * reads them from `Constants.expoConfig` (src/config/env.ts). Because an EAS
+ * Update embeds the app config of the publish run, an OTA update can deliver
+ * new values without a new store build.
+ */
+const envExtra: Record<string, string> = {};
+if (process.env.EXPO_PUBLIC_API_URL) {
+  envExtra.EXPO_PUBLIC_API_URL = process.env.EXPO_PUBLIC_API_URL;
+}
+if (process.env.EXPO_PUBLIC_APP_ENV) {
+  envExtra.EXPO_PUBLIC_APP_ENV = process.env.EXPO_PUBLIC_APP_ENV;
+}
 
 const config: ExpoConfig = {
   name: 'Monea',
@@ -70,6 +92,7 @@ const config: ExpoConfig = {
     eas: {
       projectId: '5587977e-c43b-4042-9b9b-65a7d755d120',
     },
+    ...(Object.keys(envExtra).length > 0 ? { env: envExtra } : {}),
   },
   experiments: {
     typedRoutes: true,
