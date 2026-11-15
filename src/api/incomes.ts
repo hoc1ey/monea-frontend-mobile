@@ -3,7 +3,11 @@ import type { Paginated } from './types';
 
 export type { Paginated } from './types';
 
-export type IncomeSourceType = 'MANUAL' | 'COLLECTION_INSTALLMENT' | 'LOAN_INSTALLMENT';
+export type IncomeSourceType =
+  | 'MANUAL'
+  | 'COLLECTION_INSTALLMENT'
+  | 'LOAN_INSTALLMENT'
+  | 'TRANSFER';
 
 export interface Income {
   id: string;

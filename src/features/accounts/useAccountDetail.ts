@@ -11,6 +11,7 @@ const INCOME_ORIGIN: Record<IncomeSourceType, string> = {
   MANUAL: 'Manual',
   COLLECTION_INSTALLMENT: 'Cobro',
   LOAN_INSTALLMENT: 'Préstamo',
+  TRANSFER: 'Transferencia',
 };
 
 const EXPENSE_ORIGIN: Record<ExpenseSourceType, string> = {
@@ -20,6 +21,7 @@ const EXPENSE_ORIGIN: Record<ExpenseSourceType, string> = {
   LOAN_CREATION: 'Préstamo',
   DEBT_PAYMENT: 'Deuda',
   SHOPPING_LIST: 'Lista',
+  TRANSFER: 'Transferencia',
 };
 
 export type AccountMovementKind = 'income' | 'expense';
