@@ -8,7 +8,6 @@ import { getErrorMessage, isApiError } from '@/api/client';
 import {
   Banner,
   Button,
-  Chips,
   CreditCardVisual,
   EmptyState,
   Group,
@@ -21,17 +20,12 @@ import {
   TopBar,
   useConfirm,
   useToast,
-  type ChipOption,
   type TagVariant,
 } from '@/components/ui';
 import { useAccounts } from '@/features/accounts/useAccounts';
 import { PayCardSheet } from '@/features/cards/PayCardSheet';
-import {
-  buildPeriods,
-  currentPeriodInTimezone,
-  isValidPeriod,
-  shortMonthLabel,
-} from '@/features/cards/periods';
+import { PeriodPicker } from '@/features/cards/PeriodPicker';
+import { currentPeriodInTimezone, isValidPeriod } from '@/features/cards/periods';
 import { useCreditCardDetail } from '@/features/cards/useCreditCardDetail';
 import {
   useDeleteCreditCard,
@@ -147,10 +141,6 @@ export default function CardDetailScreen() {
     }
   };
 
-  const periodOptions: ChipOption<string>[] = buildPeriods(
-    currentPeriodInTimezone(timezone),
-  ).map((value) => ({ value, label: shortMonthLabel(value) }));
-
   const tag = report ? periodTag(report.total, report.paid) : null;
 
   return (
@@ -225,7 +215,7 @@ export default function CardDetailScreen() {
             )}
 
             <SectionHeader title="Periodo" />
-            <Chips options={periodOptions} value={period} onChange={setPeriod} />
+            <PeriodPicker value={period} onChange={setPeriod} />
 
             {!report || !tag ? (
               <Skeleton height={140} radius={radii.card} />

@@ -39,5 +39,5 @@ export { Tag, type TagProps } from './Tag';
 export { TextButton, type TextButtonProps } from './TextButton';
 export { ToastProvider, useToast, type ToastProviderProps } from './Toast';
 export { TopBar, type TopBarProps } from './TopBar';
-export { WheelSelect, type WheelSelectProps } from './WheelSelect';
+export { WheelSelect, Wheel, type WheelSelectProps, type WheelProps } from './WheelSelect';
 export type { IconComponent, TagVariant } from './types';

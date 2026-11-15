@@ -1,7 +1,7 @@
 import { RefreshControl, StyleSheet, View } from 'react-native';
 
 import { router } from 'expo-router';
-import { Bell, CreditCard, Landmark, Settings, User, WifiOff } from 'lucide-react-native';
+import { BarChart3, Bell, CreditCard, Landmark, Settings, User, WifiOff } from 'lucide-react-native';
 
 import {
   Banner,
@@ -73,6 +73,12 @@ export default function MoreScreen() {
             title="Tarjetas"
             subtitle={`${cards.count} tarjetas · deuda ${formatMoney(cards.debt)}`}
             onPress={() => router.push({ pathname: '/accounts', params: { tab: 'cards' } })}
+          />
+          <Row
+            icon={BarChart3}
+            title="Reportes"
+            subtitle="Ingresos, egresos y balance por mes"
+            onPress={() => router.push('/reports')}
           />
         </Group>
       )}

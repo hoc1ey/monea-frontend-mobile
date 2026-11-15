@@ -1,19 +1,7 @@
 import { toZonedTime } from 'date-fns-tz';
 
-const MONTHS_SHORT = [
-  'Ene',
-  'Feb',
-  'Mar',
-  'Abr',
-  'May',
-  'Jun',
-  'Jul',
-  'Ago',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dic',
-];
+/** Short chip label for a period (`2026-10` → `Oct`). */
+export { shortMonthLabel } from '@/lib/format';
 
 /** `true` when `value` is a well-formed `YYYY-MM` period. */
 export function isValidPeriod(value: string | undefined): value is string {
@@ -26,8 +14,10 @@ export function currentPeriodInTimezone(timezone: string): string {
   return `${zoned.getFullYear()}-${String(zoned.getMonth() + 1).padStart(2, '0')}`;
 }
 
-/** Periods offered by the F07 chips: 3 months back and 2 forward. */
-export function buildPeriods(current: string, before = 3, after = 2): string[] {
+/**
+ * Period range offered by the wheel picker: 3 years back, 6 months forward.
+ */
+export function buildPeriodRange(current: string, before = 36, after = 6): string[] {
   const [year, month] = current.split('-').map(Number);
   const periods: string[] = [];
 
@@ -37,11 +27,4 @@ export function buildPeriods(current: string, before = 3, after = 2): string[] {
   }
 
   return periods;
-}
-
-/** Short chip label for a period (`2026-10` → `Oct`). */
-export function shortMonthLabel(period: string): string {
-  const [, month] = period.split('-');
-  const index = Number(month) - 1;
-  return MONTHS_SHORT[index] ?? month;
 }
