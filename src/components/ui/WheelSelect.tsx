@@ -60,7 +60,7 @@ function WheelItem({ index, label, scrollY, color }: WheelItemProps) {
   );
 }
 
-interface WheelProps<T extends string> {
+export interface WheelProps<T extends string> {
   options: SelectOption<T>[];
   value?: T;
   onChange: (value: T) => void;
@@ -72,7 +72,7 @@ interface WheelProps<T extends string> {
  * copies, so the user can keep spinning forever, and the wheel silently jumps
  * to the middle copy when it nears either end.
  */
-function Wheel<T extends string>({ options, value, onChange, visible }: WheelProps<T>) {
+export function Wheel<T extends string>({ options, value, onChange, visible }: WheelProps<T>) {
   const colors = useThemeColors();
   const scrollRef = useRef<ScrollViewInstance>(null);
   const scrollY = useSharedValue(0);

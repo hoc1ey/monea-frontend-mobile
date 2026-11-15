@@ -40,7 +40,7 @@ const config: ExpoConfig = {
   version: '1.1.0',
   runtimeVersion: { policy: 'appVersion' },
   updates: {
-    url: 'https://u.expo.dev/5587977e-c43b-4042-9b9b-65a7d755d120',
+    url: 'https://u.expo.dev/9c87007d-56c3-4863-863b-88e89649236c',
   },
   orientation: 'portrait',
   userInterfaceStyle: 'automatic',
@@ -90,7 +90,7 @@ const config: ExpoConfig = {
   ],
   extra: {
     eas: {
-      projectId: '5587977e-c43b-4042-9b9b-65a7d755d120',
+      projectId: '9c87007d-56c3-4863-863b-88e89649236c',
     },
     ...(Object.keys(envExtra).length > 0 ? { env: envExtra } : {}),
   },

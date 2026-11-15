@@ -2,6 +2,20 @@ import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 const MONTHS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+const MONTH_NAMES = [
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre',
+];
 
 /** Rounds a money value to 2 decimals, avoiding accumulated float error. */
 export function roundMoney(value: number): number {
@@ -29,4 +43,17 @@ export function formatPeriod(period: string): string {
   const [year, month] = period.split('-');
   const index = Number(month) - 1;
   return `${MONTHS[index] ?? month} ${year}`;
+}
+
+/** Short month label for a `YYYY-MM` period (`2026-11` → `Nov`). */
+export function shortMonthLabel(period: string): string {
+  const index = Number(period.split('-')[1]) - 1;
+  return MONTHS[index] ?? period;
+}
+
+/** Full period label for a `YYYY-MM` period (`2026-11` → `Noviembre 2026`). */
+export function longPeriodLabel(period: string): string {
+  const [year, month] = period.split('-');
+  const index = Number(month) - 1;
+  return `${MONTH_NAMES[index] ?? month} ${year}`;
 }

@@ -12,7 +12,7 @@ import {
 import { getExpenses, getPendingExpenses, type Expense } from '@/api/expenses';
 import { getIncomes, type Income } from '@/api/incomes';
 import { getReminders, type Reminder } from '@/api/notifications';
-import { getCollections } from '@/api/obligations';
+import { getMonthlySummary } from '@/api/reports';
 import { getMe, type UserProfile } from '@/api/users';
 import {
   expenseToMovement,
@@ -78,8 +78,9 @@ export interface HomeDashboard {
   week: Movement[];
   totals: {
     balance: number;
-    cardDebt: number;
-    toCollect: number;
+    /** Incomes and expenses of the current month (F18 monthly summary). */
+    monthIncomes: number;
+    monthExpenses: number;
   };
   refetch: () => Promise<unknown>;
 }
@@ -181,17 +182,16 @@ export function useHomeDashboard(): HomeDashboard {
     meQuery,
     accountsQuery,
     cardsQuery,
-    collectionsQuery,
     pendingExpensesQuery,
     remindersQuery,
     weekIncomesQuery,
     weekExpensesQuery,
+    monthlySummaryQuery,
   ] = useQueries({
     queries: [
       { queryKey: ['users', 'me'], queryFn: getMe, staleTime: STALE_TIME },
       { queryKey: ['accounts'], queryFn: getAccounts, staleTime: STALE_TIME },
       { queryKey: ['credit-cards'], queryFn: getCreditCards, staleTime: STALE_TIME },
-      { queryKey: ['collections'], queryFn: () => getCollections(), staleTime: STALE_TIME },
       {
         queryKey: ['expenses', { amountPending: true }],
         queryFn: getPendingExpenses,
@@ -210,6 +210,11 @@ export function useHomeDashboard(): HomeDashboard {
       {
         queryKey: ['expenses', { from: week.from, to: week.to }],
         queryFn: () => getExpenses({ from: week.from, to: week.to, limit: 100 }),
+        staleTime: STALE_TIME,
+      },
+      {
+        queryKey: ['reports', 'monthly-summary'],
+        queryFn: getMonthlySummary,
         staleTime: STALE_TIME,
       },
     ],
@@ -234,11 +239,8 @@ export function useHomeDashboard(): HomeDashboard {
   });
 
   const accounts = accountsQuery.data ?? [];
-  const collections = collectionsQuery.data ?? [];
   const pendingExpenses = pendingExpensesQuery.data ?? [];
   const reminders = remindersQuery.data ?? [];
-
-  const cardDeptTotals = cards.map((_, index) => debtQueries[index]?.data?.currentDebt ?? 0);
 
   const cardRows: HomeCard[] = cards.map((card, index) => ({
     id: card.id,
@@ -260,11 +262,11 @@ export function useHomeDashboard(): HomeDashboard {
     meQuery,
     accountsQuery,
     cardsQuery,
-    collectionsQuery,
     pendingExpensesQuery,
     remindersQuery,
     weekIncomesQuery,
     weekExpensesQuery,
+    monthlySummaryQuery,
     ...debtQueries,
     ...reportQueries,
   ];
@@ -292,8 +294,8 @@ export function useHomeDashboard(): HomeDashboard {
     week: weekMovements,
     totals: {
       balance: sumMoney(accounts.map((account) => account.currentBalance)),
-      cardDebt: sumMoney(cardDeptTotals),
-      toCollect: sumMoney(collections.map((collection) => collection.pendingAmount ?? 0)),
+      monthIncomes: monthlySummaryQuery.data?.totalIncomes ?? 0,
+      monthExpenses: monthlySummaryQuery.data?.totalExpenses ?? 0,
     },
     refetch: () => Promise.all(allQueries.map((query) => query.refetch())),
   };

@@ -235,10 +235,10 @@ export default function HomeScreen() {
               value={formatMoney(dashboard.totals.balance)}
               footer={[
                 {
-                  label: 'Deuda de tarjetas (periodo)',
-                  value: formatMoney(dashboard.totals.cardDebt),
+                  label: 'Ingresos del mes',
+                  value: formatMoney(dashboard.totals.monthIncomes),
                 },
-                { label: 'Por cobrar', value: formatMoney(dashboard.totals.toCollect) },
+                { label: 'Egresos del mes', value: formatMoney(dashboard.totals.monthExpenses) },
               ]}
             />
 
