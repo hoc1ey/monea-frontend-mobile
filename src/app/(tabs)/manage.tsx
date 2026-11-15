@@ -1,7 +1,7 @@
 import { RefreshControl, StyleSheet, View } from 'react-native';
 
 import { router } from 'expo-router';
-import { ArrowDown, ArrowUp, Landmark, ShoppingCart, WifiOff } from 'lucide-react-native';
+import { CalendarArrowDown, CalendarArrowUp, Handshake, ShoppingCart, WifiOff } from 'lucide-react-native';
 
 import { Fab } from '@/components/navigation/Fab';
 import {
@@ -75,7 +75,7 @@ export default function ManageScreen() {
         ) : (
           <Group>
             <Row
-              icon={ArrowDown}
+              icon={CalendarArrowDown}
               title="Cobros"
               subtitle={`${collections.active} activos · por cobrar ${formatMoney(collections.pending)}`}
               onPress={() =>
@@ -83,7 +83,7 @@ export default function ManageScreen() {
               }
             />
             <Row
-              icon={Landmark}
+              icon={Handshake}
               title="Préstamos"
               subtitle={`${loans.active} activos · por pagar ${formatMoney(loans.pending)}`}
               onPress={() =>
@@ -91,7 +91,7 @@ export default function ManageScreen() {
               }
             />
             <Row
-              icon={ArrowUp}
+              icon={CalendarArrowUp}
               title="Deudas"
               subtitle={`${debts.active} activas · pendiente ${formatMoney(debts.pending)}`}
               onPress={() =>

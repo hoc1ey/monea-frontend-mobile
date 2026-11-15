@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { router, useLocalSearchParams } from 'expo-router';
-import { ArrowDown, CreditCard, Repeat, ShoppingCart, Wallet, WifiOff } from 'lucide-react-native';
+import { Repeat, WifiOff } from 'lucide-react-native';
 
 import { getErrorMessage } from '@/api/client';
 
@@ -25,20 +25,30 @@ import {
 } from '@/components/ui';
 import { useAccountDetail, type AccountMovement } from '@/features/accounts/useAccountDetail';
 import { useDeleteAccount } from '@/features/accounts/useAccountMutations';
+import { CONCEPT_ICONS } from '@/lib/icons';
 import { formatMoney } from '@/lib/format';
 import { radii, typography, useThemeColors } from '@/theme';
 
 function movementIcon(movement: AccountMovement): IconComponent {
   if (movement.kind === 'income') {
-    return ArrowDown;
+    return CONCEPT_ICONS.ingreso;
   }
   if (movement.deferred || movement.sourceType === 'CARD_PAYMENT') {
-    return CreditCard;
+    return CONCEPT_ICONS.tarjeta;
   }
   if (movement.sourceType === 'RECURRING') {
     return Repeat;
   }
-  return ShoppingCart;
+  if (movement.sourceType === 'LOAN_CREATION') {
+    return CONCEPT_ICONS.prestamo;
+  }
+  if (movement.sourceType === 'DEBT_PAYMENT') {
+    return CONCEPT_ICONS.deuda;
+  }
+  if (movement.sourceType === 'SHOPPING_LIST') {
+    return CONCEPT_ICONS.lista;
+  }
+  return CONCEPT_ICONS.egreso;
 }
 
 function MovementRow({ movement, accountName }: { movement: AccountMovement; accountName: string }) {
@@ -169,7 +179,7 @@ export default function AccountDetailScreen() {
         {detail.isLoading ? (
           <DetailSkeleton />
         ) : detail.isNotFound ? (
-          <EmptyState icon={Wallet} title="Cuenta no encontrada" />
+          <EmptyState icon={CONCEPT_ICONS.cuenta} title="Cuenta no encontrada" />
         ) : detail.isError || !account ? (
           <>
             <Banner

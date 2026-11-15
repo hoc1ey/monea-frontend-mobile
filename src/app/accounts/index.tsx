@@ -1,7 +1,7 @@
 import { RefreshControl, StyleSheet, View } from 'react-native';
 
 import { router, useLocalSearchParams } from 'expo-router';
-import { Wallet, WifiOff } from 'lucide-react-native';
+import { Landmark, WifiOff } from 'lucide-react-native';
 
 import type { Account } from '@/api/accounts';
 import {
@@ -29,11 +29,11 @@ const TABS: SegmentedOption<AccountsTab>[] = [
   { value: 'cards', label: 'Tarjetas' },
 ];
 
-/** 34 dp tile tinted with the account color at 13 % (`#RRGGBB` + `22`). */
+/** 34 dp slot that shows the account color at full intensity. */
 function AccountTile({ color }: { color: string }) {
   return (
-    <View style={[styles.tile, { backgroundColor: `${color}22` }]}>
-      <Wallet size={18} color={color} strokeWidth={ICON_STROKE} />
+    <View style={styles.tile}>
+      <Landmark size={18} color={color} strokeWidth={ICON_STROKE} />
     </View>
   );
 }
@@ -120,7 +120,7 @@ export default function AccountsScreen() {
           </>
         ) : list.length === 0 ? (
           <EmptyState
-            icon={Wallet}
+            icon={Landmark}
             title="Aún no tienes cuentas"
             message="Registra tu primera cuenta para empezar a controlar tus saldos."
             actionLabel="Nueva cuenta"

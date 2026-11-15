@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 
 import { router } from 'expo-router';
-import { ArrowUpDown, Repeat, Search, WifiOff, X } from 'lucide-react-native';
+import { ArrowLeftRight, ArrowUpDown, Repeat, Search, WifiOff, X } from 'lucide-react-native';
 
 import {
   Banner,
@@ -63,7 +63,7 @@ function sectionHeight(section: MovementSection): number {
   return SECTION_HEADER_HEIGHT + GROUP_GAP + section.data.length * ROW_HEIGHT;
 }
 
-/** 36 dp circular `fill` icon-button (prototype `.ib`). */
+/** 36 dp circular icon-button (prototype `.ib`). */
 function IconButton({
   icon: Icon,
   label,
@@ -80,13 +80,9 @@ function IconButton({
       accessibilityRole="button"
       accessibilityLabel={label}
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.iconButton,
-        { backgroundColor: colors.fill },
-        pressed && { opacity: 0.8 },
-      ]}
+      style={({ pressed }) => [styles.iconButton, pressed && { opacity: 0.8 }]}
     >
-      <Icon size={20} color={colors.accentInk} strokeWidth={ICON_STROKE} />
+      <Icon size={20} color={colors.accent} strokeWidth={ICON_STROKE} />
     </Pressable>
   );
 }
@@ -213,16 +209,23 @@ export default function MovementsScreen() {
       <LargeHeader
         title="Movimientos"
         right={
-          <IconButton
-            icon={searchOpen ? X : Search}
-            label={searchOpen ? 'Cerrar búsqueda' : 'Buscar'}
-            onPress={() => {
-              setSearchOpen((open) => !open);
-              if (searchOpen) {
-                setSearch('');
-              }
-            }}
-          />
+          <View style={styles.headerActions}>
+            <IconButton
+              icon={ArrowLeftRight}
+              label="Nueva transferencia"
+              onPress={() => router.push('/transfers/new')}
+            />
+            <IconButton
+              icon={searchOpen ? X : Search}
+              label={searchOpen ? 'Cerrar búsqueda' : 'Buscar'}
+              onPress={() => {
+                setSearchOpen((open) => !open);
+                if (searchOpen) {
+                  setSearch('');
+                }
+              }}
+            />
+          </View>
         }
       />
       {searchOpen ? (
@@ -290,7 +293,7 @@ export default function MovementsScreen() {
     <View style={styles.footer}>
       <Skeleton height={44} radius={radii.button} />
     </View>
-  ) : null;
+  ) : undefined;
 
   return (
     <View style={styles.flex}>
@@ -334,6 +337,10 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 8,
   },
   search: {
     flexDirection: 'row',

@@ -46,8 +46,8 @@ export default function NotificationsOnboardingScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.bg }]}>
-      <View style={[styles.icon, { backgroundColor: colors.accentSoft }]}>
-        <Bell size={38} color={colors.accentInk} strokeWidth={ICON_STROKE} />
+      <View style={styles.icon}>
+        <Bell size={38} color={colors.accent} strokeWidth={ICON_STROKE} />
       </View>
 
       <Text style={[styles.title, { color: colors.text }]}>Activa tus recordatorios</Text>
@@ -72,11 +72,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   icon: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: 18,
   },
   title: {

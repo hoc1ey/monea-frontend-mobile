@@ -26,7 +26,7 @@ const TABS: Record<string, TabDefinition> = {
  * centered, `insets.bottom + 12` from the bottom edge. Only rendered by the
  * tabs navigator, so it disappears on stacked detail screens.
  */
-export function TabBar({ state, navigation }: BottomTabBarProps) {
+export function TabBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const colors = useThemeColors();
   const isDark = useIsDark();
@@ -64,14 +64,14 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
               accessibilityState={{ selected: focused }}
               accessibilityLabel={tab.label}
               onPress={() => {
-                const event = navigation.emit({
+                const event = emitter.emit({
                   type: 'tabPress',
                   target: route.key,
                   canPreventDefault: true,
                 });
 
                 if (!focused && !event.defaultPrevented) {
-                  navigation.navigate(route.name);
+                  navigateToTab(route.key);
                 }
               }}
               style={styles.tab}

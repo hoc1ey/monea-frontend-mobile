@@ -60,11 +60,11 @@ export default function ForgotPasswordScreen() {
       <TopBar title="Recuperar contraseña" onBack={() => router.back()} />
       <ScreenContainer>
         <View style={styles.intro}>
-          <View style={[styles.icon, { backgroundColor: colors.accentSoft }]}>
+          <View style={styles.icon}>
             {sentMessage ? (
-              <MailCheck size={38} color={colors.accentInk} strokeWidth={ICON_STROKE} />
+              <MailCheck size={38} color={colors.accent} strokeWidth={ICON_STROKE} />
             ) : (
-              <Mail size={38} color={colors.accentInk} strokeWidth={ICON_STROKE} />
+              <Mail size={38} color={colors.accent} strokeWidth={ICON_STROKE} />
             )}
           </View>
           <Text style={[styles.title, { color: colors.text }]}>
@@ -150,11 +150,6 @@ const styles = StyleSheet.create({
     paddingBottom: 22,
   },
   icon: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: 18,
   },
   title: {

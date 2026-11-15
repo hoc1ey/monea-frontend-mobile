@@ -26,12 +26,11 @@ export function BackButton({
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
-        { backgroundColor: colors.fill },
         disabled && styles.disabled,
         pressed && { opacity: 0.8 },
       ]}
     >
-      <ChevronLeft size={20} color={colors.accentInk} strokeWidth={ICON_STROKE} />
+      <ChevronLeft size={20} color={colors.accent} strokeWidth={ICON_STROKE} />
     </Pressable>
   );
 }

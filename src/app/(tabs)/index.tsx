@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { router } from 'expo-router';
-import { Bell, CreditCard, Repeat, Wallet, WifiOff } from 'lucide-react-native';
+import { Bell, CreditCard, Landmark, Repeat, WifiOff } from 'lucide-react-native';
 
 import { Fab } from '@/components/navigation/Fab';
 import {
@@ -34,7 +34,7 @@ function todayLabel(): string {
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
-/** 36 dp circular `fill` icon-button (prototype `.ib`), used for the bell. */
+/** 36 dp circular icon-button (prototype `.ib`), used for the bell. */
 function BellButton({ onPress }: { onPress: () => void }) {
   const colors = useThemeColors();
 
@@ -43,13 +43,9 @@ function BellButton({ onPress }: { onPress: () => void }) {
       accessibilityRole="button"
       accessibilityLabel="Recordatorios"
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.bell,
-        { backgroundColor: colors.fill },
-        pressed && { opacity: 0.8 },
-      ]}
+      style={({ pressed }) => [styles.bell, pressed && { opacity: 0.8 }]}
     >
-      <Bell size={20} color={colors.accentInk} strokeWidth={ICON_STROKE} />
+      <Bell size={20} color={colors.accent} strokeWidth={ICON_STROKE} />
     </Pressable>
   );
 }
@@ -79,10 +75,10 @@ function SectionLink({ label, onPress }: { label: string; onPress: () => void })
   );
 }
 
-/** Card icon on a tile tinted with the card color at 20 % (prototype `${color}33`). */
+/** Card icon at full card-color intensity (prototype `${color}33` tile removed). */
 function CardTile({ color }: { color: string }) {
   return (
-    <View style={[styles.cardTile, { backgroundColor: `${color}33` }]}>
+    <View style={styles.cardTile}>
       <CreditCard size={18} color={color} strokeWidth={ICON_STROKE} />
     </View>
   );
@@ -258,7 +254,7 @@ export default function HomeScreen() {
               </>
             ) : showEmpty ? (
               <EmptyState
-                icon={Wallet}
+                icon={Landmark}
                 title="Empieza registrando una cuenta"
                 message="Añade tu primera cuenta para ver aquí tu saldo, tarjetas y cuotas."
                 actionLabel="Nueva cuenta"

@@ -20,10 +20,12 @@ import { typography, useThemeColors } from '@/theme';
 export const ACCOUNT_COLORS = [
   '#fe36c1',
   '#ac086b',
-  '#e0068c',
   '#2563eb',
   '#7c3aed',
   '#059669',
+  '#0d9488',
+  '#dc2626',
+  '#1e3a8a',
 ] as const;
 
 const schema = z.object({

@@ -58,14 +58,14 @@ const styles = StyleSheet.create({
   banner: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 12,
     padding: 14,
     borderRadius: radii.banner,
     marginBottom: 12,
   },
   text: {
-    flex: 1,
-    minWidth: 0,
+    flexShrink: 1,
   },
   title: {
     ...typography.subhead,

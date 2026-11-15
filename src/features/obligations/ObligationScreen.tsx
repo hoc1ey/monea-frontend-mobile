@@ -1,7 +1,7 @@
 import { RefreshControl, StyleSheet, View } from 'react-native';
 
 import { router } from 'expo-router';
-import { ArrowDown, ArrowUp, Landmark, WifiOff } from 'lucide-react-native';
+import { ArrowDown, CalendarArrowUp, Handshake, WifiOff } from 'lucide-react-native';
 
 import {
   Banner,
@@ -32,8 +32,8 @@ import { useObligations } from './useObligations';
 
 const KIND_ICON: Record<ObligationKind, IconComponent> = {
   cobros: ArrowDown,
-  prestamos: Landmark,
-  deudas: ArrowUp,
+  prestamos: Handshake,
+  deudas: CalendarArrowUp,
 };
 
 function ListSkeleton() {
